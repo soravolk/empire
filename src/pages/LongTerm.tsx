@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 const CYCLES = [
   {
     id: 0,
@@ -15,22 +17,32 @@ const CYCLES = [
 
 interface CycleProps {
   cycles: { id: number; long_term_id: number }[];
+  setCycle: (cycle: number | null) => void;
 }
 
-const Cycle: React.FC<CycleProps> = ({ cycles }) => (
-  <div className="w-1/5 p-6">
-    <div className="flex flex-col items-center space-y-2">
-      {cycles.map((_, id) => (
-        <button className="items-center justify-center bg-gray-300 rounded-full w-20 h-20">
-          {`Cycle ${id + 1}`}
+const Cycle: React.FC<CycleProps> = ({ cycles, setCycle }) => {
+  const handleClick = (id: number) => {
+    setCycle(id);
+  };
+
+  return (
+    <div className="w-1/5 p-6">
+      <div className="flex flex-col items-center space-y-2">
+        {cycles.map((item, id) => (
+          <button
+            className="items-center justify-center bg-gray-300 rounded-full w-20 h-20"
+            onClick={() => handleClick(item.id)}
+          >
+            {`Cycle ${id + 1}`}
+          </button>
+        ))}
+        <button className="items-center justify-center bg-blue-500 text-white rounded-full h-12 w-12">
+          +
         </button>
-      ))}
-      <button className="items-center justify-center bg-blue-500 text-white rounded-full h-12 w-12">
-        +
-      </button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const Category = () => (
   <div className="w-1.5/5">
@@ -81,9 +93,11 @@ const Content = () => (
 );
 
 export default function LongTerm() {
+  const [cycle, setCycle] = useState<number | null>(null);
+
   return (
     <div className="flex">
-      <Cycle cycles={CYCLES} />
+      <Cycle cycles={CYCLES} setCycle={setCycle} />
       <Category />
       <SubCategory />
       <Content />
