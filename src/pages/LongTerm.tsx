@@ -1,15 +1,30 @@
-const Cycle = () => (
+const CYCLES = [
+  {
+    id: 0,
+    long_term_id: 0,
+  },
+  {
+    id: 1,
+    long_term_id: 0,
+  },
+  {
+    id: 2,
+    long_term_id: 0,
+  },
+];
+
+interface CycleProps {
+  cycles: { id: number; long_term_id: number }[];
+}
+
+const Cycle: React.FC<CycleProps> = ({ cycles }) => (
   <div className="w-1/5 p-6">
     <div className="flex flex-col items-center space-y-2">
-      <button className="items-center justify-center bg-gray-300 rounded-full w-20 h-20">
-        Cycle 1
-      </button>
-      <button className="items-center justify-center bg-gray-300 rounded-full w-20 h-20">
-        Cycle 2
-      </button>
-      <button className="items-center justify-center bg-gray-300 rounded-full w-20 h-20">
-        Cycle 3
-      </button>
+      {cycles.map((_, id) => (
+        <button className="items-center justify-center bg-gray-300 rounded-full w-20 h-20">
+          {`Cycle ${id + 1}`}
+        </button>
+      ))}
       <button className="items-center justify-center bg-blue-500 text-white rounded-full h-12 w-12">
         +
       </button>
@@ -68,7 +83,7 @@ const Content = () => (
 export default function LongTerm() {
   return (
     <div className="flex">
-      <Cycle />
+      <Cycle cycles={CYCLES} />
       <Category />
       <SubCategory />
       <Content />
