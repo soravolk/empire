@@ -1,8 +1,10 @@
 import { Router } from "express";
-import { getLongTerms } from "../controllers/longTerms";
+import longTerms from "../controllers/longTerms";
 
 const router = Router();
 
-router.get("/", getLongTerms);
+router.post("/", longTerms.createLongTerm);
+
+router.get("/", longTerms.getLongTerms);
 
 export default router;
