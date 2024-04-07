@@ -23,7 +23,7 @@ const getCategories: RequestHandler = async (req, res) => {
 const deleteCategory: RequestHandler = async (req, res) => {
   const { id } = req.params;
   try {
-    await db.remove("categories", { id });
+    await db.deleteById("categories", id);
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: "internal server error" });
