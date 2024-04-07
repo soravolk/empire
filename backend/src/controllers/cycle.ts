@@ -40,4 +40,45 @@ const deleteCycle: RequestHandler = async (req, res) => {
   }
 };
 
-export default { createCycle, getCycle, getCycles, deleteCycle };
+const addCategoryToCycle: RequestHandler = async (req, res) => {
+  const { id: cycle_id } = req.params;
+  const { category_id } = req.body;
+  try {
+    await db.insert("cycle_categories", { cycle_id, category_id });
+    res.status(201).send();
+  } catch (error) {
+    res.status(500).json({ error: "internal server error" });
+  }
+};
+
+const addSubcategoryToCycle: RequestHandler = async (req, res) => {
+  const { id: cycle_id } = req.params;
+  const { subcategory_id } = req.body;
+  try {
+    await db.insert("cycle_subcategories", { cycle_id, subcategory_id });
+    res.status(201).send();
+  } catch (error) {
+    res.status(500).json({ error: "internal server error" });
+  }
+};
+
+const addContentToCycle: RequestHandler = async (req, res) => {
+  const { id: cycle_id } = req.params;
+  const { content_id } = req.body;
+  try {
+    await db.insert("cycle_contents", { cycle_id, content_id });
+    res.status(201).send();
+  } catch (error) {
+    res.status(500).json({ error: "internal server error" });
+  }
+};
+
+export default {
+  createCycle,
+  getCycle,
+  getCycles,
+  deleteCycle,
+  addCategoryToCycle,
+  addSubcategoryToCycle,
+  addContentToCycle,
+};
