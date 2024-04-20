@@ -4,3 +4,10 @@ export interface LongTermItem {
   start_time: Date;
   end_time: Date;
 }
+
+export interface CycleItem {
+  id: number;
+  long_term_id: number;
+  start_time: Date;
+  end_time: Date;
+}

@@ -1,23 +1,11 @@
 import { useState } from "react";
-import { useFetchLongTermsQuery } from "../store";
+import {
+  useFetchLongTermsQuery,
+  useFetchCyclesOfLongTermQuery,
+} from "../store";
 import Dropdown from "../components/Dropdown";
 import { getLongTermHistoryOptions } from "../utils/utils";
-import { LongTermItem } from "../types";
-
-const CYCLES = [
-  {
-    id: 0,
-    long_term_id: 0,
-  },
-  {
-    id: 1,
-    long_term_id: 0,
-  },
-  {
-    id: 2,
-    long_term_id: 0,
-  },
-];
+import { LongTermItem, CycleItem } from "../types";
 
 const CATEGORIES = [
   {
@@ -118,11 +106,17 @@ interface CategoryProps {
 }
 
 interface CycleProps {
-  cycles: { id: number; long_term_id: number }[];
+  longTerm: LongTermItem;
   setCycle: (cycle: number | null) => void;
 }
 
-const Cycle: React.FC<CycleProps> = ({ cycles, setCycle }) => {
+const Cycle: React.FC<CycleProps> = ({ longTerm, setCycle }) => {
+  const {
+    data: cycles,
+    error,
+    isLoading,
+  } = useFetchCyclesOfLongTermQuery(longTerm);
+
   const handleClick = (id: number) => {
     setCycle(id);
   };
@@ -130,14 +124,15 @@ const Cycle: React.FC<CycleProps> = ({ cycles, setCycle }) => {
   return (
     <div className="w-1/5 p-6">
       <div className="flex flex-col items-center space-y-2">
-        {cycles.map((item, id) => (
-          <button
-            className="items-center justify-center bg-gray-300 rounded-full w-20 h-20"
-            onClick={() => handleClick(item.id)}
-          >
-            {`Cycle ${id + 1}`}
-          </button>
-        ))}
+        {cycles &&
+          cycles.map((item: CycleItem, id: number) => (
+            <button
+              className="items-center justify-center bg-gray-300 rounded-full w-20 h-20"
+              onClick={() => handleClick(item.id)}
+            >
+              {`Cycle ${id + 1}`}
+            </button>
+          ))}
         <button className="items-center justify-center bg-blue-500 text-white rounded-full h-12 w-12">
           +
         </button>
@@ -246,7 +241,7 @@ export default function LongTerm() {
         )}
       </div>
       <div className="flex">
-        <Cycle cycles={CYCLES} setCycle={setCycle} />
+        {longTerm && <Cycle longTerm={longTerm} setCycle={setCycle} />}
         <Category
           cycle={cycle}
           categories={CATEGORIES}
