@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useFetchLongTermsQuery } from "../store";
 
 const CYCLES = [
   {
@@ -225,10 +226,10 @@ const Content: React.FC<ContentProps> = ({ cycle, subcategory, contents }) => {
 };
 
 export default function LongTerm() {
+  const { data, error, isLoading } = useFetchLongTermsQuery(null);
   const [cycle, setCycle] = useState<number | null>(null);
   const [category, setCategory] = useState<number | null>(null);
   const [subcategory, setSubcategory] = useState<number | null>(null);
-
   return (
     <div className="flex">
       <Cycle cycles={CYCLES} setCycle={setCycle} />
