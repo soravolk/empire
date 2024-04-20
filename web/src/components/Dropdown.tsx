@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { GoChevronDown } from "react-icons/go";
 
-const Dropdown: React.FC = () => {
+interface DropdownProps {
+  options: string[];
+}
+
+const Dropdown: React.FC<DropdownProps> = ({ options }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const options: string[] = ["Option 1", "Option 2", "Option 3"];
 
   const toggling = () => setIsOpen(!isOpen);
   const onOptionClicked = (value: string) => () => {

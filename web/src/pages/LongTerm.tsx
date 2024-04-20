@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useFetchLongTermsQuery } from "../store";
 import Dropdown from "../components/Dropdown";
+import { getLongTermHistoryOptions } from "../utils/utils";
 
 const CYCLES = [
   {
@@ -235,7 +236,7 @@ export default function LongTerm() {
   return (
     <div className="flex flex-col p-4">
       <div className="w-full mb-4">
-        <Dropdown />
+        {data && <Dropdown options={getLongTermHistoryOptions(data)} />}
       </div>
       <div className="flex">
         <Cycle cycles={CYCLES} setCycle={setCycle} />
