@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useFetchLongTermsQuery } from "../store";
 import Dropdown from "../components/Dropdown";
 import { getLongTermHistoryOptions } from "../utils/utils";
+import { LongTermItem } from "../types";
 
 const CYCLES = [
   {
@@ -229,7 +230,7 @@ const Content: React.FC<ContentProps> = ({ cycle, subcategory, contents }) => {
 
 export default function LongTerm() {
   const { data, error, isLoading } = useFetchLongTermsQuery(null);
-  const [longTerm, setLongTerm] = useState<string | null>(null);
+  const [longTerm, setLongTerm] = useState<LongTermItem | null>(null);
   const [cycle, setCycle] = useState<number | null>(null);
   const [category, setCategory] = useState<number | null>(null);
   const [subcategory, setSubcategory] = useState<number | null>(null);
@@ -239,7 +240,6 @@ export default function LongTerm() {
       <div className="w-full mb-4">
         {data && (
           <Dropdown
-            selection={longTerm}
             options={getLongTermHistoryOptions(data)}
             onSelect={setLongTerm}
           />
