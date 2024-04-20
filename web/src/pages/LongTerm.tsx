@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useFetchLongTermsQuery } from "../store";
+import Dropdown from "../components/Dropdown";
 
 const CYCLES = [
   {
@@ -230,21 +231,27 @@ export default function LongTerm() {
   const [cycle, setCycle] = useState<number | null>(null);
   const [category, setCategory] = useState<number | null>(null);
   const [subcategory, setSubcategory] = useState<number | null>(null);
+
   return (
-    <div className="flex">
-      <Cycle cycles={CYCLES} setCycle={setCycle} />
-      <Category
-        cycle={cycle}
-        categories={CATEGORIES}
-        setCategory={setCategory}
-      />
-      <SubCategory
-        cycle={cycle}
-        category={category}
-        subcategories={SUBCATEGORIES}
-        setSubcategory={setSubcategory}
-      />
-      <Content cycle={cycle} subcategory={subcategory} contents={CONTENTS} />
+    <div className="flex flex-col p-4">
+      <div className="w-full mb-4">
+        <Dropdown />
+      </div>
+      <div className="flex">
+        <Cycle cycles={CYCLES} setCycle={setCycle} />
+        <Category
+          cycle={cycle}
+          categories={CATEGORIES}
+          setCategory={setCategory}
+        />
+        <SubCategory
+          cycle={cycle}
+          category={category}
+          subcategories={SUBCATEGORIES}
+          setSubcategory={setSubcategory}
+        />
+        <Content cycle={cycle} subcategory={subcategory} contents={CONTENTS} />
+      </div>
     </div>
   );
 }
