@@ -229,6 +229,7 @@ const Content: React.FC<ContentProps> = ({ cycle, subcategory, contents }) => {
 
 export default function LongTerm() {
   const { data, error, isLoading } = useFetchLongTermsQuery(null);
+  const [longTerm, setLongTerm] = useState<string | null>(null);
   const [cycle, setCycle] = useState<number | null>(null);
   const [category, setCategory] = useState<number | null>(null);
   const [subcategory, setSubcategory] = useState<number | null>(null);
@@ -236,7 +237,13 @@ export default function LongTerm() {
   return (
     <div className="flex flex-col p-4">
       <div className="w-full mb-4">
-        {data && <Dropdown options={getLongTermHistoryOptions(data)} />}
+        {data && (
+          <Dropdown
+            selection={longTerm}
+            options={getLongTermHistoryOptions(data)}
+            onSelect={setLongTerm}
+          />
+        )}
       </div>
       <div className="flex">
         <Cycle cycles={CYCLES} setCycle={setCycle} />

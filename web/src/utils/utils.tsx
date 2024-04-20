@@ -9,7 +9,12 @@ const getLongTermHistoryOptions = (items: LongTermItem[]) => {
       month: "numeric",
       day: "numeric",
     });
-    return `${formatter.format(start_date)} - ${formatter.format(end_date)}`;
+    return {
+      id: String(item.id),
+      date_range: `${formatter.format(start_date)} - ${formatter.format(
+        end_date
+      )}`,
+    };
   });
 };
 
