@@ -34,6 +34,14 @@ const cyclesApi = createApi({
           };
         },
       }),
+      fetchContentsFromCycle: builder.query({
+        query: (cycle) => {
+          return {
+            url: `/cycles/${cycle.id}/contents`,
+            method: "GET",
+          };
+        },
+      }),
     };
   },
 });
@@ -42,5 +50,6 @@ export const {
   useFetchCyclesOfLongTermQuery,
   useFetchCategoriesFromCycleQuery,
   useFetchSubcategoriesFromCycleQuery,
+  useFetchContentsFromCycleQuery,
 } = cyclesApi;
 export { cyclesApi };

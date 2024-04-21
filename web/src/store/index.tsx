@@ -22,4 +22,5 @@ export {
   useFetchCyclesOfLongTermQuery,
   useFetchCategoriesFromCycleQuery,
   useFetchSubcategoriesFromCycleQuery,
+  useFetchContentsFromCycleQuery,
 } from "./apis/cyclesApi";

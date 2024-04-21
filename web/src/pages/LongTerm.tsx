@@ -4,37 +4,13 @@ import {
   useFetchCyclesOfLongTermQuery,
   useFetchCategoriesFromCycleQuery,
   useFetchSubcategoriesFromCycleQuery,
+  useFetchContentsFromCycleQuery,
 } from "../store";
 import Dropdown from "../components/Dropdown";
 import { getLongTermHistoryOptions } from "../utils/utils";
 import { LongTermItem, CycleItem } from "../types";
 
-const CONTENTS = [
-  {
-    id: 0,
-    cycle_id: 0,
-    content_id: 0,
-    subcategory_id: 0,
-    name: "Data Fetching",
-  },
-  {
-    id: 1,
-    cycle_id: 0,
-    content_id: 1,
-    subcategory_id: 0,
-    name: "Rendering",
-  },
-  {
-    id: 2,
-    cycle_id: 0,
-    content_id: 2,
-    subcategory_id: 0,
-    name: "Caching",
-  },
-];
-
 interface ContentProps {
-  cycle: CycleItem | null;
   subcategory: number | null;
   contents: {
     id: number;
@@ -158,9 +134,9 @@ const SubCategory: React.FC<SubcategoryProps> = ({
   );
 };
 
-const Content: React.FC<ContentProps> = ({ cycle, subcategory, contents }) => {
+const Content: React.FC<ContentProps> = ({ subcategory, contents }) => {
   const displayItems = contents.filter(
-    (item) => item.cycle_id === cycle?.id && item.subcategory_id === subcategory
+    (item) => item.subcategory_id === subcategory
   );
   return (
     <div>
@@ -195,7 +171,11 @@ export default function LongTerm() {
     error: subcategoryFetchError,
     isLoading: isSubCategoryLoading,
   } = useFetchSubcategoriesFromCycleQuery(cycle);
-
+  const {
+    data: contentData,
+    error: contentFetchError,
+    isLoading: isContentLoading,
+  } = useFetchContentsFromCycleQuery(cycle);
   return (
     <div className="flex flex-col p-4">
       <div className="w-full mb-4">
@@ -218,7 +198,9 @@ export default function LongTerm() {
             setSubcategory={setSubcategory}
           />
         )}
-        <Content cycle={cycle} subcategory={subcategory} contents={CONTENTS} />
+        {contentData && (
+          <Content subcategory={subcategory} contents={contentData} />
+        )}
       </div>
     </div>
   );
