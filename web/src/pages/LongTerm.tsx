@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useFetchLongTermsQuery,
   useFetchCyclesOfLongTermQuery,
@@ -70,7 +70,7 @@ const CONTENTS = [
 ];
 
 interface ContentProps {
-  cycle: number | null;
+  cycle: CycleItem | null;
   subcategory: number | null;
   contents: {
     id: number;
@@ -82,7 +82,7 @@ interface ContentProps {
 }
 
 interface SubcategoryProps {
-  cycle: number | null;
+  cycle: CycleItem | null;
   category: number | null;
   subcategories: {
     id: number;
@@ -95,7 +95,7 @@ interface SubcategoryProps {
 }
 
 interface CategoryProps {
-  cycle: number | null;
+  cycle: CycleItem | null;
   categories: {
     id: number;
     cycle_id: number;
@@ -107,7 +107,7 @@ interface CategoryProps {
 
 interface CycleProps {
   longTerm: LongTermItem;
-  setCycle: (cycle: number | null) => void;
+  setCycle: (cycle: CycleItem | null) => void;
 }
 
 const Cycle: React.FC<CycleProps> = ({ longTerm, setCycle }) => {
@@ -117,8 +117,8 @@ const Cycle: React.FC<CycleProps> = ({ longTerm, setCycle }) => {
     isLoading,
   } = useFetchCyclesOfLongTermQuery(longTerm);
 
-  const handleClick = (id: number) => {
-    setCycle(id);
+  const handleClick = (cycle: CycleItem) => {
+    setCycle(cycle);
   };
 
   return (
@@ -128,7 +128,7 @@ const Cycle: React.FC<CycleProps> = ({ longTerm, setCycle }) => {
           cycles.map((item: CycleItem, id: number) => (
             <button
               className="items-center justify-center bg-gray-300 rounded-full w-20 h-20"
-              onClick={() => handleClick(item.id)}
+              onClick={() => handleClick(item)}
             >
               {`Cycle ${id + 1}`}
             </button>
@@ -146,7 +146,7 @@ const Category: React.FC<CategoryProps> = ({
   categories,
   setCategory,
 }) => {
-  const displayItems = categories.filter((item) => item.cycle_id === cycle);
+  const displayItems = categories.filter((item) => item.cycle_id === cycle?.id);
   const handleClick = (id: number) => {
     setCategory(id);
   };
@@ -177,7 +177,7 @@ const SubCategory: React.FC<SubcategoryProps> = ({
   setSubcategory,
 }) => {
   const displayItems = subcategories.filter(
-    (item) => item.cycle_id === cycle && item.category_id === category
+    (item) => item.cycle_id === cycle?.id && item.category_id === category
   );
   const handleClick = (id: number) => {
     setSubcategory(id);
@@ -204,7 +204,7 @@ const SubCategory: React.FC<SubcategoryProps> = ({
 
 const Content: React.FC<ContentProps> = ({ cycle, subcategory, contents }) => {
   const displayItems = contents.filter(
-    (item) => item.cycle_id === cycle && item.subcategory_id === subcategory
+    (item) => item.cycle_id === cycle?.id && item.subcategory_id === subcategory
   );
   return (
     <div>
@@ -226,7 +226,7 @@ const Content: React.FC<ContentProps> = ({ cycle, subcategory, contents }) => {
 export default function LongTerm() {
   const { data, error, isLoading } = useFetchLongTermsQuery(null);
   const [longTerm, setLongTerm] = useState<LongTermItem | null>(null);
-  const [cycle, setCycle] = useState<number | null>(null);
+  const [cycle, setCycle] = useState<CycleItem | null>(null);
   const [category, setCategory] = useState<number | null>(null);
   const [subcategory, setSubcategory] = useState<number | null>(null);
 
