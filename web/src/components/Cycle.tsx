@@ -1,18 +1,11 @@
-import { useFetchCyclesOfLongTermQuery } from "../store";
-import { LongTermItem, CycleItem } from "../types";
+import { CycleItem } from "../types";
 
 interface CycleProps {
-  longTerm: LongTermItem;
+  cycles: CycleItem[];
   setCycle: (cycle: CycleItem | null) => void;
 }
 
-const Cycle: React.FC<CycleProps> = ({ longTerm, setCycle }) => {
-  const {
-    data: cycles,
-    error,
-    isLoading,
-  } = useFetchCyclesOfLongTermQuery(longTerm);
-
+const Cycle: React.FC<CycleProps> = ({ cycles, setCycle }) => {
   const handleClick = (cycle: CycleItem) => {
     setCycle(cycle);
   };

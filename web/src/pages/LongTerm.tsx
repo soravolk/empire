@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   useFetchLongTermsQuery,
+  useFetchCyclesOfLongTermQuery,
   useFetchCategoriesFromCycleQuery,
   useFetchSubcategoriesFromCycleQuery,
   useFetchContentsFromCycleQuery,
@@ -19,6 +20,11 @@ export default function LongTerm() {
   const [category, setCategory] = useState<number | null>(null);
   const [subcategory, setSubcategory] = useState<number | null>(null);
   const { data, error, isLoading } = useFetchLongTermsQuery(null);
+  const {
+    data: cycleData,
+    error: cycleFetchError,
+    isLoading: isCycleLoading,
+  } = useFetchCyclesOfLongTermQuery(longTerm);
   const {
     data: categoryData,
     error: categoryFetchError,
@@ -45,7 +51,7 @@ export default function LongTerm() {
         )}
       </div>
       <div className="flex">
-        {longTerm && <Cycle longTerm={longTerm} setCycle={setCycle} />}
+        {cycleData && <Cycle cycles={cycleData} setCycle={setCycle} />}
         {categoryData && (
           <Category categories={categoryData} setCategory={setCategory} />
         )}
