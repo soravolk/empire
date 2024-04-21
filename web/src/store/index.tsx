@@ -18,4 +18,7 @@ export const store = configureStore({
 setupListeners(store.dispatch);
 
 export { useFetchLongTermsQuery } from "./apis/longTermsApi";
-export { useFetchCyclesOfLongTermQuery } from "./apis/cyclesApi";
+export {
+  useFetchCyclesOfLongTermQuery,
+  useFetchCategoriesFromCycleQuery,
+} from "./apis/cyclesApi";

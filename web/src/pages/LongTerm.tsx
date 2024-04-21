@@ -1,32 +1,12 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   useFetchLongTermsQuery,
   useFetchCyclesOfLongTermQuery,
+  useFetchCategoriesFromCycleQuery,
 } from "../store";
 import Dropdown from "../components/Dropdown";
 import { getLongTermHistoryOptions } from "../utils/utils";
 import { LongTermItem, CycleItem } from "../types";
-
-const CATEGORIES = [
-  {
-    id: 0,
-    cycle_id: 0,
-    category_id: 0,
-    name: "Machine Learning",
-  },
-  {
-    id: 1,
-    cycle_id: 0,
-    category_id: 1,
-    name: "System Design",
-  },
-  {
-    id: 2,
-    cycle_id: 0,
-    category_id: 2,
-    name: "Fullstack",
-  },
-];
 
 const SUBCATEGORIES = [
   {
@@ -95,7 +75,6 @@ interface SubcategoryProps {
 }
 
 interface CategoryProps {
-  cycle: CycleItem | null;
   categories: {
     id: number;
     cycle_id: number;
@@ -141,12 +120,7 @@ const Cycle: React.FC<CycleProps> = ({ longTerm, setCycle }) => {
   );
 };
 
-const Category: React.FC<CategoryProps> = ({
-  cycle,
-  categories,
-  setCategory,
-}) => {
-  const displayItems = categories.filter((item) => item.cycle_id === cycle?.id);
+const Category: React.FC<CategoryProps> = ({ categories, setCategory }) => {
   const handleClick = (id: number) => {
     setCategory(id);
   };
@@ -154,7 +128,7 @@ const Category: React.FC<CategoryProps> = ({
   return (
     <div className="w-1.5/5">
       <div className="flex flex-col items-center space-y-4 mx-5 p-4">
-        {displayItems.map((item) => (
+        {categories.map((item) => (
           <button
             className="items-center justify-center bg-gray-300 w-20 h-15 p-2 rounded"
             onClick={() => handleClick(item.category_id)}
@@ -224,11 +198,16 @@ const Content: React.FC<ContentProps> = ({ cycle, subcategory, contents }) => {
 };
 
 export default function LongTerm() {
-  const { data, error, isLoading } = useFetchLongTermsQuery(null);
-  const [longTerm, setLongTerm] = useState<LongTermItem | null>(null);
   const [cycle, setCycle] = useState<CycleItem | null>(null);
+  const [longTerm, setLongTerm] = useState<LongTermItem | null>(null);
   const [category, setCategory] = useState<number | null>(null);
   const [subcategory, setSubcategory] = useState<number | null>(null);
+  const { data, error, isLoading } = useFetchLongTermsQuery(null);
+  const {
+    data: categoryData,
+    error: categoryFetchError,
+    isLoading: isCategoryLoading,
+  } = useFetchCategoriesFromCycleQuery(cycle);
 
   return (
     <div className="flex flex-col p-4">
@@ -242,11 +221,9 @@ export default function LongTerm() {
       </div>
       <div className="flex">
         {longTerm && <Cycle longTerm={longTerm} setCycle={setCycle} />}
-        <Category
-          cycle={cycle}
-          categories={CATEGORIES}
-          setCategory={setCategory}
-        />
+        {categoryData && (
+          <Category categories={categoryData} setCategory={setCategory} />
+        )}
         <SubCategory
           cycle={cycle}
           category={category}
