@@ -1,9 +1,9 @@
-import { SubcategoryItem } from "../types";
+import { CategoryItem, SubcategoryItem } from "../types";
 
 interface SubcategoryProps {
-  category: number | null;
+  category: CategoryItem | null;
   subcategories: SubcategoryItem[];
-  setSubcategory: (subcategory: number | null) => void;
+  setSubcategory: (subcategory: SubcategoryItem | null) => void;
 }
 
 const SubCategory: React.FC<SubcategoryProps> = ({
@@ -12,10 +12,10 @@ const SubCategory: React.FC<SubcategoryProps> = ({
   setSubcategory,
 }) => {
   const displayItems = subcategories.filter(
-    (item) => item.category_id === category
+    (item) => item.category_id === category?.category_id
   );
-  const handleClick = (id: number) => {
-    setSubcategory(id);
+  const handleClick = (subcategory: SubcategoryItem) => {
+    setSubcategory(subcategory);
   };
 
   return (
@@ -24,7 +24,7 @@ const SubCategory: React.FC<SubcategoryProps> = ({
         {displayItems.map((item) => (
           <button
             className="items-center justify-center bg-gray-300 w-20 h-15 p-2 rounded"
-            onClick={() => handleClick(item.subcategory_id)}
+            onClick={() => handleClick(item)}
           >
             {item.name}
           </button>

@@ -1,13 +1,13 @@
-import { ContentItem } from "../types";
+import { SubcategoryItem, ContentItem } from "../types";
 
 interface ContentProps {
-  subcategory: number | null;
+  subcategory: SubcategoryItem | null;
   contents: ContentItem[];
 }
 
 const Content: React.FC<ContentProps> = ({ subcategory, contents }) => {
   const displayItems = contents.filter(
-    (item) => item.subcategory_id === subcategory
+    (item) => item.subcategory_id === subcategory?.subcategory_id
   );
   return (
     <div>

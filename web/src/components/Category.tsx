@@ -2,12 +2,12 @@ import { CategoryItem } from "../types";
 
 interface CategoryProps {
   categories: CategoryItem[];
-  setCategory: (category: number | null) => void;
+  setCategory: (category: CategoryItem | null) => void;
 }
 
 const Category: React.FC<CategoryProps> = ({ categories, setCategory }) => {
-  const handleClick = (id: number) => {
-    setCategory(id);
+  const handleClick = (category: CategoryItem) => {
+    setCategory(category);
   };
 
   return (
@@ -16,7 +16,7 @@ const Category: React.FC<CategoryProps> = ({ categories, setCategory }) => {
         {categories.map((item) => (
           <button
             className="items-center justify-center bg-gray-300 w-20 h-15 p-2 rounded"
-            onClick={() => handleClick(item.category_id)}
+            onClick={() => handleClick(item)}
           >
             {item.name}
           </button>
