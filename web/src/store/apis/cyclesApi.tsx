@@ -26,6 +26,14 @@ const cyclesApi = createApi({
           };
         },
       }),
+      fetchSubcategoriesFromCycle: builder.query({
+        query: (cycle) => {
+          return {
+            url: `/cycles/${cycle.id}/subcategories`,
+            method: "GET",
+          };
+        },
+      }),
     };
   },
 });
@@ -33,5 +41,6 @@ const cyclesApi = createApi({
 export const {
   useFetchCyclesOfLongTermQuery,
   useFetchCategoriesFromCycleQuery,
+  useFetchSubcategoriesFromCycleQuery,
 } = cyclesApi;
 export { cyclesApi };

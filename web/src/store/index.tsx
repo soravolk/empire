@@ -21,4 +21,5 @@ export { useFetchLongTermsQuery } from "./apis/longTermsApi";
 export {
   useFetchCyclesOfLongTermQuery,
   useFetchCategoriesFromCycleQuery,
+  useFetchSubcategoriesFromCycleQuery,
 } from "./apis/cyclesApi";

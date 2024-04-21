@@ -3,27 +3,11 @@ import {
   useFetchLongTermsQuery,
   useFetchCyclesOfLongTermQuery,
   useFetchCategoriesFromCycleQuery,
+  useFetchSubcategoriesFromCycleQuery,
 } from "../store";
 import Dropdown from "../components/Dropdown";
 import { getLongTermHistoryOptions } from "../utils/utils";
 import { LongTermItem, CycleItem } from "../types";
-
-const SUBCATEGORIES = [
-  {
-    id: 0,
-    cycle_id: 0,
-    subcategory_id: 0,
-    category_id: 2,
-    name: "Next.js",
-  },
-  {
-    id: 1,
-    cycle_id: 0,
-    subcategory_id: 1,
-    category_id: 2,
-    name: "NestJS",
-  },
-];
 
 const CONTENTS = [
   {
@@ -62,7 +46,6 @@ interface ContentProps {
 }
 
 interface SubcategoryProps {
-  cycle: CycleItem | null;
   category: number | null;
   subcategories: {
     id: number;
@@ -145,13 +128,12 @@ const Category: React.FC<CategoryProps> = ({ categories, setCategory }) => {
 };
 
 const SubCategory: React.FC<SubcategoryProps> = ({
-  cycle,
   category,
   subcategories,
   setSubcategory,
 }) => {
   const displayItems = subcategories.filter(
-    (item) => item.cycle_id === cycle?.id && item.category_id === category
+    (item) => item.category_id === category
   );
   const handleClick = (id: number) => {
     setSubcategory(id);
@@ -208,6 +190,11 @@ export default function LongTerm() {
     error: categoryFetchError,
     isLoading: isCategoryLoading,
   } = useFetchCategoriesFromCycleQuery(cycle);
+  const {
+    data: subcategoryData,
+    error: subcategoryFetchError,
+    isLoading: isSubCategoryLoading,
+  } = useFetchSubcategoriesFromCycleQuery(cycle);
 
   return (
     <div className="flex flex-col p-4">
@@ -224,12 +211,13 @@ export default function LongTerm() {
         {categoryData && (
           <Category categories={categoryData} setCategory={setCategory} />
         )}
-        <SubCategory
-          cycle={cycle}
-          category={category}
-          subcategories={SUBCATEGORIES}
-          setSubcategory={setSubcategory}
-        />
+        {subcategoryData && (
+          <SubCategory
+            category={category}
+            subcategories={subcategoryData}
+            setSubcategory={setSubcategory}
+          />
+        )}
         <Content cycle={cycle} subcategory={subcategory} contents={CONTENTS} />
       </div>
     </div>
