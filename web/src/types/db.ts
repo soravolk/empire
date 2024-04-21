@@ -11,3 +11,26 @@ export interface CycleItem {
   start_time: Date;
   end_time: Date;
 }
+
+export interface CategoryItem {
+  id: number;
+  cycle_id: number;
+  category_id: number;
+  name: string;
+}
+
+export interface SubcategoryItem {
+  id: number;
+  cycle_id: number;
+  category_id: number;
+  subcategory_id: number;
+  name: string;
+}
+
+export interface ContentItem {
+  id: number;
+  cycle_id: number;
+  subcategory_id: number;
+  content_id: number;
+  name: string;
+}

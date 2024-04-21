@@ -1,10 +1,7 @@
+import { CategoryItem } from "../types";
+
 interface CategoryProps {
-  categories: {
-    id: number;
-    cycle_id: number;
-    category_id: number;
-    name: string;
-  }[];
+  categories: CategoryItem[];
   setCategory: (category: number | null) => void;
 }
 

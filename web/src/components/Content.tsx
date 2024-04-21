@@ -1,12 +1,8 @@
+import { ContentItem } from "../types";
+
 interface ContentProps {
   subcategory: number | null;
-  contents: {
-    id: number;
-    cycle_id: number;
-    subcategory_id: number;
-    content_id: number;
-    name: string;
-  }[];
+  contents: ContentItem[];
 }
 
 const Content: React.FC<ContentProps> = ({ subcategory, contents }) => {

@@ -1,12 +1,8 @@
+import { SubcategoryItem } from "../types";
+
 interface SubcategoryProps {
   category: number | null;
-  subcategories: {
-    id: number;
-    cycle_id: number;
-    category_id: number;
-    subcategory_id: number;
-    name: string;
-  }[];
+  subcategories: SubcategoryItem[];
   setSubcategory: (subcategory: number | null) => void;
 }
 
