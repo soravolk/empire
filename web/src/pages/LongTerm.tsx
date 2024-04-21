@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   useFetchLongTermsQuery,
-  useFetchCyclesOfLongTermQuery,
   useFetchCategoriesFromCycleQuery,
   useFetchSubcategoriesFromCycleQuery,
   useFetchContentsFromCycleQuery,
@@ -9,151 +8,10 @@ import {
 import Dropdown from "../components/Dropdown";
 import { getLongTermHistoryOptions } from "../utils/utils";
 import { LongTermItem, CycleItem } from "../types";
-
-interface ContentProps {
-  subcategory: number | null;
-  contents: {
-    id: number;
-    cycle_id: number;
-    subcategory_id: number;
-    content_id: number;
-    name: string;
-  }[];
-}
-
-interface SubcategoryProps {
-  category: number | null;
-  subcategories: {
-    id: number;
-    cycle_id: number;
-    category_id: number;
-    subcategory_id: number;
-    name: string;
-  }[];
-  setSubcategory: (subcategory: number | null) => void;
-}
-
-interface CategoryProps {
-  categories: {
-    id: number;
-    cycle_id: number;
-    category_id: number;
-    name: string;
-  }[];
-  setCategory: (category: number | null) => void;
-}
-
-interface CycleProps {
-  longTerm: LongTermItem;
-  setCycle: (cycle: CycleItem | null) => void;
-}
-
-const Cycle: React.FC<CycleProps> = ({ longTerm, setCycle }) => {
-  const {
-    data: cycles,
-    error,
-    isLoading,
-  } = useFetchCyclesOfLongTermQuery(longTerm);
-
-  const handleClick = (cycle: CycleItem) => {
-    setCycle(cycle);
-  };
-
-  return (
-    <div className="w-1/5 p-6">
-      <div className="flex flex-col items-center space-y-2">
-        {cycles &&
-          cycles.map((item: CycleItem, id: number) => (
-            <button
-              className="items-center justify-center bg-gray-300 rounded-full w-20 h-20"
-              onClick={() => handleClick(item)}
-            >
-              {`Cycle ${id + 1}`}
-            </button>
-          ))}
-        <button className="items-center justify-center bg-blue-500 text-white rounded-full h-12 w-12">
-          +
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const Category: React.FC<CategoryProps> = ({ categories, setCategory }) => {
-  const handleClick = (id: number) => {
-    setCategory(id);
-  };
-
-  return (
-    <div className="w-1.5/5">
-      <div className="flex flex-col items-center space-y-4 mx-5 p-4">
-        {categories.map((item) => (
-          <button
-            className="items-center justify-center bg-gray-300 w-20 h-15 p-2 rounded"
-            onClick={() => handleClick(item.category_id)}
-          >
-            {item.name}
-          </button>
-        ))}
-        <button className="items-center justify-center bg-blue-500 text-white rounded-full h-12 w-12">
-          +
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const SubCategory: React.FC<SubcategoryProps> = ({
-  category,
-  subcategories,
-  setSubcategory,
-}) => {
-  const displayItems = subcategories.filter(
-    (item) => item.category_id === category
-  );
-  const handleClick = (id: number) => {
-    setSubcategory(id);
-  };
-
-  return (
-    <div className="w-1.5/5">
-      <div className="flex flex-col items-center space-y-4 mx-5 p-4">
-        {displayItems.map((item) => (
-          <button
-            className="items-center justify-center bg-gray-300 w-20 h-15 p-2 rounded"
-            onClick={() => handleClick(item.subcategory_id)}
-          >
-            {item.name}
-          </button>
-        ))}
-        <button className="items-center justify-center bg-blue-500 text-white rounded-full h-12 w-12">
-          +
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const Content: React.FC<ContentProps> = ({ subcategory, contents }) => {
-  const displayItems = contents.filter(
-    (item) => item.subcategory_id === subcategory
-  );
-  return (
-    <div>
-      <div className="flex flex-col items-center space-y-4 shadow mx-5 p-4">
-        <h3 className="font-bold mb-2">Cycle 1</h3>
-        <ul className="list-inside list-disc space-y-3">
-          {displayItems.map((item) => (
-            <li>{item.name}</li>
-          ))}
-        </ul>
-        <button className="items-center justify-center bg-blue-500 text-white rounded-full h-12 w-12">
-          +
-        </button>
-      </div>
-    </div>
-  );
-};
+import Cycle from "../components/Cycle";
+import Category from "../components/Category";
+import SubCategory from "../components/Subcategory";
+import Content from "../components/Content";
 
 export default function LongTerm() {
   const [cycle, setCycle] = useState<CycleItem | null>(null);
