@@ -1,4 +1,5 @@
 import express, { Express, Request, Response, NextFunction } from "express";
+import cors from "cors";
 import UserRoutes from "./routes/user";
 import longTermRoutes from "./routes/longTerm";
 import categoryRoutes from "./routes/category";
@@ -7,7 +8,12 @@ import contentRoutes from "./routes/content";
 import cycleRoutes from "./routes/cycle";
 
 const app: Express = express();
-
+const allowedOrigins = ["http://localhost:3001"];
+app.use(
+  cors({
+    origin: allowedOrigins,
+  })
+);
 app.use(express.json());
 app.use("/users", UserRoutes);
 app.use("/longTerms", longTermRoutes);
