@@ -21,6 +21,23 @@ const getCycle: RequestHandler = async (req, res) => {
   }
 };
 
+const getCategoriesFromCycle: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { rows } = await db.getFromInnerJoin(
+      "cycle_categories",
+      {
+        cycle_id: id,
+      },
+      "categories",
+      [["category_id", "id"]]
+    );
+    res.status(200).json(rows);
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+};
+
 const getCycles: RequestHandler = async (req, res) => {
   const { longTermId } = req.query;
   try {
@@ -81,6 +98,7 @@ const addContentToCycle: RequestHandler = async (req, res) => {
 export default {
   createCycle,
   getCycle,
+  getCategoriesFromCycle,
   getCycles,
   deleteCycle,
   addCategoryToCycle,

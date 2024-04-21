@@ -17,6 +17,8 @@ router.get("/", cycle.getCycles);
 
 router.get("/:id", cycle.getCycle);
 
+router.get("/:id/categories", cycle.getCategoriesFromCycle);
+
 router.delete("/:id", cycle.deleteCycle);
 
 export default router;

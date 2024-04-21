@@ -32,8 +32,35 @@ const getWithCondition = async (
 const getAll = async (table: string) =>
   await pg.query(`SELECT * FROM ${table}`);
 
+const getFromInnerJoin = async (
+  tableFrom: string,
+  tableFromConditions: { [key: string]: any },
+  tableTo: string,
+  joinOn: [string, string][]
+) => {
+  const keys = Object.keys(tableFromConditions);
+  const whereValues = Object.values(tableFromConditions);
+  const placeholders = keys.map(
+    (key, idx) => `${tableFrom}.${key} = $${idx + 1}`
+  );
+  joinOn.forEach((item) =>
+    placeholders.push(`${tableFrom}.${item[0]} = ${tableTo}.${item[1]}`)
+  );
+  const query = `SELECT * FROM ${tableFrom} INNER JOIN ${tableTo} ON (${placeholders.join(
+    " AND "
+  )})`;
+  return await pg.query(query, whereValues);
+};
+
 const deleteById = async (table: string, id: string) => {
   await pg.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
 };
 
-export default { insert, getAll, getById, getWithCondition, deleteById };
+export default {
+  insert,
+  getAll,
+  getById,
+  getWithCondition,
+  getFromInnerJoin,
+  deleteById,
+};
