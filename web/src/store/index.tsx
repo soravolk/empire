@@ -23,4 +23,5 @@ export {
   useFetchCategoriesFromCycleQuery,
   useFetchSubcategoriesFromCycleQuery,
   useFetchContentsFromCycleQuery,
+  useAddCycleMutation,
 } from "./apis/cyclesApi";

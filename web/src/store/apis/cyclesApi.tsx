@@ -42,6 +42,19 @@ const cyclesApi = createApi({
           };
         },
       }),
+      addCycle: builder.mutation({
+        query: ({ longTermId, startTime, endTime }) => {
+          return {
+            method: "POST",
+            url: "/cycles",
+            body: {
+              longTermId: longTermId,
+              startTime: startTime,
+              endTime: endTime,
+            },
+          };
+        },
+      }),
     };
   },
 });
@@ -51,5 +64,6 @@ export const {
   useFetchCategoriesFromCycleQuery,
   useFetchSubcategoriesFromCycleQuery,
   useFetchContentsFromCycleQuery,
+  useAddCycleMutation,
 } = cyclesApi;
 export { cyclesApi };
