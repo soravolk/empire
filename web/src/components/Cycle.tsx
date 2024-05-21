@@ -47,6 +47,7 @@ const Cycle: React.FC<CycleProps> = ({ cycles, setCycle }) => {
         {cycles &&
           cycles.map((item: CycleItem, id: number) => (
             <button
+              key={id}
               className="items-center justify-center bg-gray-300 rounded-full w-20 h-20"
               onClick={() => handleClick(item)}
             >
