@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { CycleItem } from "../types";
 import { useAddCycleMutation } from "../store";
 import Calendar from "react-calendar";
+import { MdDelete } from "react-icons/md";
 import "react-calendar/dist/Calendar.css";
 
 interface CycleProps {
@@ -46,13 +47,15 @@ const Cycle: React.FC<CycleProps> = ({ cycles, setCycle }) => {
       <div className="flex flex-col items-center space-y-2">
         {cycles &&
           cycles.map((item: CycleItem, id: number) => (
-            <button
-              key={id}
-              className="items-center justify-center bg-gray-300 rounded-full w-20 h-20"
-              onClick={() => handleClick(item)}
-            >
-              {`Cycle ${id + 1}`}
-            </button>
+            <div key={id} className="flex items-center space-x-2">
+              <button
+                className="items-center justify-center bg-gray-300 rounded-full w-20 h-20"
+                onClick={() => handleClick(item)}
+              >
+                {`Cycle ${id + 1}`}
+              </button>
+              <MdDelete />
+            </div>
           ))}
         <button
           className="items-center justify-center bg-blue-500 text-white rounded-full h-12 w-12"
