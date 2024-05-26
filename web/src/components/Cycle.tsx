@@ -55,7 +55,9 @@ const Cycle: React.FC<CycleProps> = ({ cycles, setCycle }) => {
               >
                 {`Cycle ${id + 1}`}
               </button>
-              <MdDelete onClick={() => deleteCycle(item)} />
+              <button>
+                <MdDelete onClick={() => deleteCycle(item)} />
+              </button>
             </div>
           ))}
         <button
