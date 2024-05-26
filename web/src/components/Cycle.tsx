@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { CycleItem } from "../types";
-import { useAddCycleMutation } from "../store";
+import { useAddCycleMutation, useDeleteCycleMutation } from "../store";
 import Calendar from "react-calendar";
 import { MdDelete } from "react-icons/md";
 import "react-calendar/dist/Calendar.css";
@@ -16,6 +16,7 @@ type CycleRange = DateValue | [DateValue, DateValue];
 
 const Cycle: React.FC<CycleProps> = ({ cycles, setCycle }) => {
   const [addCycle, addCycleResults] = useAddCycleMutation();
+  const [deleteCycle, deleteCycleResults] = useDeleteCycleMutation();
   const [date, setDate] = useState<CycleRange>(null);
   const [expandCalendar, setExpandCalendar] = useState(false);
 
@@ -54,7 +55,7 @@ const Cycle: React.FC<CycleProps> = ({ cycles, setCycle }) => {
               >
                 {`Cycle ${id + 1}`}
               </button>
-              <MdDelete />
+              <MdDelete onClick={() => deleteCycle(item)} />
             </div>
           ))}
         <button

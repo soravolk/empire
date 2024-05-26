@@ -55,6 +55,14 @@ const cyclesApi = createApi({
           };
         },
       }),
+      deleteCycle: builder.mutation({
+        query: (cycle) => {
+          return {
+            method: "DELETE",
+            url: `/cycles/${cycle.id}`,
+          };
+        },
+      }),
     };
   },
 });
@@ -65,5 +73,6 @@ export const {
   useFetchSubcategoriesFromCycleQuery,
   useFetchContentsFromCycleQuery,
   useAddCycleMutation,
+  useDeleteCycleMutation,
 } = cyclesApi;
 export { cyclesApi };
