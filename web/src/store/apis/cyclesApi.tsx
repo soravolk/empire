@@ -1,13 +1,22 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { CycleItem } from "../../types";
 
 const cyclesApi = createApi({
   reducerPath: "cycles",
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:3000",
   }),
+  tagTypes: ["Cycle"],
   endpoints(builder) {
     return {
       fetchCyclesOfLongTerm: builder.query({
+        providesTags: (result, error, longTerm) => {
+          const tags = result.map((cycle: CycleItem) => {
+            return { type: "Cycle", id: cycle.id };
+          });
+          tags.push({ type: "LongTermCycle", id: longTerm.id });
+          return tags;
+        },
         query: (longTerm) => {
           return {
             url: "/cycles",
@@ -56,6 +65,9 @@ const cyclesApi = createApi({
         },
       }),
       deleteCycle: builder.mutation({
+        invalidatesTags: (result, error, cycle) => {
+          return [{ type: "Cycle", id: cycle.id }];
+        },
         query: (cycle) => {
           return {
             method: "DELETE",
