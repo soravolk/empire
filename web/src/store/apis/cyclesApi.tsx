@@ -6,7 +6,7 @@ const cyclesApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:3000",
   }),
-  tagTypes: ["Cycle"],
+  tagTypes: ["Cycle", "LongTerm"],
   endpoints(builder) {
     return {
       fetchCyclesOfLongTerm: builder.query({
@@ -14,7 +14,7 @@ const cyclesApi = createApi({
           const tags = result.map((cycle: CycleItem) => {
             return { type: "Cycle", id: cycle.id };
           });
-          tags.push({ type: "LongTermCycle", id: longTerm.id });
+          tags.push({ type: "LongTerm", id: longTerm.id });
           return tags;
         },
         query: (longTerm) => {
@@ -52,6 +52,9 @@ const cyclesApi = createApi({
         },
       }),
       addCycle: builder.mutation({
+        invalidatesTags: (result, error, longTerm) => {
+          return [{ type: "LongTerm", id: longTerm.id }];
+        },
         query: ({ longTermId, startTime, endTime }) => {
           return {
             method: "POST",
