@@ -2,7 +2,11 @@ import { RequestHandler } from "express";
 import db from "../db/utils";
 
 const createCycle: RequestHandler = async (req, res) => {
-  const { long_term_id, start_time, end_time } = req.body;
+  const {
+    longTermId: long_term_id,
+    startTime: start_time,
+    endTime: end_time,
+  } = req.body;
   try {
     await db.insert("cycles", { long_term_id, start_time, end_time });
     res.status(201).send();
