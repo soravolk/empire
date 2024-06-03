@@ -1,22 +1,19 @@
-import { RequestHandler } from "express";
 import db from "../db/utils";
 
-const createUser: RequestHandler = async (req, res) => {
-  const { id, email, display_name } = req.body;
+const createUser = async (id: number, email: string, display_name: string) => {
   try {
     await db.insert("users", { id, email, display_name });
-    res.status(201);
   } catch (error) {
-    res.status(500).json({ error: "internal server error" });
+    throw new Error("failed to create a new user");
   }
 };
 
-const getUsers: RequestHandler = async (req, res) => {
+const getUsers = async () => {
   try {
     const { rows } = await db.getAll("users");
-    res.status(200).json(rows);
+    return rows;
   } catch (error) {
-    res.status(500).json({ error: "internal server error" });
+    throw new Error("failed to get all users");
   }
 };
 
