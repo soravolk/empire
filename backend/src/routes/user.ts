@@ -21,4 +21,13 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    res.status(200).json(await user.getUserById(id));
+  } catch (error) {
+    res.status(500).json({ error: "internal server error" });
+  }
+});
+
 export default router;
