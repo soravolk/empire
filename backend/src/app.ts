@@ -1,6 +1,7 @@
 import express, { Express, Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import passport from "passport";
+import session from "express-session";
 import cors from "cors";
 import AuthRoutes from "./routes/auth";
 import UserRoutes from "./routes/user";
@@ -20,6 +21,16 @@ app.use(
     origin: allowedOrigins,
   })
 );
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }, // TODO: https
+  })
+);
+
 app.use(passport.initialize());
 
 app.use(express.json());

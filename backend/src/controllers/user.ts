@@ -1,6 +1,7 @@
 import db from "../db/utils";
 
-const createUser = async (id: number, email: string, display_name: string) => {
+// TODO: id should use number type
+const createUser = async (id: string, email: string, display_name: string) => {
   try {
     await db.insert("users", { id, email, display_name });
   } catch (error) {
