@@ -15,7 +15,7 @@ dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 import "./services/auth";
 
 const app: Express = express();
-const allowedOrigins = ["http://localhost:3001"];
+const allowedOrigins = ["http://localhost:3000"];
 app.use(
   cors({
     origin: allowedOrigins,
@@ -46,4 +46,4 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json({ message: err.message });
 });
 
-app.listen(3000);
+app.listen(5000);

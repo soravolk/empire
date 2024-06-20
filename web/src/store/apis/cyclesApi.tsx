@@ -4,7 +4,7 @@ import { CycleItem } from "../../types";
 const cyclesApi = createApi({
   reducerPath: "cycles",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:3000",
+    baseUrl: "http://localhost:5000",
   }),
   tagTypes: ["Cycle", "LongTerm"],
   endpoints(builder) {
