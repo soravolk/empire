@@ -12,4 +12,12 @@ router.get("/google/callback", passport.authenticate("google"), (req, res) => {
   res.redirect("/");
 });
 
+router.get("/logout", (req, res, next) => {
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+  });
+});
+
 export default router;
