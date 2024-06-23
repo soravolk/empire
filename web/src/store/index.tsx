@@ -2,16 +2,19 @@ import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { longTermsApi } from "./apis/longTermsApi";
 import { cyclesApi } from "./apis/cyclesApi";
+import { userApi } from "./apis/userApi";
 
 export const store = configureStore({
   reducer: {
     [longTermsApi.reducerPath]: longTermsApi.reducer,
     [cyclesApi.reducerPath]: cyclesApi.reducer,
+    [userApi.reducerPath]: userApi.reducer,
   },
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware()
       .concat(longTermsApi.middleware)
-      .concat(cyclesApi.middleware);
+      .concat(cyclesApi.middleware)
+      .concat(userApi.middleware);
   },
 });
 
@@ -26,3 +29,4 @@ export {
   useAddCycleMutation,
   useDeleteCycleMutation,
 } from "./apis/cyclesApi";
+export { useFetchCurrentUserQuery } from "./apis/userApi";
