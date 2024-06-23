@@ -1,16 +1,17 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-const longTermsApi = createApi({
-  reducerPath: "longTerms",
+const userApi = createApi({
+  reducerPath: "user",
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:5000",
+    credentials: "include",
   }),
   endpoints(builder) {
     return {
-      fetchLongTerms: builder.query({
+      fetchCurrentUser: builder.query({
         query: () => {
           return {
-            url: "/longTerms",
+            url: "/users/me",
             method: "GET",
           };
         },
@@ -19,5 +20,5 @@ const longTermsApi = createApi({
   },
 });
 
-export const { useFetchLongTermsQuery } = longTermsApi;
-export { longTermsApi };
+export const { useFetchCurrentUserQuery } = userApi;
+export { userApi };

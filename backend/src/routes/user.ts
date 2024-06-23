@@ -13,12 +13,8 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/", async (req, res) => {
-  try {
-    res.status(200).json(await user.getUsers());
-  } catch (error) {
-    res.status(500).json({ error: "internal server error" });
-  }
+router.get("/me", async (req, res) => {
+  res.send(req.user);
 });
 
 router.get("/:id", async (req, res) => {

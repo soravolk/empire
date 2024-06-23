@@ -15,16 +15,17 @@ dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 import "./services/auth";
 
 const app: Express = express();
-const allowedOrigins = ["http://localhost:3001"];
+const allowedOrigins = ["http://localhost:3000"];
 app.use(
   cors({
     origin: allowedOrigins,
+    credentials: true,
   })
 );
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET!,
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false }, // TODO: https
@@ -32,6 +33,7 @@ app.use(
 );
 
 app.use(passport.initialize());
+app.use(passport.session());
 
 app.use(express.json());
 app.use("/auth", AuthRoutes);
@@ -46,4 +48,4 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json({ message: err.message });
 });
 
-app.listen(3000);
+app.listen(5000);

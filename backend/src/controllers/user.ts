@@ -9,15 +9,6 @@ const createUser = async (id: string, email: string, display_name: string) => {
   }
 };
 
-const getUsers = async () => {
-  try {
-    const { rows } = await db.getAll("users");
-    return rows;
-  } catch (error) {
-    throw new Error("failed to get all users");
-  }
-};
-
 const getUserById = async (id: string) => {
   try {
     const { rows } = await db.getById("users", id);
@@ -27,4 +18,4 @@ const getUserById = async (id: string) => {
   }
 };
 
-export default { createUser, getUsers, getUserById };
+export default { createUser, getUserById };
