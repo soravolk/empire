@@ -2,7 +2,7 @@ import { RequestHandler } from "express";
 import db from "../db/utils";
 
 const createCategory: RequestHandler = async (req, res) => {
-  const { user_id, name } = req.body;
+  const { userId: user_id, name } = req.body;
   try {
     await db.insert("categories", { user_id, name });
     res.status(201).send();

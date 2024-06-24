@@ -4,6 +4,7 @@ import {
   CategoryItem,
   SubcategoryItem,
   ContentItem,
+  User,
 } from "./db";
 
 export type {
@@ -12,4 +13,5 @@ export type {
   CategoryItem,
   SubcategoryItem,
   ContentItem,
+  User,
 };

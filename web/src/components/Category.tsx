@@ -1,21 +1,26 @@
 import { useState } from "react";
-import { CategoryItem } from "../types";
+import { CategoryItem, User } from "../types";
 import { CiCircleCheck } from "react-icons/ci";
+import { useAddCategoryMutation } from "../store";
 
 interface CategoryProps {
   categories: CategoryItem[];
   setCategory: (category: CategoryItem | null) => void;
+  user: User;
 }
 
 interface FormControlProps {
   setExpandForm: (expandForm: boolean) => void;
+  user: User;
 }
 
-const CategoryForm: React.FC<FormControlProps> = ({ setExpandForm }) => {
+const CategoryForm: React.FC<FormControlProps> = ({ setExpandForm, user }) => {
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [addCategory, addCategoryResults] = useAddCategoryMutation();
 
   const handleAddCategory = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    addCategory({ userId: user.id, name: newCategoryName });
     setExpandForm(false);
   };
   return (
@@ -40,7 +45,11 @@ const CategoryForm: React.FC<FormControlProps> = ({ setExpandForm }) => {
   );
 };
 
-const Category: React.FC<CategoryProps> = ({ categories, setCategory }) => {
+const Category: React.FC<CategoryProps> = ({
+  categories,
+  setCategory,
+  user,
+}) => {
   const [expandForm, setExpandForm] = useState<boolean>(false);
 
   const handleClick = (category: CategoryItem) => {
@@ -64,7 +73,9 @@ const Category: React.FC<CategoryProps> = ({ categories, setCategory }) => {
         >
           +
         </button>
-        {expandForm && <CategoryForm setExpandForm={setExpandForm} />}
+        {expandForm && (
+          <CategoryForm setExpandForm={setExpandForm} user={user} />
+        )}
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import {
   useFetchCategoriesFromCycleQuery,
   useFetchSubcategoriesFromCycleQuery,
   useFetchContentsFromCycleQuery,
+  useFetchCurrentUserQuery,
 } from "../store";
 import Dropdown from "../components/Dropdown";
 import { getLongTermHistoryOptions } from "../utils/utils";
@@ -45,6 +46,11 @@ export default function LongTerm() {
     error: contentFetchError,
     isLoading: isContentLoading,
   } = useFetchContentsFromCycleQuery(cycle);
+  const {
+    data: userData,
+    error: userFetchError,
+    isLoading: isUserLoading,
+  } = useFetchCurrentUserQuery(null);
 
   return (
     <div className="flex flex-col p-4">
@@ -59,7 +65,11 @@ export default function LongTerm() {
       <div className="flex">
         {cycleData && <Cycle cycles={cycleData} setCycle={setCycle} />}
         {categoryData && (
-          <Category categories={categoryData} setCategory={setCategory} />
+          <Category
+            categories={categoryData}
+            setCategory={setCategory}
+            user={userData}
+          />
         )}
         {subcategoryData && (
           <SubCategory

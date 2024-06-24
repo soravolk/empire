@@ -34,3 +34,10 @@ export interface ContentItem {
   content_id: number;
   name: string;
 }
+
+export interface User {
+  id: string;
+  email: string;
+  display_name: string;
+  group_id: number;
+}
