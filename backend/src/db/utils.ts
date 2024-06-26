@@ -4,12 +4,13 @@ const insert = async (table: string, data: { [key: string]: any }) => {
   const columns = Object.keys(data);
   const values = Object.values(data);
   const placeholders = columns.map((_, idx) => `$${idx + 1}`);
-  await pg.query(
+  const res = await pg.query(
     `INSERT INTO ${table}(${columns.join(",")}) VALUES (${placeholders.join(
       ","
-    )})`,
+    )}) RETURNING *`,
     values
   );
+  return res.rows[0];
 };
 
 const getById = async (table: string, id: string) =>

@@ -69,6 +69,7 @@ export default function LongTerm() {
             categories={categoryData}
             setCategory={setCategory}
             user={userData}
+            cycle={cycle} // TODO: use context to pass common objects
           />
         )}
         {subcategoryData && (

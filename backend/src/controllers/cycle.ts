@@ -102,7 +102,7 @@ const deleteCycle: RequestHandler = async (req, res) => {
 
 const addCategoryToCycle: RequestHandler = async (req, res) => {
   const { id: cycle_id } = req.params;
-  const { category_id } = req.body;
+  const { categoryId: category_id } = req.body;
   try {
     await db.insert("cycle_categories", { cycle_id, category_id });
     res.status(201).send();

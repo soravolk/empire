@@ -1,26 +1,44 @@
 import { useState } from "react";
-import { CategoryItem, User } from "../types";
+import { CategoryItem, CycleItem, User } from "../types";
 import { CiCircleCheck } from "react-icons/ci";
-import { useAddCategoryMutation } from "../store";
+import {
+  useAddCategoryMutation,
+  useAddCategoryToCycleMutation,
+} from "../store";
 
 interface CategoryProps {
   categories: CategoryItem[];
   setCategory: (category: CategoryItem | null) => void;
   user: User;
+  cycle: CycleItem | null;
 }
 
 interface FormControlProps {
   setExpandForm: (expandForm: boolean) => void;
   user: User;
+  cycle: CycleItem | null;
 }
 
-const CategoryForm: React.FC<FormControlProps> = ({ setExpandForm, user }) => {
+const CategoryForm: React.FC<FormControlProps> = ({
+  setExpandForm,
+  user,
+  cycle,
+}) => {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [addCategory, addCategoryResults] = useAddCategoryMutation();
+  const [addCategoryToCycle, addCategoryToCycleResults] =
+    useAddCategoryToCycleMutation();
 
-  const handleAddCategory = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddCategory = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    addCategory({ userId: user.id, name: newCategoryName });
+    const result = await addCategory({
+      userId: user.id,
+      name: newCategoryName,
+    });
+    // TODO: add error handling
+    if ("data" in result && cycle != null) {
+      addCategoryToCycle({ cycleId: cycle.id, categoryId: result.data.id });
+    }
     setExpandForm(false);
   };
   return (
@@ -49,6 +67,7 @@ const Category: React.FC<CategoryProps> = ({
   categories,
   setCategory,
   user,
+  cycle,
 }) => {
   const [expandForm, setExpandForm] = useState<boolean>(false);
 
@@ -74,7 +93,11 @@ const Category: React.FC<CategoryProps> = ({
           +
         </button>
         {expandForm && (
-          <CategoryForm setExpandForm={setExpandForm} user={user} />
+          <CategoryForm
+            setExpandForm={setExpandForm}
+            user={user}
+            cycle={cycle}
+          />
         )}
       </div>
     </div>
