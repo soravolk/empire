@@ -1,12 +1,12 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { CycleItem } from "../../types";
+import { CategoryItem, CycleItem } from "../../types";
 
 const cyclesApi = createApi({
   reducerPath: "cycles",
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:5000/cycles",
   }),
-  tagTypes: ["Cycle", "LongTerm"],
+  tagTypes: ["Cycle", "LongTerm", "Category"],
   endpoints(builder) {
     return {
       fetchCyclesOfLongTerm: builder.query({
@@ -28,6 +28,13 @@ const cyclesApi = createApi({
         },
       }),
       fetchCategoriesFromCycle: builder.query({
+        providesTags: (result, error, cycle) => {
+          const tags = result.map((category: CategoryItem) => {
+            return { type: "Category", id: category.id };
+          });
+          tags.push({ type: "Cycle", id: cycle.id });
+          return tags;
+        },
         query: (cycle) => {
           return {
             url: `/${cycle.id}/categories`,
@@ -79,6 +86,9 @@ const cyclesApi = createApi({
         },
       }),
       addCategoryToCycle: builder.mutation({
+        invalidatesTags: (result, error, arg) => {
+          return [{ type: "Cycle", id: arg.cycleId }];
+        },
         query: ({ cycleId, categoryId }) => {
           return {
             method: "POST",
