@@ -4,7 +4,7 @@ import { CycleItem } from "../../types";
 const cyclesApi = createApi({
   reducerPath: "cycles",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000",
+    baseUrl: "http://localhost:5000/cycles",
   }),
   tagTypes: ["Cycle", "LongTerm"],
   endpoints(builder) {
@@ -19,7 +19,7 @@ const cyclesApi = createApi({
         },
         query: (longTerm) => {
           return {
-            url: "/cycles",
+            url: "/",
             query: {
               longTermId: longTerm.id,
             },
@@ -30,7 +30,7 @@ const cyclesApi = createApi({
       fetchCategoriesFromCycle: builder.query({
         query: (cycle) => {
           return {
-            url: `/cycles/${cycle.id}/categories`,
+            url: `/${cycle.id}/categories`,
             method: "GET",
           };
         },
@@ -38,7 +38,7 @@ const cyclesApi = createApi({
       fetchSubcategoriesFromCycle: builder.query({
         query: (cycle) => {
           return {
-            url: `/cycles/${cycle.id}/subcategories`,
+            url: `/${cycle.id}/subcategories`,
             method: "GET",
           };
         },
@@ -46,7 +46,7 @@ const cyclesApi = createApi({
       fetchContentsFromCycle: builder.query({
         query: (cycle) => {
           return {
-            url: `/cycles/${cycle.id}/contents`,
+            url: `/${cycle.id}/contents`,
             method: "GET",
           };
         },
@@ -58,7 +58,7 @@ const cyclesApi = createApi({
         query: ({ longTermId, startTime, endTime }) => {
           return {
             method: "POST",
-            url: "/cycles",
+            url: "/",
             body: {
               longTermId: longTermId,
               startTime: startTime,
@@ -74,7 +74,7 @@ const cyclesApi = createApi({
         query: (cycle) => {
           return {
             method: "DELETE",
-            url: `/cycles/${cycle.id}`,
+            url: `/${cycle.id}`,
           };
         },
       }),
