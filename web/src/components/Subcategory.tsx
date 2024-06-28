@@ -1,7 +1,7 @@
-import { CategoryItem, SubcategoryItem } from "../types";
+import { CycleCategoryItem, SubcategoryItem } from "../types";
 
 interface SubcategoryProps {
-  category: CategoryItem | null;
+  category: CycleCategoryItem | null;
   subcategories: SubcategoryItem[];
   setSubcategory: (subcategory: SubcategoryItem | null) => void;
 }

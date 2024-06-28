@@ -1,7 +1,7 @@
 import {
   LongTermItem,
   CycleItem,
-  CategoryItem,
+  CycleCategoryItem,
   SubcategoryItem,
   ContentItem,
   User,
@@ -10,7 +10,7 @@ import {
 export type {
   LongTermItem,
   CycleItem,
-  CategoryItem,
+  CycleCategoryItem,
   SubcategoryItem,
   ContentItem,
   User,

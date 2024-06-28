@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { CategoryItem } from "../../types";
+import { CycleCategoryItem } from "../../types";
 
 interface AddCategoryInput {
   userId: string;
@@ -13,7 +13,7 @@ const categoriesApi = createApi({
   }),
   endpoints(builder) {
     return {
-      addCategory: builder.mutation<CategoryItem, AddCategoryInput>({
+      addCategory: builder.mutation<CycleCategoryItem, AddCategoryInput>({
         query: ({ userId, name }) => {
           return {
             method: "POST",

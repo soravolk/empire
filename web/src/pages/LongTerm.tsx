@@ -12,7 +12,7 @@ import { getLongTermHistoryOptions } from "../utils/utils";
 import {
   LongTermItem,
   CycleItem,
-  CategoryItem,
+  CycleCategoryItem,
   SubcategoryItem,
 } from "../types";
 import Cycle from "../components/Cycle";
@@ -23,7 +23,7 @@ import Content from "../components/Content";
 export default function LongTerm() {
   const [cycle, setCycle] = useState<CycleItem | null>(null);
   const [longTerm, setLongTerm] = useState<LongTermItem | null>(null);
-  const [category, setCategory] = useState<CategoryItem | null>(null);
+  const [category, setCategory] = useState<CycleCategoryItem | null>(null);
   const [subcategory, setSubcategory] = useState<SubcategoryItem | null>(null);
   const { data, error, isLoading } = useFetchLongTermsQuery(null);
   const {

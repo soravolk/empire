@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CategoryItem, CycleItem, User } from "../types";
+import { CycleCategoryItem, CycleItem, User } from "../types";
 import { CiCircleCheck } from "react-icons/ci";
 import {
   useAddCategoryMutation,
@@ -9,8 +9,8 @@ import {
 import { MdDelete } from "react-icons/md";
 
 interface CategoryProps {
-  categories: CategoryItem[];
-  setCategory: (category: CategoryItem | null) => void;
+  categories: CycleCategoryItem[];
+  setCategory: (category: CycleCategoryItem | null) => void;
   user: User;
   cycle: CycleItem | null;
 }
@@ -75,14 +75,14 @@ const Category: React.FC<CategoryProps> = ({
   const [deleteCategoryFromCycle, deleteCategoryFromCycleResults] =
     useDeleteCategoryFromCycleMutation();
 
-  const handleClick = (category: CategoryItem) => {
+  const handleClick = (category: CycleCategoryItem) => {
     setCategory(category);
   };
 
   return (
     <div className="w-1.5/5">
       <div className="flex flex-col items-center space-y-4 mx-5 p-4">
-        {categories.map((item: CategoryItem, id: number) => (
+        {categories.map((item: CycleCategoryItem, id: number) => (
           // TODO: make it a reusable component for cycle, category, and subcategory
           <div key={id} className="flex items-center space-x-2">
             <button
