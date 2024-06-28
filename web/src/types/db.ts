@@ -12,7 +12,7 @@ export interface CycleItem {
   end_time: Date;
 }
 
-export interface CategoryItem {
+export interface CycleCategoryItem {
   id: number;
   cycle_id: number;
   category_id: number;
@@ -33,4 +33,11 @@ export interface ContentItem {
   subcategory_id: number;
   content_id: number;
   name: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  display_name: string;
+  group_id: number;
 }

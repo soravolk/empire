@@ -1,12 +1,12 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { CycleItem } from "../../types";
+import { CycleCategoryItem, CycleItem } from "../../types";
 
 const cyclesApi = createApi({
   reducerPath: "cycles",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000",
+    baseUrl: "http://localhost:5000/cycles",
   }),
-  tagTypes: ["Cycle", "LongTerm"],
+  tagTypes: ["Cycle", "LongTerm", "Category"],
   endpoints(builder) {
     return {
       fetchCyclesOfLongTerm: builder.query({
@@ -19,7 +19,7 @@ const cyclesApi = createApi({
         },
         query: (longTerm) => {
           return {
-            url: "/cycles",
+            url: "/",
             query: {
               longTermId: longTerm.id,
             },
@@ -28,9 +28,16 @@ const cyclesApi = createApi({
         },
       }),
       fetchCategoriesFromCycle: builder.query({
+        providesTags: (result, error, cycle) => {
+          const tags = result.map((category: CycleCategoryItem) => {
+            return { type: "Category", id: category.id };
+          });
+          tags.push({ type: "Cycle", id: cycle.id });
+          return tags;
+        },
         query: (cycle) => {
           return {
-            url: `/cycles/${cycle.id}/categories`,
+            url: `/${cycle.id}/categories`,
             method: "GET",
           };
         },
@@ -38,7 +45,7 @@ const cyclesApi = createApi({
       fetchSubcategoriesFromCycle: builder.query({
         query: (cycle) => {
           return {
-            url: `/cycles/${cycle.id}/subcategories`,
+            url: `/${cycle.id}/subcategories`,
             method: "GET",
           };
         },
@@ -46,7 +53,7 @@ const cyclesApi = createApi({
       fetchContentsFromCycle: builder.query({
         query: (cycle) => {
           return {
-            url: `/cycles/${cycle.id}/contents`,
+            url: `/${cycle.id}/contents`,
             method: "GET",
           };
         },
@@ -58,7 +65,7 @@ const cyclesApi = createApi({
         query: ({ longTermId, startTime, endTime }) => {
           return {
             method: "POST",
-            url: "/cycles",
+            url: "/",
             body: {
               longTermId: longTermId,
               startTime: startTime,
@@ -74,7 +81,32 @@ const cyclesApi = createApi({
         query: (cycle) => {
           return {
             method: "DELETE",
-            url: `/cycles/${cycle.id}`,
+            url: `/${cycle.id}`,
+          };
+        },
+      }),
+      addCategoryToCycle: builder.mutation({
+        invalidatesTags: (result, error, arg) => {
+          return [{ type: "Cycle", id: arg.cycleId }];
+        },
+        query: ({ cycleId, categoryId }) => {
+          return {
+            method: "POST",
+            url: `/${cycleId}/categories`,
+            body: {
+              categoryId,
+            },
+          };
+        },
+      }),
+      deleteCategoryFromCycle: builder.mutation({
+        invalidatesTags: (result, error, arg) => {
+          return [{ type: "Category", id: arg.categoryId }];
+        },
+        query: (cycleCategoryId) => {
+          return {
+            method: "DELETE",
+            url: `/categories/${cycleCategoryId}`,
           };
         },
       }),
@@ -89,5 +121,7 @@ export const {
   useFetchContentsFromCycleQuery,
   useAddCycleMutation,
   useDeleteCycleMutation,
+  useAddCategoryToCycleMutation,
+  useDeleteCategoryFromCycleMutation,
 } = cyclesApi;
 export { cyclesApi };

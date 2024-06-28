@@ -3,18 +3,21 @@ import { setupListeners } from "@reduxjs/toolkit/query";
 import { longTermsApi } from "./apis/longTermsApi";
 import { cyclesApi } from "./apis/cyclesApi";
 import { userApi } from "./apis/userApi";
+import { categoriesApi } from "./apis/categoriesApi";
 
 export const store = configureStore({
   reducer: {
     [longTermsApi.reducerPath]: longTermsApi.reducer,
     [cyclesApi.reducerPath]: cyclesApi.reducer,
     [userApi.reducerPath]: userApi.reducer,
+    [categoriesApi.reducerPath]: categoriesApi.reducer,
   },
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware()
       .concat(longTermsApi.middleware)
       .concat(cyclesApi.middleware)
-      .concat(userApi.middleware);
+      .concat(userApi.middleware)
+      .concat(categoriesApi.middleware);
   },
 });
 
@@ -28,5 +31,8 @@ export {
   useFetchContentsFromCycleQuery,
   useAddCycleMutation,
   useDeleteCycleMutation,
+  useAddCategoryToCycleMutation,
+  useDeleteCategoryFromCycleMutation,
 } from "./apis/cyclesApi";
 export { useFetchCurrentUserQuery } from "./apis/userApi";
+export { useAddCategoryMutation } from "./apis/categoriesApi";
