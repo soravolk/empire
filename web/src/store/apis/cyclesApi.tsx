@@ -99,6 +99,17 @@ const cyclesApi = createApi({
           };
         },
       }),
+      deleteCategoryFromCycle: builder.mutation({
+        invalidatesTags: (result, error, arg) => {
+          return [{ type: "Category", id: arg.categoryId }];
+        },
+        query: (cycleCategoryId) => {
+          return {
+            method: "DELETE",
+            url: `/categories/${cycleCategoryId}`,
+          };
+        },
+      }),
     };
   },
 });
@@ -111,5 +122,6 @@ export const {
   useAddCycleMutation,
   useDeleteCycleMutation,
   useAddCategoryToCycleMutation,
+  useDeleteCategoryFromCycleMutation,
 } = cyclesApi;
 export { cyclesApi };

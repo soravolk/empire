@@ -4,7 +4,9 @@ import { CiCircleCheck } from "react-icons/ci";
 import {
   useAddCategoryMutation,
   useAddCategoryToCycleMutation,
+  useDeleteCategoryFromCycleMutation,
 } from "../store";
+import { MdDelete } from "react-icons/md";
 
 interface CategoryProps {
   categories: CategoryItem[];
@@ -70,6 +72,8 @@ const Category: React.FC<CategoryProps> = ({
   cycle,
 }) => {
   const [expandForm, setExpandForm] = useState<boolean>(false);
+  const [deleteCategoryFromCycle, deleteCategoryFromCycleResults] =
+    useDeleteCategoryFromCycleMutation();
 
   const handleClick = (category: CategoryItem) => {
     setCategory(category);
@@ -79,12 +83,16 @@ const Category: React.FC<CategoryProps> = ({
     <div className="w-1.5/5">
       <div className="flex flex-col items-center space-y-4 mx-5 p-4">
         {categories.map((item: CategoryItem, id: number) => (
-          <div key={id}>
+          // TODO: make it a reusable component for cycle, category, and subcategory
+          <div key={id} className="flex items-center space-x-2">
             <button
               className="items-center justify-center bg-gray-300 w-20 h-15 p-2 rounded"
               onClick={() => handleClick(item)}
             >
               {item.name}
+            </button>
+            <button>
+              <MdDelete onClick={() => deleteCategoryFromCycle(item.id)} />
             </button>
           </div>
         ))}
