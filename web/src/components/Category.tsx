@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { CycleCategoryItem, CycleItem, User } from "../types";
-import { useDeleteCategoryFromCycleMutation } from "../store";
+import {
+  useDeleteCategoryFromCycleMutation,
+  useAddCategoryMutation,
+  useAddCategoryToCycleMutation,
+} from "../store";
 import { MdDelete } from "react-icons/md";
-import CategoryForm from "./CategoryForm";
+import CreationForm from "./CreationForm";
 
 interface CategoryProps {
   categories: CycleCategoryItem[];
@@ -10,6 +14,38 @@ interface CategoryProps {
   user: User;
   cycle: CycleItem | null;
 }
+
+interface FormControlProps {
+  setExpandForm: (expandForm: boolean) => void;
+  user: User;
+  cycle: CycleItem | null;
+}
+
+const CategoryForm: React.FC<FormControlProps> = ({
+  setExpandForm,
+  user,
+  cycle,
+}) => {
+  const [addCategory, addCategoryResults] = useAddCategoryMutation();
+  const [addCategoryToCycle, addCategoryToCycleResults] =
+    useAddCategoryToCycleMutation();
+
+  const handleAddCategory = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const result = await addCategory({
+      userId: user.id,
+      name: (e.currentTarget.elements.namedItem("name") as HTMLInputElement)
+        .value,
+    });
+    // // TODO: add error handling
+    if ("data" in result && cycle != null) {
+      addCategoryToCycle({ cycleId: cycle.id, categoryId: result.data.id });
+    }
+    setExpandForm(false);
+  };
+
+  return <CreationForm handleAddFunc={handleAddCategory} />;
+};
 
 const Category: React.FC<CategoryProps> = ({
   categories,

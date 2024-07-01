@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CycleCategoryItem, SubcategoryItem, CycleItem, User } from "../types";
-import SubcategoryForm from "./CategoryForm";
+import SubcategoryForm from "./CreationForm";
 
 interface SubcategoryProps {
   category: CycleCategoryItem | null;
@@ -42,13 +42,7 @@ const SubCategory: React.FC<SubcategoryProps> = ({
         >
           +
         </button>
-        {expandForm && (
-          <SubcategoryForm
-            setExpandForm={setExpandForm}
-            user={user}
-            cycle={cycle}
-          />
-        )}
+        {expandForm && }
       </div>
     </div>
   );
