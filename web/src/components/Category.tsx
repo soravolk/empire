@@ -18,7 +18,7 @@ interface CategoryProps {
 interface FormControlProps {
   setExpandForm: (expandForm: boolean) => void;
   user: User;
-  cycle: CycleItem | null;
+  cycle: CycleItem;
 }
 
 const CategoryForm: React.FC<FormControlProps> = ({
@@ -38,7 +38,7 @@ const CategoryForm: React.FC<FormControlProps> = ({
         .value,
     });
     // // TODO: add error handling
-    if ("data" in result && cycle != null) {
+    if ("data" in result) {
       addCategoryToCycle({ cycleId: cycle.id, categoryId: result.data.id });
     }
     setExpandForm(false);
@@ -84,7 +84,8 @@ const Category: React.FC<CategoryProps> = ({
         >
           +
         </button>
-        {expandForm && (
+        {/* TODO: tidy up cycle check logic */}
+        {expandForm && cycle && (
           <CategoryForm
             setExpandForm={setExpandForm}
             user={user}
