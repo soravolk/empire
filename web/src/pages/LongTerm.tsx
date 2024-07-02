@@ -13,7 +13,7 @@ import {
   LongTermItem,
   CycleItem,
   CycleCategoryItem,
-  SubcategoryItem,
+  CycleSubcategoryItem,
 } from "../types";
 import Cycle from "../components/Cycle";
 import Category from "../components/Category";
@@ -24,7 +24,9 @@ export default function LongTerm() {
   const [cycle, setCycle] = useState<CycleItem | null>(null);
   const [longTerm, setLongTerm] = useState<LongTermItem | null>(null);
   const [category, setCategory] = useState<CycleCategoryItem | null>(null);
-  const [subcategory, setSubcategory] = useState<SubcategoryItem | null>(null);
+  const [subcategory, setSubcategory] = useState<CycleSubcategoryItem | null>(
+    null
+  );
   const { data, error, isLoading } = useFetchLongTermsQuery(null);
   const {
     data: cycleData,
@@ -77,6 +79,8 @@ export default function LongTerm() {
             category={category}
             subcategories={subcategoryData}
             setSubcategory={setSubcategory}
+            user={userData}
+            cycle={cycle} // TODO: use context to pass common objects
           />
         )}
         {contentData && (

@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { CycleCategoryItem, CycleItem, User } from "../types";
-import { CiCircleCheck } from "react-icons/ci";
 import {
+  useDeleteCategoryFromCycleMutation,
   useAddCategoryMutation,
   useAddCategoryToCycleMutation,
-  useDeleteCategoryFromCycleMutation,
 } from "../store";
-import { MdDelete } from "react-icons/md";
+import CreationForm from "./CreationForm";
+import TodoItem from "./TodoItem";
 
 interface CategoryProps {
   categories: CycleCategoryItem[];
@@ -18,7 +18,7 @@ interface CategoryProps {
 interface FormControlProps {
   setExpandForm: (expandForm: boolean) => void;
   user: User;
-  cycle: CycleItem | null;
+  cycle: CycleItem;
 }
 
 const CategoryForm: React.FC<FormControlProps> = ({
@@ -26,7 +26,6 @@ const CategoryForm: React.FC<FormControlProps> = ({
   user,
   cycle,
 }) => {
-  const [newCategoryName, setNewCategoryName] = useState("");
   const [addCategory, addCategoryResults] = useAddCategoryMutation();
   const [addCategoryToCycle, addCategoryToCycleResults] =
     useAddCategoryToCycleMutation();
@@ -35,34 +34,17 @@ const CategoryForm: React.FC<FormControlProps> = ({
     e.preventDefault();
     const result = await addCategory({
       userId: user.id,
-      name: newCategoryName,
+      name: (e.currentTarget.elements.namedItem("name") as HTMLInputElement)
+        .value,
     });
-    // TODO: add error handling
-    if ("data" in result && cycle != null) {
+    // // TODO: add error handling
+    if ("data" in result) {
       addCategoryToCycle({ cycleId: cycle.id, categoryId: result.data.id });
     }
     setExpandForm(false);
   };
-  return (
-    <form
-      className="flex flex-col items-center border p-2 space-y-2"
-      onSubmit={handleAddCategory}
-    >
-      <label>
-        Name:
-        <input
-          className="ml-2 border"
-          type="text"
-          name="name"
-          value={newCategoryName}
-          onChange={(e) => setNewCategoryName(e.target.value)}
-        />
-      </label>
-      <button type="submit">
-        <CiCircleCheck />
-      </button>
-    </form>
-  );
+
+  return <CreationForm handleAddFunc={handleAddCategory} />;
 };
 
 const Category: React.FC<CategoryProps> = ({
@@ -75,25 +57,16 @@ const Category: React.FC<CategoryProps> = ({
   const [deleteCategoryFromCycle, deleteCategoryFromCycleResults] =
     useDeleteCategoryFromCycleMutation();
 
-  const handleClick = (category: CycleCategoryItem) => {
-    setCategory(category);
-  };
-
   return (
     <div className="w-1.5/5">
       <div className="flex flex-col items-center space-y-4 mx-5 p-4">
         {categories.map((item: CycleCategoryItem, id: number) => (
-          // TODO: make it a reusable component for cycle, category, and subcategory
-          <div key={id} className="flex items-center space-x-2">
-            <button
-              className="items-center justify-center bg-gray-300 w-20 h-15 p-2 rounded"
-              onClick={() => handleClick(item)}
-            >
-              {item.name}
-            </button>
-            <button>
-              <MdDelete onClick={() => deleteCategoryFromCycle(item.id)} />
-            </button>
+          <div key={id}>
+            <TodoItem
+              item={item}
+              handleClick={setCategory}
+              handleDelete={deleteCategoryFromCycle}
+            />
           </div>
         ))}
         <button
@@ -102,7 +75,8 @@ const Category: React.FC<CategoryProps> = ({
         >
           +
         </button>
-        {expandForm && (
+        {/* TODO: tidy up cycle check logic */}
+        {expandForm && cycle && (
           <CategoryForm
             setExpandForm={setExpandForm}
             user={user}

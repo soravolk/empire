@@ -1,12 +1,16 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { CycleCategoryItem, CycleItem } from "../../types";
+import {
+  CycleCategoryItem,
+  CycleSubcategoryItem,
+  CycleItem,
+} from "../../types";
 
 const cyclesApi = createApi({
   reducerPath: "cycles",
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:5000/cycles",
   }),
-  tagTypes: ["Cycle", "LongTerm", "Category"],
+  tagTypes: ["Cycle", "LongTerm", "Category", "Subcategory"],
   endpoints(builder) {
     return {
       fetchCyclesOfLongTerm: builder.query({
@@ -43,6 +47,13 @@ const cyclesApi = createApi({
         },
       }),
       fetchSubcategoriesFromCycle: builder.query({
+        providesTags: (result, error, cycle) => {
+          const tags = result.map((subcategory: CycleSubcategoryItem) => {
+            return { type: "Subcategory", id: subcategory.id };
+          });
+          tags.push({ type: "Cycle", id: cycle.id });
+          return tags;
+        },
         query: (cycle) => {
           return {
             url: `/${cycle.id}/subcategories`,
@@ -100,13 +111,38 @@ const cyclesApi = createApi({
         },
       }),
       deleteCategoryFromCycle: builder.mutation({
-        invalidatesTags: (result, error, arg) => {
-          return [{ type: "Category", id: arg.categoryId }];
+        invalidatesTags: (result, error, cycleCategoryId) => {
+          return [{ type: "Category", id: cycleCategoryId }];
         },
         query: (cycleCategoryId) => {
           return {
             method: "DELETE",
             url: `/categories/${cycleCategoryId}`,
+          };
+        },
+      }),
+      addSubcategoryToCycle: builder.mutation({
+        invalidatesTags: (result, error, arg) => {
+          return [{ type: "Cycle", id: arg.cycleId }];
+        },
+        query: ({ cycleId, subcategoryId }) => {
+          return {
+            method: "POST",
+            url: `/${cycleId}/subcategories`,
+            body: {
+              subcategoryId,
+            },
+          };
+        },
+      }),
+      deleteSubcategoryFromCycle: builder.mutation({
+        invalidatesTags: (result, error, arg) => {
+          return [{ type: "Subcategory", id: arg.cycleSubcategoryId }];
+        },
+        query: (cycleSubcategoryId) => {
+          return {
+            method: "DELETE",
+            url: `/subcategories/${cycleSubcategoryId}`,
           };
         },
       }),
@@ -123,5 +159,7 @@ export const {
   useDeleteCycleMutation,
   useAddCategoryToCycleMutation,
   useDeleteCategoryFromCycleMutation,
+  useAddSubcategoryToCycleMutation,
+  useDeleteSubcategoryFromCycleMutation,
 } = cyclesApi;
 export { cyclesApi };

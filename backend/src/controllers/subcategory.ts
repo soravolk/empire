@@ -2,10 +2,11 @@ import { RequestHandler } from "express";
 import db from "../db/utils";
 
 const createSubcategory: RequestHandler = async (req, res) => {
-  const { category_id, name } = req.body;
+  const { categoryId: category_id, name } = req.body;
   try {
-    await db.insert("subcategories", { category_id, name });
-    res.status(201).send();
+    res
+      .status(201)
+      .send(await db.insert("subcategories", { category_id, name }));
   } catch (error) {
     res.status(500).json({ error: "internal server error" });
   }

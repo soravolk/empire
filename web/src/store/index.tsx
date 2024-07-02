@@ -4,6 +4,7 @@ import { longTermsApi } from "./apis/longTermsApi";
 import { cyclesApi } from "./apis/cyclesApi";
 import { userApi } from "./apis/userApi";
 import { categoriesApi } from "./apis/categoriesApi";
+import { subcategoriesApi } from "./apis/subcategoriesApi";
 
 export const store = configureStore({
   reducer: {
@@ -11,13 +12,15 @@ export const store = configureStore({
     [cyclesApi.reducerPath]: cyclesApi.reducer,
     [userApi.reducerPath]: userApi.reducer,
     [categoriesApi.reducerPath]: categoriesApi.reducer,
+    [subcategoriesApi.reducerPath]: subcategoriesApi.reducer,
   },
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware()
       .concat(longTermsApi.middleware)
       .concat(cyclesApi.middleware)
       .concat(userApi.middleware)
-      .concat(categoriesApi.middleware);
+      .concat(categoriesApi.middleware)
+      .concat(subcategoriesApi.middleware);
   },
 });
 
@@ -33,6 +36,9 @@ export {
   useDeleteCycleMutation,
   useAddCategoryToCycleMutation,
   useDeleteCategoryFromCycleMutation,
+  useAddSubcategoryToCycleMutation,
+  useDeleteSubcategoryFromCycleMutation,
 } from "./apis/cyclesApi";
 export { useFetchCurrentUserQuery } from "./apis/userApi";
 export { useAddCategoryMutation } from "./apis/categoriesApi";
+export { useAddSubcategoryMutation } from "./apis/subcategoriesApi";

@@ -123,10 +123,20 @@ const deleteCategoryFromCycle: RequestHandler = async (req, res) => {
 
 const addSubcategoryToCycle: RequestHandler = async (req, res) => {
   const { id: cycle_id } = req.params;
-  const { subcategory_id } = req.body;
+  const { subcategoryId: subcategory_id } = req.body;
   try {
     await db.insert("cycle_subcategories", { cycle_id, subcategory_id });
     res.status(201).send();
+  } catch (error) {
+    res.status(500).json({ error: "internal server error" });
+  }
+};
+
+const deleteSubcategoryFromCycle: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.deleteById("cycle_subcategories", id);
+    res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: "internal server error" });
   }
@@ -155,4 +165,5 @@ export default {
   addSubcategoryToCycle,
   addContentToCycle,
   deleteCategoryFromCycle,
+  deleteSubcategoryFromCycle,
 };
