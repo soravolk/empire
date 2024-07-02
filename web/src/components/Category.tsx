@@ -5,8 +5,8 @@ import {
   useAddCategoryMutation,
   useAddCategoryToCycleMutation,
 } from "../store";
-import { MdDelete } from "react-icons/md";
 import CreationForm from "./CreationForm";
+import TodoItem from "./TodoItem";
 
 interface CategoryProps {
   categories: CycleCategoryItem[];
@@ -57,25 +57,17 @@ const Category: React.FC<CategoryProps> = ({
   const [deleteCategoryFromCycle, deleteCategoryFromCycleResults] =
     useDeleteCategoryFromCycleMutation();
 
-  const handleClick = (category: CycleCategoryItem) => {
-    setCategory(category);
-  };
-
   return (
     <div className="w-1.5/5">
       <div className="flex flex-col items-center space-y-4 mx-5 p-4">
         {categories.map((item: CycleCategoryItem, id: number) => (
-          // TODO: make it a reusable component for cycle, category, and subcategory
-          <div key={id} className="flex items-center space-x-2">
-            <button
-              className="items-center justify-center bg-gray-300 w-20 h-15 p-2 rounded"
-              onClick={() => handleClick(item)}
-            >
-              {item.name}
-            </button>
-            <button>
-              <MdDelete onClick={() => deleteCategoryFromCycle(item.id)} />
-            </button>
+          <div key={id}>
+            <TodoItem
+              item={item}
+              id={id}
+              handleClick={setCategory}
+              handleDelete={deleteCategoryFromCycle}
+            />
           </div>
         ))}
         <button
