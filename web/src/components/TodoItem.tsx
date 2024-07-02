@@ -5,7 +5,7 @@ type ItemType = CycleCategoryItem | SubcategoryItem;
 interface TodoItemProps {
   item: ItemType;
   id: number;
-  handleClick: (item: ItemType) => void;
+  handleClick: (item: any) => void; // TODO: amend input type
   handleDelete: (id: number) => void;
 }
 
