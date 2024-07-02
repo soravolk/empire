@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CycleCategoryItem, SubcategoryItem, CycleItem, User } from "../types";
-import SubcategoryForm from "./CreationForm";
+import CreationForm from "./CreationForm";
+import { useAddSubcategoryMutation } from "../store";
 
 interface SubcategoryProps {
   category: CycleCategoryItem | null;
@@ -9,6 +10,32 @@ interface SubcategoryProps {
   user: User;
   cycle: CycleItem | null;
 }
+
+interface FormControlProps {
+  setExpandForm: (expandForm: boolean) => void;
+  category: CycleCategoryItem;
+  cycle: CycleItem;
+}
+
+const SubcategoryForm: React.FC<FormControlProps> = ({
+  setExpandForm,
+  category,
+  cycle,
+}) => {
+  const [addSubcategory, addSubcategoryResults] = useAddSubcategoryMutation();
+
+  const handleAddSubcategory = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await addSubcategory({
+      categoryId: String(category.category_id),
+      name: (e.currentTarget.elements.namedItem("name") as HTMLInputElement)
+        .value,
+    });
+    setExpandForm(false);
+  };
+
+  return <CreationForm handleAddFunc={handleAddSubcategory} />;
+};
 
 const SubCategory: React.FC<SubcategoryProps> = ({
   category,
@@ -42,7 +69,14 @@ const SubCategory: React.FC<SubcategoryProps> = ({
         >
           +
         </button>
-        {expandForm && }
+        {/* TODO: tidy up category and cycle check logic */}
+        {expandForm && category && cycle && (
+          <SubcategoryForm
+            setExpandForm={setExpandForm}
+            category={category}
+            cycle={cycle}
+          />
+        )}
       </div>
     </div>
   );
