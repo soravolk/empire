@@ -110,6 +110,17 @@ const cyclesApi = createApi({
           };
         },
       }),
+      addSubcategoryToCycle: builder.mutation({
+        query: ({ cycleId, subcategoryId }) => {
+          return {
+            method: "POST",
+            url: `/${cycleId}/subcategories`,
+            body: {
+              subcategoryId,
+            },
+          };
+        },
+      }),
     };
   },
 });
@@ -123,5 +134,6 @@ export const {
   useDeleteCycleMutation,
   useAddCategoryToCycleMutation,
   useDeleteCategoryFromCycleMutation,
+  useAddSubcategoryToCycleMutation,
 } = cyclesApi;
 export { cyclesApi };

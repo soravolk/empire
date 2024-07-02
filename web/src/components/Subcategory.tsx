@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { CycleCategoryItem, SubcategoryItem, CycleItem, User } from "../types";
 import CreationForm from "./CreationForm";
-import { useAddSubcategoryMutation } from "../store";
+import {
+  useAddSubcategoryMutation,
+  useAddSubcategoryToCycleMutation,
+} from "../store";
 
 interface SubcategoryProps {
   category: CycleCategoryItem | null;
@@ -23,14 +26,22 @@ const SubcategoryForm: React.FC<FormControlProps> = ({
   cycle,
 }) => {
   const [addSubcategory, addSubcategoryResults] = useAddSubcategoryMutation();
-
+  const [addSubcategoryToCycle, addSubcategoryToCycleResults] =
+    useAddSubcategoryToCycleMutation();
   const handleAddSubcategory = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await addSubcategory({
+    const result = await addSubcategory({
       categoryId: String(category.category_id),
       name: (e.currentTarget.elements.namedItem("name") as HTMLInputElement)
         .value,
     });
+    // TODO: add error handling
+    if ("data" in result) {
+      addSubcategoryToCycle({
+        cycleId: cycle.id,
+        subcategoryId: result.data.id,
+      });
+    }
     setExpandForm(false);
   };
 
