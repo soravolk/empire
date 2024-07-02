@@ -2,7 +2,7 @@ import {
   LongTermItem,
   CycleItem,
   CycleCategoryItem,
-  SubcategoryItem,
+  CycleSubcategoryItem,
   ContentItem,
   User,
 } from "./db";
@@ -11,7 +11,7 @@ export type {
   LongTermItem,
   CycleItem,
   CycleCategoryItem,
-  SubcategoryItem,
+  CycleSubcategoryItem,
   ContentItem,
   User,
 };

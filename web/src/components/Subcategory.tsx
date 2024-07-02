@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { CycleCategoryItem, SubcategoryItem, CycleItem, User } from "../types";
+import {
+  CycleCategoryItem,
+  CycleSubcategoryItem,
+  CycleItem,
+  User,
+} from "../types";
 import CreationForm from "./CreationForm";
 import {
   useAddSubcategoryMutation,
@@ -10,8 +15,8 @@ import TodoItem from "./TodoItem";
 
 interface SubcategoryProps {
   category: CycleCategoryItem | null;
-  subcategories: SubcategoryItem[];
-  setSubcategory: (subcategory: SubcategoryItem | null) => void;
+  subcategories: CycleSubcategoryItem[];
+  setSubcategory: (subcategory: CycleSubcategoryItem | null) => void;
   user: User;
   cycle: CycleItem | null;
 }
@@ -65,7 +70,7 @@ const SubCategory: React.FC<SubcategoryProps> = ({
   return (
     <div className="w-1.5/5">
       <div className="flex flex-col items-center space-y-4 mx-5 p-4">
-        {subcategories.map((item: SubcategoryItem, id: number) => (
+        {subcategories.map((item: CycleSubcategoryItem, id: number) => (
           <div key={id}>
             <TodoItem
               item={item}

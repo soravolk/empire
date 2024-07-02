@@ -1,5 +1,9 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { CycleCategoryItem, SubcategoryItem, CycleItem } from "../../types";
+import {
+  CycleCategoryItem,
+  CycleSubcategoryItem,
+  CycleItem,
+} from "../../types";
 
 const cyclesApi = createApi({
   reducerPath: "cycles",
@@ -44,7 +48,7 @@ const cyclesApi = createApi({
       }),
       fetchSubcategoriesFromCycle: builder.query({
         providesTags: (result, error, cycle) => {
-          const tags = result.map((subcategory: SubcategoryItem) => {
+          const tags = result.map((subcategory: CycleSubcategoryItem) => {
             return { type: "Subcategory", id: subcategory.id };
           });
           tags.push({ type: "Cycle", id: cycle.id });

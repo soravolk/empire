@@ -19,7 +19,7 @@ export interface CycleCategoryItem {
   name: string;
 }
 
-export interface SubcategoryItem {
+export interface CycleSubcategoryItem {
   id: number;
   cycle_id: number;
   category_id: number;

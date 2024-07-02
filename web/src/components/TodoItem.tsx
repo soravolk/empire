@@ -1,7 +1,7 @@
-import { CycleCategoryItem, SubcategoryItem } from "../types";
+import { CycleCategoryItem, CycleSubcategoryItem } from "../types";
 import { MdDelete } from "react-icons/md";
 
-type ItemType = CycleCategoryItem | SubcategoryItem;
+type ItemType = CycleCategoryItem | CycleSubcategoryItem;
 interface TodoItemProps {
   item: ItemType;
   handleClick: (item: any) => void; // TODO: amend input type
