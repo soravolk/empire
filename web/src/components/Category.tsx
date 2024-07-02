@@ -64,7 +64,6 @@ const Category: React.FC<CategoryProps> = ({
           <div key={id}>
             <TodoItem
               item={item}
-              id={id}
               handleClick={setCategory}
               handleDelete={deleteCategoryFromCycle}
             />

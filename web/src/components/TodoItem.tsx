@@ -4,7 +4,6 @@ import { MdDelete } from "react-icons/md";
 type ItemType = CycleCategoryItem | SubcategoryItem;
 interface TodoItemProps {
   item: ItemType;
-  id: number;
   handleClick: (item: any) => void; // TODO: amend input type
   handleDelete: (id: number) => void;
 }

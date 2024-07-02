@@ -69,7 +69,6 @@ const SubCategory: React.FC<SubcategoryProps> = ({
           <div key={id}>
             <TodoItem
               item={item}
-              id={id}
               handleClick={setSubcategory}
               handleDelete={deleteSubcategoryFromCycle}
             />
