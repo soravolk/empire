@@ -107,8 +107,8 @@ const cyclesApi = createApi({
         },
       }),
       deleteCategoryFromCycle: builder.mutation({
-        invalidatesTags: (result, error, arg) => {
-          return [{ type: "Category", id: arg.categoryId }];
+        invalidatesTags: (result, error, cycleCategoryId) => {
+          return [{ type: "Category", id: cycleCategoryId }];
         },
         query: (cycleCategoryId) => {
           return {
