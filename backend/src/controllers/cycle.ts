@@ -144,7 +144,7 @@ const deleteSubcategoryFromCycle: RequestHandler = async (req, res) => {
 
 const addContentToCycle: RequestHandler = async (req, res) => {
   const { id: cycle_id } = req.params;
-  const { content_id } = req.body;
+  const { contentId: content_id } = req.body;
   try {
     await db.insert("cycle_contents", { cycle_id, content_id });
     res.status(201).send();

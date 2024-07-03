@@ -1,7 +1,7 @@
 import { CycleSubcategoryItem, ContentItem, CycleItem } from "../types";
 import { useState } from "react";
 import CreationForm from "./CreationForm";
-import { useAddContentMutation } from "../store";
+import { useAddContentMutation, useAddContentToCycleMutation } from "../store";
 
 interface ContentProps {
   subcategory: CycleSubcategoryItem | null;
@@ -21,14 +21,20 @@ const ContentForm: React.FC<FormControlProps> = ({
   cycle,
 }) => {
   const [addContent, addContentResults] = useAddContentMutation();
+  const [addContentToCycle, addContentToResults] =
+    useAddContentToCycleMutation();
 
   const handleAddSubcategory = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await addContent({
+    const result = await addContent({
       subcategoryId: String(subcategory.subcategory_id),
       name: (e.currentTarget.elements.namedItem("name") as HTMLInputElement)
         .value,
     });
+    // TODO: add error handling
+    if ("data" in result) {
+      addContentToCycle({ cycleId: cycle.id, contentId: result.data.id });
+    }
     setExpandForm(false);
   };
 
