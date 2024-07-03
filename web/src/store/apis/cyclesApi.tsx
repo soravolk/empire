@@ -3,6 +3,7 @@ import {
   CycleCategoryItem,
   CycleSubcategoryItem,
   CycleItem,
+  CycleContentItem,
 } from "../../types";
 
 const cyclesApi = createApi({
@@ -10,7 +11,7 @@ const cyclesApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:5000/cycles",
   }),
-  tagTypes: ["Cycle", "LongTerm", "Category", "Subcategory"],
+  tagTypes: ["Cycle", "LongTerm", "Category", "Subcategory", "Content"],
   endpoints(builder) {
     return {
       fetchCyclesOfLongTerm: builder.query({
@@ -62,6 +63,13 @@ const cyclesApi = createApi({
         },
       }),
       fetchContentsFromCycle: builder.query({
+        providesTags: (result, error, cycle) => {
+          const tags = result.map((content: CycleContentItem) => {
+            return { type: "Content", id: content.id };
+          });
+          tags.push({ type: "Cycle", id: cycle.id });
+          return tags;
+        },
         query: (cycle) => {
           return {
             url: `/${cycle.id}/contents`,
@@ -146,6 +154,31 @@ const cyclesApi = createApi({
           };
         },
       }),
+      addContentToCycle: builder.mutation({
+        invalidatesTags: (result, error, arg) => {
+          return [{ type: "Cycle", id: arg.cycleId }];
+        },
+        query: ({ cycleId, contentId }) => {
+          return {
+            method: "POST",
+            url: `/${cycleId}/contents`,
+            body: {
+              contentId,
+            },
+          };
+        },
+      }),
+      deleteContentFromCycle: builder.mutation({
+        invalidatesTags: (result, error, arg) => {
+          return [{ type: "Content", id: arg.cycleContentId }];
+        },
+        query: (cycleContentId) => {
+          return {
+            method: "DELETE",
+            url: `/contents/${cycleContentId}`,
+          };
+        },
+      }),
     };
   },
 });
@@ -161,5 +194,7 @@ export const {
   useDeleteCategoryFromCycleMutation,
   useAddSubcategoryToCycleMutation,
   useDeleteSubcategoryFromCycleMutation,
+  useAddContentToCycleMutation,
+  useDeleteContentFromCycleMutation,
 } = cyclesApi;
 export { cyclesApi };

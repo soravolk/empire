@@ -5,6 +5,7 @@ import { cyclesApi } from "./apis/cyclesApi";
 import { userApi } from "./apis/userApi";
 import { categoriesApi } from "./apis/categoriesApi";
 import { subcategoriesApi } from "./apis/subcategoriesApi";
+import { contentsApi } from "./apis/contentsApi";
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ export const store = configureStore({
     [userApi.reducerPath]: userApi.reducer,
     [categoriesApi.reducerPath]: categoriesApi.reducer,
     [subcategoriesApi.reducerPath]: subcategoriesApi.reducer,
+    [contentsApi.reducerPath]: contentsApi.reducer,
   },
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware()
@@ -20,7 +22,8 @@ export const store = configureStore({
       .concat(cyclesApi.middleware)
       .concat(userApi.middleware)
       .concat(categoriesApi.middleware)
-      .concat(subcategoriesApi.middleware);
+      .concat(subcategoriesApi.middleware)
+      .concat(contentsApi.middleware);
   },
 });
 
@@ -38,7 +41,10 @@ export {
   useDeleteCategoryFromCycleMutation,
   useAddSubcategoryToCycleMutation,
   useDeleteSubcategoryFromCycleMutation,
+  useAddContentToCycleMutation,
+  useDeleteContentFromCycleMutation,
 } from "./apis/cyclesApi";
 export { useFetchCurrentUserQuery } from "./apis/userApi";
 export { useAddCategoryMutation } from "./apis/categoriesApi";
 export { useAddSubcategoryMutation } from "./apis/subcategoriesApi";
+export { useAddContentMutation } from "./apis/contentsApi";

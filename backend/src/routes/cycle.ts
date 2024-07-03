@@ -30,4 +30,6 @@ router.delete("/categories/:id", cycle.deleteCategoryFromCycle);
 
 router.delete("/subcategories/:id", cycle.deleteSubcategoryFromCycle);
 
+router.delete("/contents/:id", cycle.deleteContentFromCycle);
+
 export default router;
