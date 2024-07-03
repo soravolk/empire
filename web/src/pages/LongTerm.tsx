@@ -84,7 +84,11 @@ export default function LongTerm() {
           />
         )}
         {contentData && (
-          <Content subcategory={subcategory} contents={contentData} />
+          <Content
+            subcategory={subcategory}
+            contents={contentData}
+            cycle={cycle}
+          />
         )}
       </div>
     </div>
