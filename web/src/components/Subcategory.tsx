@@ -62,6 +62,9 @@ const SubCategory: React.FC<SubcategoryProps> = ({
   user,
   cycle,
 }) => {
+  const displayItems = subcategories.filter(
+    (item) => item.category_id === category?.category_id
+  );
   const [expandForm, setExpandForm] = useState<boolean>(false);
 
   const [deleteSubcategoryFromCycle, deleteSubcategoryFromCycleResults] =
@@ -70,7 +73,7 @@ const SubCategory: React.FC<SubcategoryProps> = ({
   return (
     <div className="w-1.5/5">
       <div className="flex flex-col items-center space-y-4 mx-5 p-4">
-        {subcategories.map((item: CycleSubcategoryItem, id: number) => (
+        {displayItems.map((item: CycleSubcategoryItem, id: number) => (
           <div key={id}>
             <TodoItem
               item={item}
