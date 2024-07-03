@@ -1,7 +1,12 @@
 import { CycleSubcategoryItem, ContentItem, CycleItem } from "../types";
 import { useState } from "react";
 import CreationForm from "./CreationForm";
-import { useAddContentMutation, useAddContentToCycleMutation } from "../store";
+import {
+  useAddContentMutation,
+  useAddContentToCycleMutation,
+  useDeleteContentFromCycleMutation,
+} from "../store";
+import { MdDelete } from "react-icons/md";
 
 interface ContentProps {
   subcategory: CycleSubcategoryItem | null;
@@ -46,13 +51,20 @@ const Content: React.FC<ContentProps> = ({ subcategory, contents, cycle }) => {
     (item) => item.subcategory_id === subcategory?.subcategory_id
   );
   const [expandForm, setExpandForm] = useState<boolean>(false);
+  const [deleteContentFromCycle, deleteContentFromCycleResults] =
+    useDeleteContentFromCycleMutation();
   return (
     <div>
       <div className="flex flex-col items-center space-y-4 shadow mx-5 p-4">
         <h3 className="font-bold mb-2">Cycle 1</h3>
         <ul className="list-inside list-disc space-y-3">
-          {displayItems.map((item) => (
-            <li>{item.name}</li>
+          {displayItems.map((item, idx) => (
+            <div key={idx} className="flex items-center space-x-2">
+              <li>{item.name}</li>
+              <button>
+                <MdDelete onClick={() => deleteContentFromCycle(item.id)} />
+              </button>
+            </div>
           ))}
         </ul>
         <button

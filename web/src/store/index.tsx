@@ -42,6 +42,7 @@ export {
   useAddSubcategoryToCycleMutation,
   useDeleteSubcategoryFromCycleMutation,
   useAddContentToCycleMutation,
+  useDeleteContentFromCycleMutation,
 } from "./apis/cyclesApi";
 export { useFetchCurrentUserQuery } from "./apis/userApi";
 export { useAddCategoryMutation } from "./apis/categoriesApi";
