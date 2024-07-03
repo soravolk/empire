@@ -3,7 +3,7 @@ import {
   CycleCategoryItem,
   CycleSubcategoryItem,
   CycleItem,
-  ContentItem,
+  CycleContentItem,
 } from "../../types";
 
 const cyclesApi = createApi({
@@ -64,7 +64,7 @@ const cyclesApi = createApi({
       }),
       fetchContentsFromCycle: builder.query({
         providesTags: (result, error, cycle) => {
-          const tags = result.map((content: ContentItem) => {
+          const tags = result.map((content: CycleContentItem) => {
             return { type: "Content", id: content.id };
           });
           tags.push({ type: "Cycle", id: cycle.id });

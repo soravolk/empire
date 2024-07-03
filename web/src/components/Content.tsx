@@ -1,4 +1,4 @@
-import { CycleSubcategoryItem, ContentItem, CycleItem } from "../types";
+import { CycleSubcategoryItem, CycleContentItem, CycleItem } from "../types";
 import { useState } from "react";
 import CreationForm from "./CreationForm";
 import {
@@ -10,7 +10,7 @@ import { MdDelete } from "react-icons/md";
 
 interface ContentProps {
   subcategory: CycleSubcategoryItem | null;
-  contents: ContentItem[];
+  contents: CycleContentItem[];
   cycle: CycleItem | null; // TODO: cycle shouldn't be null
 }
 

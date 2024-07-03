@@ -3,7 +3,7 @@ import {
   CycleItem,
   CycleCategoryItem,
   CycleSubcategoryItem,
-  ContentItem,
+  CycleContentItem,
   User,
 } from "./db";
 
@@ -12,6 +12,6 @@ export type {
   CycleItem,
   CycleCategoryItem,
   CycleSubcategoryItem,
-  ContentItem,
+  CycleContentItem,
   User,
 };

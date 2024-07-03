@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { ContentItem } from "../../types";
+import { CycleContentItem } from "../../types";
 
 interface AddContentInput {
   subcategoryId: string;
@@ -13,7 +13,7 @@ const contentsApi = createApi({
   }),
   endpoints(builder) {
     return {
-      addContent: builder.mutation<ContentItem, AddContentInput>({
+      addContent: builder.mutation<CycleContentItem, AddContentInput>({
         query: ({ subcategoryId, name }) => {
           return {
             method: "POST",
