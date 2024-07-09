@@ -71,32 +71,30 @@ const SubCategory: React.FC<SubcategoryProps> = ({
     useDeleteSubcategoryFromCycleMutation();
 
   return (
-    <div className="w-1.5/5">
-      <div className="flex flex-col items-center space-y-4 mx-5 p-4">
-        {displayItems.map((item: CycleSubcategoryItem, id: number) => (
-          <div key={id}>
-            <TodoItem
-              item={item}
-              handleClick={setSubcategory}
-              handleDelete={deleteSubcategoryFromCycle}
-            />
-          </div>
-        ))}
-        <button
-          className="items-center justify-center bg-blue-500 text-white rounded-full h-12 w-12"
-          onClick={() => setExpandForm(!expandForm)}
-        >
-          +
-        </button>
-        {/* TODO: tidy up category and cycle check logic */}
-        {expandForm && category && cycle && (
-          <SubcategoryForm
-            setExpandForm={setExpandForm}
-            category={category}
-            cycle={cycle}
+    <div className="flex flex-col items-center space-y-4 mx-5 p-4">
+      {displayItems.map((item: CycleSubcategoryItem, id: number) => (
+        <div key={id}>
+          <TodoItem
+            item={item}
+            handleClick={setSubcategory}
+            handleDelete={deleteSubcategoryFromCycle}
           />
-        )}
-      </div>
+        </div>
+      ))}
+      <button
+        className="items-center justify-center bg-blue-500 text-white rounded-full h-12 w-12"
+        onClick={() => setExpandForm(!expandForm)}
+      >
+        +
+      </button>
+      {/* TODO: tidy up category and cycle check logic */}
+      {expandForm && category && cycle && (
+        <SubcategoryForm
+          setExpandForm={setExpandForm}
+          category={category}
+          cycle={cycle}
+        />
+      )}
     </div>
   );
 };

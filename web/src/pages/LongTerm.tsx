@@ -55,7 +55,7 @@ export default function LongTerm() {
   } = useFetchCurrentUserQuery(null);
 
   return (
-    <div className="flex flex-col p-4">
+    <div className="flex flex-col">
       <div className="w-full mb-4">
         {data && (
           <Dropdown
@@ -64,32 +64,40 @@ export default function LongTerm() {
           />
         )}
       </div>
-      <div className="flex">
-        {cycleData && <Cycle cycles={cycleData} setCycle={setCycle} />}
-        {categoryData && (
-          <Category
-            categories={categoryData}
-            setCategory={setCategory}
-            user={userData}
-            cycle={cycle} // TODO: use context to pass common objects
-          />
-        )}
-        {subcategoryData && (
-          <SubCategory
-            category={category}
-            subcategories={subcategoryData}
-            setSubcategory={setSubcategory}
-            user={userData}
-            cycle={cycle} // TODO: use context to pass common objects
-          />
-        )}
-        {contentData && (
-          <Content
-            subcategory={subcategory}
-            contents={contentData}
-            cycle={cycle}
-          />
-        )}
+      <div className="flex px-5 py-2">
+        <div className="basis-1/4">
+          {cycleData && <Cycle cycles={cycleData} setCycle={setCycle} />}
+        </div>
+        <div className="basis-1/4">
+          {categoryData && (
+            <Category
+              categories={categoryData}
+              setCategory={setCategory}
+              user={userData}
+              cycle={cycle} // TODO: use context to pass common objects
+            />
+          )}
+        </div>
+        <div className="basis-1/4">
+          {subcategoryData && (
+            <SubCategory
+              category={category}
+              subcategories={subcategoryData}
+              setSubcategory={setSubcategory}
+              user={userData}
+              cycle={cycle} // TODO: use context to pass common objects
+            />
+          )}
+        </div>
+        <div className="basis-1/4">
+          {contentData && (
+            <Content
+              subcategory={subcategory}
+              contents={contentData}
+              cycle={cycle}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
