@@ -12,6 +12,7 @@ import {
   useDeleteSubcategoryFromCycleMutation,
 } from "../store";
 import TodoItem from "./TodoItem";
+import ItemCreationButton from "./ItemCreationButton";
 
 interface SubcategoryProps {
   category: CycleCategoryItem | null;
@@ -69,6 +70,9 @@ const SubCategory: React.FC<SubcategoryProps> = ({
 
   const [deleteSubcategoryFromCycle, deleteSubcategoryFromCycleResults] =
     useDeleteSubcategoryFromCycleMutation();
+  const handleAddSubcategory = () => {
+    setExpandForm(!expandForm);
+  };
 
   return (
     <div className="flex flex-col items-center space-y-4 mx-5 p-4">
@@ -81,12 +85,7 @@ const SubCategory: React.FC<SubcategoryProps> = ({
           />
         </div>
       ))}
-      <button
-        className="items-center justify-center bg-blue-500 text-white rounded-full h-12 w-12"
-        onClick={() => setExpandForm(!expandForm)}
-      >
-        +
-      </button>
+      <ItemCreationButton handleClick={handleAddSubcategory} />
       {/* TODO: tidy up category and cycle check logic */}
       {expandForm && category && cycle && (
         <SubcategoryForm

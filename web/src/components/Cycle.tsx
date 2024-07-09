@@ -4,6 +4,7 @@ import { useAddCycleMutation, useDeleteCycleMutation } from "../store";
 import Calendar from "react-calendar";
 import { MdDelete } from "react-icons/md";
 import "react-calendar/dist/Calendar.css";
+import ItemCreationButton from "./ItemCreationButton";
 
 interface CycleProps {
   cycles: CycleItem[];
@@ -59,12 +60,7 @@ const Cycle: React.FC<CycleProps> = ({ cycles, setCycle }) => {
             </button>
           </div>
         ))}
-      <button
-        className="items-center justify-center bg-blue-500 text-white rounded-full h-12 w-12"
-        onClick={() => handleAddCycle()}
-      >
-        +
-      </button>
+      <ItemCreationButton handleClick={handleAddCycle} />
       {expandCalendar && (
         <Calendar selectRange value={date} onChange={handleSelectCycleRange} />
       )}

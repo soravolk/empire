@@ -7,6 +7,7 @@ import {
 } from "../store";
 import CreationForm from "./CreationForm";
 import TodoItem from "./TodoItem";
+import ItemCreationButton from "./ItemCreationButton";
 
 interface CategoryProps {
   categories: CycleCategoryItem[];
@@ -56,7 +57,9 @@ const Category: React.FC<CategoryProps> = ({
   const [expandForm, setExpandForm] = useState<boolean>(false);
   const [deleteCategoryFromCycle, deleteCategoryFromCycleResults] =
     useDeleteCategoryFromCycleMutation();
-
+  const handleAddCategory = () => {
+    setExpandForm(!expandForm);
+  };
   return (
     <div className="flex flex-col items-center space-y-4 mx-5 p-4">
       {categories.map((item: CycleCategoryItem, id: number) => (
@@ -68,12 +71,7 @@ const Category: React.FC<CategoryProps> = ({
           />
         </div>
       ))}
-      <button
-        className="items-center justify-center bg-blue-500 text-white rounded-full h-12 w-12"
-        onClick={() => setExpandForm(!expandForm)}
-      >
-        +
-      </button>
+      <ItemCreationButton handleClick={handleAddCategory} />
       {/* TODO: tidy up cycle check logic */}
       {expandForm && cycle && (
         <CategoryForm setExpandForm={setExpandForm} user={user} cycle={cycle} />
