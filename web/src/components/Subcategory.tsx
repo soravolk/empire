@@ -14,7 +14,6 @@ interface SubcategoryProps {
   category: CycleCategoryItem;
   subcategories: CycleSubcategoryItem[];
   setSubcategory: (subcategory: CycleSubcategoryItem | null) => void;
-  user: User;
 }
 
 interface FormControlProps {
@@ -54,7 +53,6 @@ const SubCategory: React.FC<SubcategoryProps> = ({
   category,
   subcategories,
   setSubcategory,
-  user,
 }) => {
   const displayItems = subcategories.filter(
     (item) => item.category_id === category?.category_id

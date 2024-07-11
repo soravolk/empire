@@ -94,7 +94,6 @@ export default function LongTerm() {
                 category={category}
                 subcategories={subcategoryData}
                 setSubcategory={setSubcategory}
-                user={userData}
               />
             )}
           </div>
