@@ -1,10 +1,5 @@
-import { useState } from "react";
-import {
-  CycleCategoryItem,
-  CycleSubcategoryItem,
-  CycleItem,
-  User,
-} from "../types";
+import { useState, useContext } from "react";
+import { CycleCategoryItem, CycleSubcategoryItem, User } from "../types";
 import CreationForm from "./CreationForm";
 import {
   useAddSubcategoryMutation,
@@ -13,26 +8,25 @@ import {
 } from "../store";
 import TodoItem from "./TodoItem";
 import ItemCreationButton from "./ItemCreationButton";
+import CycleContext from "../context/cycle";
 
 interface SubcategoryProps {
   category: CycleCategoryItem;
   subcategories: CycleSubcategoryItem[];
   setSubcategory: (subcategory: CycleSubcategoryItem | null) => void;
   user: User;
-  cycle: CycleItem;
 }
 
 interface FormControlProps {
   setExpandForm: (expandForm: boolean) => void;
   category: CycleCategoryItem;
-  cycle: CycleItem;
 }
 
 const SubcategoryForm: React.FC<FormControlProps> = ({
   setExpandForm,
   category,
-  cycle,
 }) => {
+  const cycle = useContext(CycleContext);
   const [addSubcategory, addSubcategoryResults] = useAddSubcategoryMutation();
   const [addSubcategoryToCycle, addSubcategoryToCycleResults] =
     useAddSubcategoryToCycleMutation();
@@ -43,8 +37,8 @@ const SubcategoryForm: React.FC<FormControlProps> = ({
       name: (e.currentTarget.elements.namedItem("name") as HTMLInputElement)
         .value,
     });
-    // TODO: add error handling
-    if ("data" in result) {
+    // TODO: add error handling and remove cycle check
+    if (cycle && "data" in result) {
       addSubcategoryToCycle({
         cycleId: cycle.id,
         subcategoryId: result.data.id,
@@ -61,7 +55,6 @@ const SubCategory: React.FC<SubcategoryProps> = ({
   subcategories,
   setSubcategory,
   user,
-  cycle,
 }) => {
   const displayItems = subcategories.filter(
     (item) => item.category_id === category?.category_id
@@ -87,12 +80,8 @@ const SubCategory: React.FC<SubcategoryProps> = ({
       ))}
       <ItemCreationButton handleClick={handleAddSubcategory} />
       {/* TODO: tidy up category and cycle check logic */}
-      {expandForm && category && cycle && (
-        <SubcategoryForm
-          setExpandForm={setExpandForm}
-          category={category}
-          cycle={cycle}
-        />
+      {expandForm && category && (
+        <SubcategoryForm setExpandForm={setExpandForm} category={category} />
       )}
     </div>
   );

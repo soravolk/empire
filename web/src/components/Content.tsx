@@ -1,5 +1,5 @@
-import { CycleSubcategoryItem, CycleContentItem, CycleItem } from "../types";
-import { useState } from "react";
+import { CycleSubcategoryItem, CycleContentItem } from "../types";
+import { useState, useContext } from "react";
 import CreationForm from "./CreationForm";
 import {
   useAddContentMutation,
@@ -8,27 +8,26 @@ import {
 } from "../store";
 import { MdDelete } from "react-icons/md";
 import ItemCreationButton from "./ItemCreationButton";
+import CycleContext from "../context/cycle";
 
 interface ContentProps {
   subcategory: CycleSubcategoryItem;
   contents: CycleContentItem[];
-  cycle: CycleItem; // TODO: cycle shouldn't be null
 }
 
 interface FormControlProps {
   setExpandForm: (expandForm: boolean) => void;
   subcategory: CycleSubcategoryItem;
-  cycle: CycleItem;
 }
 
 const ContentForm: React.FC<FormControlProps> = ({
   setExpandForm,
   subcategory,
-  cycle,
 }) => {
   const [addContent, addContentResults] = useAddContentMutation();
   const [addContentToCycle, addContentToResults] =
     useAddContentToCycleMutation();
+  const cycle = useContext(CycleContext);
 
   const handleAddSubcategory = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -38,7 +37,7 @@ const ContentForm: React.FC<FormControlProps> = ({
         .value,
     });
     // TODO: add error handling
-    if ("data" in result) {
+    if (cycle && "data" in result) {
       addContentToCycle({ cycleId: cycle.id, contentId: result.data.id });
     }
     setExpandForm(false);
@@ -47,7 +46,7 @@ const ContentForm: React.FC<FormControlProps> = ({
   return <CreationForm handleAddFunc={handleAddSubcategory} />;
 };
 
-const Content: React.FC<ContentProps> = ({ subcategory, contents, cycle }) => {
+const Content: React.FC<ContentProps> = ({ subcategory, contents }) => {
   const displayItems = contents.filter(
     (item) => item.subcategory_id === subcategory?.subcategory_id
   );
@@ -72,12 +71,8 @@ const Content: React.FC<ContentProps> = ({ subcategory, contents, cycle }) => {
       </ul>
       <ItemCreationButton handleClick={handleAddContent} />
       {/* TODO: tidy up subcategory and cycle check logic */}
-      {expandForm && subcategory && cycle && (
-        <ContentForm
-          setExpandForm={setExpandForm}
-          subcategory={subcategory}
-          cycle={cycle}
-        />
+      {expandForm && subcategory && (
+        <ContentForm setExpandForm={setExpandForm} subcategory={subcategory} />
       )}
     </div>
   );

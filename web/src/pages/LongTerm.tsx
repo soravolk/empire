@@ -19,6 +19,7 @@ import Cycle from "../components/Cycle";
 import Category from "../components/Category";
 import SubCategory from "../components/Subcategory";
 import Content from "../components/Content";
+import CycleContext from "../context/cycle";
 
 export default function LongTerm() {
   const [cycle, setCycle] = useState<CycleItem | null>(null);
@@ -64,50 +65,46 @@ export default function LongTerm() {
   }, [cycle]);
 
   return (
-    <div className="flex flex-col">
-      <div className="w-full mb-4">
-        {longTermData && (
-          <Dropdown
-            options={getLongTermHistoryOptions(longTermData)}
-            onSelect={setLongTerm}
-          />
-        )}
-      </div>
-      <div className="flex px-5 py-2">
-        <div className="basis-1/4">
-          {cycleData && <Cycle cycles={cycleData} setCycle={setCycle} />}
-        </div>
-        <div className="basis-1/4">
-          {cycle && categoryData && (
-            <Category
-              categories={categoryData}
-              setCategory={setCategory}
-              user={userData}
-              cycle={cycle} // TODO: use context to pass common objects
+    <CycleContext.Provider value={cycle}>
+      <div className="flex flex-col">
+        <div className="w-full mb-4">
+          {longTermData && (
+            <Dropdown
+              options={getLongTermHistoryOptions(longTermData)}
+              onSelect={setLongTerm}
             />
           )}
         </div>
-        <div className="basis-1/4">
-          {cycle && category && subcategoryData && (
-            <SubCategory
-              category={category}
-              subcategories={subcategoryData}
-              setSubcategory={setSubcategory}
-              user={userData}
-              cycle={cycle} // TODO: use context to pass common objects
-            />
-          )}
-        </div>
-        <div className="basis-1/4">
-          {cycle && subcategory && contentData && (
-            <Content
-              subcategory={subcategory}
-              contents={contentData}
-              cycle={cycle}
-            />
-          )}
+        <div className="flex px-5 py-2">
+          <div className="basis-1/4">
+            {cycleData && <Cycle cycles={cycleData} setCycle={setCycle} />}
+          </div>
+          <div className="basis-1/4">
+            {cycle && categoryData && (
+              <Category
+                categories={categoryData}
+                setCategory={setCategory}
+                user={userData}
+              />
+            )}
+          </div>
+          <div className="basis-1/4">
+            {cycle && category && subcategoryData && (
+              <SubCategory
+                category={category}
+                subcategories={subcategoryData}
+                setSubcategory={setSubcategory}
+                user={userData}
+              />
+            )}
+          </div>
+          <div className="basis-1/4">
+            {cycle && subcategory && contentData && (
+              <Content subcategory={subcategory} contents={contentData} />
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </CycleContext.Provider>
   );
 }
