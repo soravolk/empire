@@ -10,9 +10,9 @@ import { MdDelete } from "react-icons/md";
 import ItemCreationButton from "./ItemCreationButton";
 
 interface ContentProps {
-  subcategory: CycleSubcategoryItem | null;
+  subcategory: CycleSubcategoryItem;
   contents: CycleContentItem[];
-  cycle: CycleItem | null; // TODO: cycle shouldn't be null
+  cycle: CycleItem; // TODO: cycle shouldn't be null
 }
 
 interface FormControlProps {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   useFetchLongTermsQuery,
   useFetchCyclesOfLongTermQuery,
@@ -27,7 +27,11 @@ export default function LongTerm() {
   const [subcategory, setSubcategory] = useState<CycleSubcategoryItem | null>(
     null
   );
-  const { data, error, isLoading } = useFetchLongTermsQuery(null);
+  const {
+    data: longTermData,
+    error: longTermError,
+    isLoading: isLongTermLoading,
+  } = useFetchLongTermsQuery(null);
   const {
     data: cycleData,
     error: cycleFetchError,
@@ -54,12 +58,17 @@ export default function LongTerm() {
     isLoading: isUserLoading,
   } = useFetchCurrentUserQuery(null);
 
+  useEffect(() => {
+    setCategory(null);
+    setSubcategory(null);
+  }, [cycle]);
+
   return (
     <div className="flex flex-col">
       <div className="w-full mb-4">
-        {data && (
+        {longTermData && (
           <Dropdown
-            options={getLongTermHistoryOptions(data)}
+            options={getLongTermHistoryOptions(longTermData)}
             onSelect={setLongTerm}
           />
         )}
@@ -69,7 +78,7 @@ export default function LongTerm() {
           {cycleData && <Cycle cycles={cycleData} setCycle={setCycle} />}
         </div>
         <div className="basis-1/4">
-          {categoryData && (
+          {cycle && categoryData && (
             <Category
               categories={categoryData}
               setCategory={setCategory}
@@ -79,7 +88,7 @@ export default function LongTerm() {
           )}
         </div>
         <div className="basis-1/4">
-          {subcategoryData && (
+          {cycle && category && subcategoryData && (
             <SubCategory
               category={category}
               subcategories={subcategoryData}
@@ -90,7 +99,7 @@ export default function LongTerm() {
           )}
         </div>
         <div className="basis-1/4">
-          {contentData && (
+          {cycle && subcategory && contentData && (
             <Content
               subcategory={subcategory}
               contents={contentData}

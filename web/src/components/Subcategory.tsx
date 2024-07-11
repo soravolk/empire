@@ -15,11 +15,11 @@ import TodoItem from "./TodoItem";
 import ItemCreationButton from "./ItemCreationButton";
 
 interface SubcategoryProps {
-  category: CycleCategoryItem | null;
+  category: CycleCategoryItem;
   subcategories: CycleSubcategoryItem[];
   setSubcategory: (subcategory: CycleSubcategoryItem | null) => void;
   user: User;
-  cycle: CycleItem | null;
+  cycle: CycleItem;
 }
 
 interface FormControlProps {

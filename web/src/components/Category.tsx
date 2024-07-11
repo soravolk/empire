@@ -13,7 +13,7 @@ interface CategoryProps {
   categories: CycleCategoryItem[];
   setCategory: (category: CycleCategoryItem | null) => void;
   user: User;
-  cycle: CycleItem | null;
+  cycle: CycleItem;
 }
 
 interface FormControlProps {
