@@ -102,13 +102,26 @@ const Items: React.FC<ItemProps> = ({ cycle }) => {
     error: userFetchError,
     isLoading: isUserLoading,
   } = useFetchCurrentUserQuery(null);
+
+  const handleClickCategory = (item: CycleCategoryItem) => {
+    if (item === category) {
+      setCategory(null);
+      setSubcategory(null);
+    } else {
+      setCategory(item);
+    }
+  };
+  const handleClickSubcategory = (item: CycleSubcategoryItem) => {
+    const setItem = item === subcategory ? null : item;
+    setSubcategory(setItem);
+  };
   return (
     <>
       <div className="basis-1/4">
         {categoryData && (
           <Category
             categories={categoryData}
-            setCategory={setCategory}
+            handleClickCategory={handleClickCategory}
             user={userData}
           />
         )}
@@ -118,7 +131,7 @@ const Items: React.FC<ItemProps> = ({ cycle }) => {
           <SubCategory
             category={category}
             subcategories={subcategoryData}
-            setSubcategory={setSubcategory}
+            handleClickSubcategory={handleClickSubcategory}
           />
         )}
       </div>
