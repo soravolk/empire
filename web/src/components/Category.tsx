@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { CycleCategoryItem, CycleItem, User } from "../types";
+import { useState, useContext } from "react";
+import { CycleCategoryItem, User } from "../types";
 import {
   useDeleteCategoryFromCycleMutation,
   useAddCategoryMutation,
@@ -7,29 +7,25 @@ import {
 } from "../store";
 import CreationForm from "./CreationForm";
 import TodoItem from "./TodoItem";
+import ItemCreationButton from "./ItemCreationButton";
+import CycleContext from "../context/cycle";
 
 interface CategoryProps {
   categories: CycleCategoryItem[];
-  setCategory: (category: CycleCategoryItem | null) => void;
+  handleClickCategory: (category: CycleCategoryItem) => void;
   user: User;
-  cycle: CycleItem | null;
 }
 
 interface FormControlProps {
   setExpandForm: (expandForm: boolean) => void;
   user: User;
-  cycle: CycleItem;
 }
 
-const CategoryForm: React.FC<FormControlProps> = ({
-  setExpandForm,
-  user,
-  cycle,
-}) => {
+const CategoryForm: React.FC<FormControlProps> = ({ setExpandForm, user }) => {
   const [addCategory, addCategoryResults] = useAddCategoryMutation();
   const [addCategoryToCycle, addCategoryToCycleResults] =
     useAddCategoryToCycleMutation();
-
+  const cycle = useContext(CycleContext);
   const handleAddCategory = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const result = await addCategory({
@@ -37,8 +33,8 @@ const CategoryForm: React.FC<FormControlProps> = ({
       name: (e.currentTarget.elements.namedItem("name") as HTMLInputElement)
         .value,
     });
-    // // TODO: add error handling
-    if ("data" in result) {
+    // TODO: add error handling and remove cycle check
+    if (cycle && "data" in result) {
       addCategoryToCycle({ cycleId: cycle.id, categoryId: result.data.id });
     }
     setExpandForm(false);
@@ -49,41 +45,29 @@ const CategoryForm: React.FC<FormControlProps> = ({
 
 const Category: React.FC<CategoryProps> = ({
   categories,
-  setCategory,
+  handleClickCategory,
   user,
-  cycle,
 }) => {
   const [expandForm, setExpandForm] = useState<boolean>(false);
   const [deleteCategoryFromCycle, deleteCategoryFromCycleResults] =
     useDeleteCategoryFromCycleMutation();
-
+  const handleAddCategory = () => {
+    setExpandForm(!expandForm);
+  };
   return (
-    <div className="w-1.5/5">
-      <div className="flex flex-col items-center space-y-4 mx-5 p-4">
-        {categories.map((item: CycleCategoryItem, id: number) => (
-          <div key={id}>
-            <TodoItem
-              item={item}
-              handleClick={setCategory}
-              handleDelete={deleteCategoryFromCycle}
-            />
-          </div>
-        ))}
-        <button
-          className="items-center justify-center bg-blue-500 text-white rounded-full h-12 w-12"
-          onClick={() => setExpandForm(!expandForm)}
-        >
-          +
-        </button>
-        {/* TODO: tidy up cycle check logic */}
-        {expandForm && cycle && (
-          <CategoryForm
-            setExpandForm={setExpandForm}
-            user={user}
-            cycle={cycle}
+    <div className="flex flex-col items-center space-y-4 mx-5 p-4">
+      {categories.map((item: CycleCategoryItem, id: number) => (
+        <div key={id}>
+          <TodoItem
+            item={item}
+            handleClick={handleClickCategory}
+            handleDelete={deleteCategoryFromCycle}
           />
-        )}
-      </div>
+        </div>
+      ))}
+      <ItemCreationButton handleClick={handleAddCategory} />
+      {/* TODO: tidy up cycle check logic */}
+      {expandForm && <CategoryForm setExpandForm={setExpandForm} user={user} />}
     </div>
   );
 };

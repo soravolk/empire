@@ -5,7 +5,9 @@ export default function Root() {
   return (
     <div>
       <Header />
-      <Outlet />
+      <div className="px-3 py-2">
+        <Outlet />
+      </div>
     </div>
   );
 }

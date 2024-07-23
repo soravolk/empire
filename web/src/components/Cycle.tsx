@@ -4,6 +4,7 @@ import { useAddCycleMutation, useDeleteCycleMutation } from "../store";
 import Calendar from "react-calendar";
 import { MdDelete } from "react-icons/md";
 import "react-calendar/dist/Calendar.css";
+import ItemCreationButton from "./ItemCreationButton";
 
 interface CycleProps {
   cycles: CycleItem[];
@@ -44,36 +45,25 @@ const Cycle: React.FC<CycleProps> = ({ cycles, setCycle }) => {
   }, [date]);
 
   return (
-    <div className="w-1/5 p-6">
-      <div className="flex flex-col items-center space-y-2">
-        {cycles &&
-          cycles.map((item: CycleItem, id: number) => (
-            <div key={id} className="flex items-center space-x-2">
-              <button
-                className="items-center justify-center bg-gray-300 rounded-full w-20 h-20"
-                onClick={() => handleClick(item)}
-              >
-                {`Cycle ${id + 1}`}
-              </button>
-              <button>
-                <MdDelete onClick={() => deleteCycle(item)} />
-              </button>
-            </div>
-          ))}
-        <button
-          className="items-center justify-center bg-blue-500 text-white rounded-full h-12 w-12"
-          onClick={() => handleAddCycle()}
-        >
-          +
-        </button>
-        {expandCalendar && (
-          <Calendar
-            selectRange
-            value={date}
-            onChange={handleSelectCycleRange}
-          />
-        )}
-      </div>
+    <div className="flex flex-col items-center space-y-2">
+      {cycles &&
+        cycles.map((item: CycleItem, id: number) => (
+          <div key={id} className="flex items-center space-x-2">
+            <button
+              className="items-center justify-center bg-gray-300 rounded-full w-20 h-20"
+              onClick={() => handleClick(item)}
+            >
+              {`Cycle ${id + 1}`}
+            </button>
+            <button>
+              <MdDelete onClick={() => deleteCycle(item)} />
+            </button>
+          </div>
+        ))}
+      <ItemCreationButton handleClick={handleAddCycle} />
+      {expandCalendar && (
+        <Calendar selectRange value={date} onChange={handleSelectCycleRange} />
+      )}
     </div>
   );
 };
