@@ -19,7 +19,7 @@ import Cycle from "../components/Cycle";
 import Category from "../components/Category";
 import SubCategory from "../components/Subcategory";
 import Content from "../components/Content";
-import { CycleItemContext } from "../context/cycle";
+import { CycleItemContext, useCycleListContext } from "../context/cycle";
 
 export default function LongTerm() {
   const [longTerm, setLongTerm] = useState<LongTermItem | null>(null);
@@ -28,6 +28,17 @@ export default function LongTerm() {
     error: longTermError,
     isLoading: isLongTermLoading,
   } = useFetchLongTermsQuery(null);
+
+  const { setCycleList } = useCycleListContext();
+  const {
+    data: cycleData,
+    error: cycleFetchError,
+    isLoading: isCycleLoading,
+  } = useFetchCyclesOfLongTermQuery(longTerm);
+
+  useEffect(() => {
+    setCycleList(cycleData);
+  }, [cycleData]);
 
   return (
     <div className="flex flex-col">
@@ -55,17 +66,13 @@ interface CycleOptionsProps {
 }
 
 const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
-  const {
-    data: cycleData,
-    error: cycleFetchError,
-    isLoading: isCycleLoading,
-  } = useFetchCyclesOfLongTermQuery(longTerm);
+  const { cycleList } = useCycleListContext();
   const [cycle, setCycle] = useState<CycleItem | null>(null);
 
   return (
     <CycleItemContext.Provider value={cycle}>
       <div className="basis-1/4">
-        {cycleData && <Cycle cycles={cycleData} setCycle={setCycle} />}
+        {cycleList && <Cycle cycles={cycleList} setCycle={setCycle} />}
       </div>
       {cycle && <Items cycle={cycle} />}
     </CycleItemContext.Provider>

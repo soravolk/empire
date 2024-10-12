@@ -1,4 +1,4 @@
-import { LongTermItem } from "../types";
+import { CycleItem, LongTermItem } from "../types";
 
 const getLongTermHistoryOptions = (items: LongTermItem[]) => {
   return items.map((item: LongTermItem) => {
@@ -18,4 +18,12 @@ const getLongTermHistoryOptions = (items: LongTermItem[]) => {
   });
 };
 
-export { getLongTermHistoryOptions };
+const getAvailableCycleOptions = (items: CycleItem[]) => {
+  return items.map((item: CycleItem, index: number) => {
+    return {
+      data: item,
+      displayText: `Cycle ${index + 1}`,
+    };
+  });
+};
+export { getLongTermHistoryOptions, getAvailableCycleOptions };
