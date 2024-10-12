@@ -2,9 +2,15 @@
 
 An planner app to improve yourself
 
-## High Level System Architecture (DRAFT)
+## High Level System Architecture
+
+![High-Level Architecture](./diagrams/system_architecture.png)
 
 ### Client
+
+#### User Interface
+
+![User Interface](./diagrams/user_interface.png)
 
 ### Server
 
