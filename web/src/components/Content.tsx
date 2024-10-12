@@ -8,7 +8,7 @@ import {
 } from "../store";
 import { MdDelete } from "react-icons/md";
 import ItemCreationButton from "./ItemCreationButton";
-import CycleContext from "../context/cycle";
+import { CycleItemContext } from "../context/cycle";
 
 interface ContentProps {
   subcategory: CycleSubcategoryItem;
@@ -27,7 +27,7 @@ const ContentForm: React.FC<FormControlProps> = ({
   const [addContent, addContentResults] = useAddContentMutation();
   const [addContentToCycle, addContentToResults] =
     useAddContentToCycleMutation();
-  const cycle = useContext(CycleContext);
+  const cycle = useContext(CycleItemContext);
 
   const handleAddSubcategory = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

@@ -8,7 +8,7 @@ import {
 } from "../store";
 import TodoItem from "./TodoItem";
 import ItemCreationButton from "./ItemCreationButton";
-import CycleContext from "../context/cycle";
+import { CycleItemContext } from "../context/cycle";
 
 interface SubcategoryProps {
   category: CycleCategoryItem;
@@ -25,7 +25,7 @@ const SubcategoryForm: React.FC<FormControlProps> = ({
   setExpandForm,
   category,
 }) => {
-  const cycle = useContext(CycleContext);
+  const cycle = useContext(CycleItemContext);
   const [addSubcategory, addSubcategoryResults] = useAddSubcategoryMutation();
   const [addSubcategoryToCycle, addSubcategoryToCycleResults] =
     useAddSubcategoryToCycleMutation();

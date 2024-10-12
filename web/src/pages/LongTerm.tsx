@@ -19,7 +19,7 @@ import Cycle from "../components/Cycle";
 import Category from "../components/Category";
 import SubCategory from "../components/Subcategory";
 import Content from "../components/Content";
-import CycleContext from "../context/cycle";
+import { CycleItemContext } from "../context/cycle";
 
 export default function LongTerm() {
   const [longTerm, setLongTerm] = useState<LongTermItem | null>(null);
@@ -63,12 +63,12 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
   const [cycle, setCycle] = useState<CycleItem | null>(null);
 
   return (
-    <CycleContext.Provider value={cycle}>
+    <CycleItemContext.Provider value={cycle}>
       <div className="basis-1/4">
         {cycleData && <Cycle cycles={cycleData} setCycle={setCycle} />}
       </div>
       {cycle && <Items cycle={cycle} />}
-    </CycleContext.Provider>
+    </CycleItemContext.Provider>
   );
 };
 
