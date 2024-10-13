@@ -79,7 +79,10 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
   );
 };
 
-const Items: React.FC<ItemProps> = ({ cycle }) => {
+export const Items: React.FC<ItemProps & { children?: React.ReactNode }> = ({
+  cycle,
+  children,
+}) => {
   const [category, setCategory] = useState<CycleCategoryItem | null>(null);
   const [subcategory, setSubcategory] = useState<CycleSubcategoryItem | null>(
     null
@@ -147,6 +150,7 @@ const Items: React.FC<ItemProps> = ({ cycle }) => {
           <Content subcategory={subcategory} contents={contentData} />
         )}
       </div>
+      {children && <div className="basis-1/4">{children}</div>}
     </>
   );
 };
