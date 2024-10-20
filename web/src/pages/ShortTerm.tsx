@@ -4,7 +4,6 @@ import { CycleItem } from "../types";
 import { useCycleListContext } from "../context/cycle";
 import { getAvailableCycleOptions } from "../utils/utils";
 import { Items } from "./LongTerm";
-import Detail from "../components/Detail";
 
 export default function ShortTerm() {
   const [cycle, setCycle] = useState<CycleItem | null>(null);
@@ -21,11 +20,7 @@ export default function ShortTerm() {
         )}
       </div>
       <div className="flex px-5 py-2">
-        {cycle && (
-          <Items cycle={cycle}>
-            <Detail />
-          </Items>
-        )}
+        {cycle && <Items cycle={cycle} shortTerm />}
       </div>
     </div>
   );
