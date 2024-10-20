@@ -14,6 +14,7 @@ interface SubcategoryProps {
   category: CycleCategoryItem;
   subcategories: CycleSubcategoryItem[];
   handleClickSubcategory: (subcategory: CycleSubcategoryItem) => void;
+  shortTerm: boolean;
 }
 
 interface FormControlProps {
@@ -53,6 +54,7 @@ const SubCategory: React.FC<SubcategoryProps> = ({
   category,
   subcategories,
   handleClickSubcategory,
+  shortTerm,
 }) => {
   const displayItems = subcategories.filter(
     (item) => item.category_id === category?.category_id
@@ -76,7 +78,7 @@ const SubCategory: React.FC<SubcategoryProps> = ({
           />
         </div>
       ))}
-      <ItemCreationButton handleClick={handleAddSubcategory} />
+      {!shortTerm && <ItemCreationButton handleClick={handleAddSubcategory} />}
       {/* TODO: tidy up category and cycle check logic */}
       {expandForm && category && (
         <SubcategoryForm setExpandForm={setExpandForm} category={category} />

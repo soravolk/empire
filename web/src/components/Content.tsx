@@ -14,6 +14,7 @@ interface ContentProps {
   subcategory: CycleSubcategoryItem;
   contents: CycleContentItem[];
   handleClickContent: (content: CycleContentItem) => void;
+  shortTerm: boolean;
 }
 
 interface FormControlProps {
@@ -51,6 +52,7 @@ const Content: React.FC<ContentProps> = ({
   subcategory,
   contents,
   handleClickContent,
+  shortTerm,
 }) => {
   const displayItems = contents.filter(
     (item) => item.subcategory_id === subcategory?.subcategory_id
@@ -79,7 +81,7 @@ const Content: React.FC<ContentProps> = ({
           </div>
         ))}
       </ul>
-      <ItemCreationButton handleClick={handleAddContent} />
+      {!shortTerm && <ItemCreationButton handleClick={handleAddContent} />}
       {/* TODO: tidy up subcategory and cycle check logic */}
       {expandForm && subcategory && (
         <ContentForm setExpandForm={setExpandForm} subcategory={subcategory} />

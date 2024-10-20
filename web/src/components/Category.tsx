@@ -14,6 +14,7 @@ interface CategoryProps {
   categories: CycleCategoryItem[];
   handleClickCategory: (category: CycleCategoryItem) => void;
   user: User;
+  shortTerm: boolean;
 }
 
 interface FormControlProps {
@@ -47,6 +48,7 @@ const Category: React.FC<CategoryProps> = ({
   categories,
   handleClickCategory,
   user,
+  shortTerm,
 }) => {
   const [expandForm, setExpandForm] = useState<boolean>(false);
   const [deleteCategoryFromCycle, deleteCategoryFromCycleResults] =
@@ -65,7 +67,7 @@ const Category: React.FC<CategoryProps> = ({
           />
         </div>
       ))}
-      <ItemCreationButton handleClick={handleAddCategory} />
+      {!shortTerm && <ItemCreationButton handleClick={handleAddCategory} />}
       {/* TODO: tidy up cycle check logic */}
       {expandForm && <CategoryForm setExpandForm={setExpandForm} user={user} />}
     </div>
