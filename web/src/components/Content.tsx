@@ -30,7 +30,7 @@ const ContentForm: React.FC<FormControlProps> = ({
     useAddContentToCycleMutation();
   const cycle = useContext(CycleItemContext);
 
-  const handleAddSubcategory = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddContent = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const result = await addContent({
       subcategoryId: String(subcategory.subcategory_id),
@@ -44,7 +44,7 @@ const ContentForm: React.FC<FormControlProps> = ({
     setExpandForm(false);
   };
 
-  return <CreationForm handleAddFunc={handleAddSubcategory} />;
+  return <CreationForm handleAddFunc={handleAddContent} />;
 };
 
 const Content: React.FC<ContentProps> = ({
