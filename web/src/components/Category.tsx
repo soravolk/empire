@@ -8,12 +8,13 @@ import {
 import CreationForm from "./CreationForm";
 import TodoItem from "./TodoItem";
 import ItemCreationButton from "./ItemCreationButton";
-import CycleContext from "../context/cycle";
+import { CycleItemContext } from "../context/cycle";
 
 interface CategoryProps {
   categories: CycleCategoryItem[];
   handleClickCategory: (category: CycleCategoryItem) => void;
   user: User;
+  shortTerm: boolean;
 }
 
 interface FormControlProps {
@@ -25,7 +26,7 @@ const CategoryForm: React.FC<FormControlProps> = ({ setExpandForm, user }) => {
   const [addCategory, addCategoryResults] = useAddCategoryMutation();
   const [addCategoryToCycle, addCategoryToCycleResults] =
     useAddCategoryToCycleMutation();
-  const cycle = useContext(CycleContext);
+  const cycle = useContext(CycleItemContext);
   const handleAddCategory = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const result = await addCategory({
@@ -47,6 +48,7 @@ const Category: React.FC<CategoryProps> = ({
   categories,
   handleClickCategory,
   user,
+  shortTerm,
 }) => {
   const [expandForm, setExpandForm] = useState<boolean>(false);
   const [deleteCategoryFromCycle, deleteCategoryFromCycleResults] =
@@ -65,7 +67,7 @@ const Category: React.FC<CategoryProps> = ({
           />
         </div>
       ))}
-      <ItemCreationButton handleClick={handleAddCategory} />
+      {!shortTerm && <ItemCreationButton handleClick={handleAddCategory} />}
       {/* TODO: tidy up cycle check logic */}
       {expandForm && <CategoryForm setExpandForm={setExpandForm} user={user} />}
     </div>

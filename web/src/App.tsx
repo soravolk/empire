@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import ShortTerm from "./pages/ShortTerm";
 import LongTerm from "./pages/LongTerm";
 import Setting from "./pages/Setting";
+import { CycleListProvider } from "./context/cycle";
 
 const router = createBrowserRouter([
   {
@@ -17,11 +18,19 @@ const router = createBrowserRouter([
       },
       {
         path: "/shortTerm",
-        element: <ShortTerm />,
+        element: (
+          <CycleListProvider>
+            <ShortTerm />
+          </CycleListProvider>
+        ),
       },
       {
         path: "/longTerm",
-        element: <LongTerm />,
+        element: (
+          <CycleListProvider>
+            <LongTerm />
+          </CycleListProvider>
+        ),
       },
       {
         path: "/setting",

@@ -8,12 +8,13 @@ import {
 } from "../store";
 import TodoItem from "./TodoItem";
 import ItemCreationButton from "./ItemCreationButton";
-import CycleContext from "../context/cycle";
+import { CycleItemContext } from "../context/cycle";
 
 interface SubcategoryProps {
   category: CycleCategoryItem;
   subcategories: CycleSubcategoryItem[];
   handleClickSubcategory: (subcategory: CycleSubcategoryItem) => void;
+  shortTerm: boolean;
 }
 
 interface FormControlProps {
@@ -25,7 +26,7 @@ const SubcategoryForm: React.FC<FormControlProps> = ({
   setExpandForm,
   category,
 }) => {
-  const cycle = useContext(CycleContext);
+  const cycle = useContext(CycleItemContext);
   const [addSubcategory, addSubcategoryResults] = useAddSubcategoryMutation();
   const [addSubcategoryToCycle, addSubcategoryToCycleResults] =
     useAddSubcategoryToCycleMutation();
@@ -53,6 +54,7 @@ const SubCategory: React.FC<SubcategoryProps> = ({
   category,
   subcategories,
   handleClickSubcategory,
+  shortTerm,
 }) => {
   const displayItems = subcategories.filter(
     (item) => item.category_id === category?.category_id
@@ -76,7 +78,7 @@ const SubCategory: React.FC<SubcategoryProps> = ({
           />
         </div>
       ))}
-      <ItemCreationButton handleClick={handleAddSubcategory} />
+      {!shortTerm && <ItemCreationButton handleClick={handleAddSubcategory} />}
       {/* TODO: tidy up category and cycle check logic */}
       {expandForm && category && (
         <SubcategoryForm setExpandForm={setExpandForm} category={category} />

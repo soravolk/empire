@@ -8,11 +8,13 @@ import {
 } from "../store";
 import { MdDelete } from "react-icons/md";
 import ItemCreationButton from "./ItemCreationButton";
-import CycleContext from "../context/cycle";
+import { CycleItemContext } from "../context/cycle";
 
 interface ContentProps {
   subcategory: CycleSubcategoryItem;
   contents: CycleContentItem[];
+  handleClickContent: (content: CycleContentItem) => void;
+  shortTerm: boolean;
 }
 
 interface FormControlProps {
@@ -27,9 +29,9 @@ const ContentForm: React.FC<FormControlProps> = ({
   const [addContent, addContentResults] = useAddContentMutation();
   const [addContentToCycle, addContentToResults] =
     useAddContentToCycleMutation();
-  const cycle = useContext(CycleContext);
+  const cycle = useContext(CycleItemContext);
 
-  const handleAddSubcategory = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddContent = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const result = await addContent({
       subcategoryId: String(subcategory.subcategory_id),
@@ -43,10 +45,15 @@ const ContentForm: React.FC<FormControlProps> = ({
     setExpandForm(false);
   };
 
-  return <CreationForm handleAddFunc={handleAddSubcategory} />;
+  return <CreationForm handleAddFunc={handleAddContent} />;
 };
 
-const Content: React.FC<ContentProps> = ({ subcategory, contents }) => {
+const Content: React.FC<ContentProps> = ({
+  subcategory,
+  contents,
+  handleClickContent,
+  shortTerm,
+}) => {
   const displayItems = contents.filter(
     (item) => item.subcategory_id === subcategory?.subcategory_id
   );
@@ -62,14 +69,19 @@ const Content: React.FC<ContentProps> = ({ subcategory, contents }) => {
       <ul className="list-inside list-disc space-y-3">
         {displayItems.map((item, idx) => (
           <div key={idx} className="flex items-center space-x-2">
-            <li>{item.name}</li>
+            <li
+              onClick={() => handleClickContent(item)}
+              className="cursor-pointer"
+            >
+              {item.name}
+            </li>
             <button>
               <MdDelete onClick={() => deleteContentFromCycle(item.id)} />
             </button>
           </div>
         ))}
       </ul>
-      <ItemCreationButton handleClick={handleAddContent} />
+      {!shortTerm && <ItemCreationButton handleClick={handleAddContent} />}
       {/* TODO: tidy up subcategory and cycle check logic */}
       {expandForm && subcategory && (
         <ContentForm setExpandForm={setExpandForm} subcategory={subcategory} />
