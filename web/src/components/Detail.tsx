@@ -27,8 +27,8 @@ const Detail: React.FC<DetailProps> = ({ content }) => {
   };
 
   return (
-    <div className="flex flex-col p-4 bg-white shadow rounded-lg">
-      Content: {content.name}
+    <div className="flex flex-col items-center space-y-2 p-4 bg-white shadow rounded-lg">
+      <h3 className="font-bold mb-2">{content.name}</h3>
       <ItemCreationButton handleClick={handleAddDetail} />
       {expandForm && <DetailForm setExpandForm={setExpandForm} />}
     </div>
