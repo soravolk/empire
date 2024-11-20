@@ -35,6 +35,11 @@ export interface CycleContentItem {
   name: string;
 }
 
+export interface ShortTermItem {
+  id: number;
+  user_id: string;
+}
+
 export interface User {
   id: string;
   email: string;

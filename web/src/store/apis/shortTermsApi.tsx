@@ -1,4 +1,9 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { ShortTermItem } from "../../types";
+
+interface CreateShortTermInput {
+  userId: string;
+}
 
 const shortTermsApi = createApi({
   reducerPath: "shortTerms",
@@ -7,7 +12,7 @@ const shortTermsApi = createApi({
   }),
   endpoints(builder) {
     return {
-      createShortTerm: builder.mutation({
+      createShortTerm: builder.mutation<ShortTermItem, CreateShortTermInput>({
         query: ({ userId }) => {
           return {
             method: "POST",
