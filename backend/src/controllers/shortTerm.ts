@@ -2,7 +2,7 @@ import { RequestHandler } from "express";
 import db from "../db/utils";
 
 const createShortTerm: RequestHandler = async (req, res) => {
-  const { user_id } = req.body;
+  const { userId: user_id } = req.body;
   try {
     await db.insert("short_terms", { user_id });
     res.status(201).end();

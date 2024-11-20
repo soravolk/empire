@@ -1,14 +1,25 @@
 import { useState } from "react";
 import Dropdown from "../components/Dropdown";
-import { CycleItem } from "../types";
+import { CycleItem, User } from "../types";
 import { useCycleListContext } from "../context/cycle";
 import { getAvailableCycleOptions } from "../utils/utils";
 import { Items } from "./LongTerm";
 import { BsPencilSquare } from "react-icons/bs";
+import { useCreateShortTermMutation, useFetchCurrentUserQuery } from "../store";
 
-const CreateShortTerm = () => {
+interface CreateShortTermProps {
+  user: User;
+}
+
+const CreateShortTerm: React.FC<CreateShortTermProps> = ({ user }) => {
+  const [createShortTerm] = useCreateShortTermMutation();
+
+  const handleClick = () => {
+    createShortTerm({ userId: user.id });
+  };
+
   return (
-    <button>
+    <button onClick={handleClick}>
       <BsPencilSquare />
     </button>
   );
@@ -17,6 +28,7 @@ const CreateShortTerm = () => {
 export default function ShortTerm() {
   const [cycle, setCycle] = useState<CycleItem | null>(null);
   const { cycleList } = useCycleListContext();
+  const { data: userData } = useFetchCurrentUserQuery(null);
 
   return (
     <div className="flex flex-col">
@@ -30,7 +42,7 @@ export default function ShortTerm() {
           )}
         </div>
         <div>
-          <CreateShortTerm />
+          <CreateShortTerm user={userData} />
         </div>
       </div>
       <div className="flex px-5 py-2">
