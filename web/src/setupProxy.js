@@ -4,7 +4,7 @@ module.exports = function (app) {
   app.use(
     ["/auth/google", "/auth/logout"],
     createProxyMiddleware({
-      target: "http://localhost:5000",
+      target: "http://localhost:5001",
       changeOrigin: false,
     })
   );

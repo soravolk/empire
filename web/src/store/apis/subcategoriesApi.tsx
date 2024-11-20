@@ -9,7 +9,7 @@ interface AddSubcategoryInput {
 const subcategoriesApi = createApi({
   reducerPath: "subcategories",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/subcategories",
+    baseUrl: "http://localhost:5001/subcategories",
   }),
   endpoints(builder) {
     return {

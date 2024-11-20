@@ -9,7 +9,7 @@ interface AddContentInput {
 const contentsApi = createApi({
   reducerPath: "contents",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/contents",
+    baseUrl: "http://localhost:5001/contents",
   }),
   endpoints(builder) {
     return {

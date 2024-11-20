@@ -4,6 +4,7 @@ import {
   CycleCategoryItem,
   CycleSubcategoryItem,
   CycleContentItem,
+  ShortTermItem,
   User,
 } from "./db";
 
@@ -13,5 +14,6 @@ export type {
   CycleCategoryItem,
   CycleSubcategoryItem,
   CycleContentItem,
+  ShortTermItem,
   User,
 };

@@ -9,11 +9,23 @@ interface Option {
 interface DropdownProps {
   options: Option[];
   onSelect: (selection: any) => void;
+  buttonComponent?: (displayText: string) => JSX.Element;
 }
 
-const Dropdown: React.FC<DropdownProps> = ({ options, onSelect }) => {
+const defaultDropdownButton = (displayText: string) => (
+  <button className="flex items-center justify-between px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none">
+    {displayText}
+    <GoChevronDown className="ml-2" /> {/* Icon added next to the text */}
+  </button>
+);
+
+const Dropdown: React.FC<DropdownProps> = ({
+  options,
+  onSelect,
+  buttonComponent = defaultDropdownButton,
+}) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [displayText, setDisplayText] = useState<string | null>(null);
+  const [displayText, setDisplayText] = useState<string>("Choose an Option");
   const toggling = () => setIsOpen(!isOpen);
   const onOptionClicked = (option: Option) => () => {
     onSelect(option.data);
@@ -23,13 +35,7 @@ const Dropdown: React.FC<DropdownProps> = ({ options, onSelect }) => {
 
   return (
     <div className="relative">
-      <button
-        onClick={toggling}
-        className="flex items-center justify-between px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none"
-      >
-        {displayText || "Choose an Option"}
-        <GoChevronDown className="ml-2" /> {/* Icon added next to the text */}
-      </button>
+      <div onClick={toggling}>{buttonComponent(displayText)}</div>
       {isOpen && (
         <ul className="absolute bg-white border mt-1 rounded shadow">
           {options.map((option, index) => (
