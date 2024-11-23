@@ -12,6 +12,14 @@ const shortTermsApi = createApi({
   }),
   endpoints(builder) {
     return {
+      fetchShortTerms: builder.query({
+        query: () => {
+          return {
+            method: "GET",
+            url: "/",
+          };
+        },
+      }),
       createShortTerm: builder.mutation<ShortTermItem, CreateShortTermInput>({
         query: ({ userId }) => {
           return {
@@ -27,5 +35,6 @@ const shortTermsApi = createApi({
   },
 });
 
-export const { useCreateShortTermMutation } = shortTermsApi;
+export const { useCreateShortTermMutation, useFetchShortTermsQuery } =
+  shortTermsApi;
 export { shortTermsApi };

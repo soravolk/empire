@@ -1,4 +1,4 @@
-import { CycleItem, LongTermItem } from "../types";
+import { CycleItem, LongTermItem, ShortTermItem } from "../types";
 
 const getLongTermHistoryOptions = (items: LongTermItem[]) => {
   return items.map((item: LongTermItem) => {
@@ -26,4 +26,18 @@ const getAvailableCycleOptions = (items: CycleItem[]) => {
     };
   });
 };
-export { getLongTermHistoryOptions, getAvailableCycleOptions };
+
+const getAvailableShortTermOptions = (items: ShortTermItem[]) => {
+  return items.map((item: ShortTermItem) => {
+    return {
+      data: item,
+      displayText: `Short Term ID: ${item.id}`,
+    };
+  });
+};
+
+export {
+  getLongTermHistoryOptions,
+  getAvailableCycleOptions,
+  getAvailableShortTermOptions,
+};

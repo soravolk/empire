@@ -1,11 +1,13 @@
 import { useState } from "react";
 import Dropdown from "../components/Dropdown";
-import { CycleItem, User } from "../types";
-import { useCycleListContext } from "../context/cycle";
-import { getAvailableCycleOptions } from "../utils/utils";
-import { Items } from "./LongTerm";
+import { ShortTermItem, User } from "../types";
+import { getAvailableShortTermOptions } from "../utils/utils";
 import { BsPencilSquare } from "react-icons/bs";
-import { useCreateShortTermMutation, useFetchCurrentUserQuery } from "../store";
+import {
+  useCreateShortTermMutation,
+  useFetchCurrentUserQuery,
+  useFetchShortTermsQuery,
+} from "../store";
 
 interface CreateShortTermProps {
   user: User;
@@ -26,18 +28,18 @@ const CreateShortTerm: React.FC<CreateShortTermProps> = ({ user }) => {
 };
 
 export default function ShortTerm() {
-  const [cycle, setCycle] = useState<CycleItem | null>(null);
-  const { cycleList } = useCycleListContext();
+  const [shortTerm, setShortTerm] = useState<ShortTermItem | null>(null);
   const { data: userData } = useFetchCurrentUserQuery(null);
+  const { data: shortTermData } = useFetchShortTermsQuery(null);
 
   return (
     <div className="flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <div>
-          {cycleList && (
+          {shortTermData && (
             <Dropdown
-              options={getAvailableCycleOptions(cycleList)}
-              onSelect={setCycle}
+              options={getAvailableShortTermOptions(shortTermData)}
+              onSelect={setShortTerm}
             />
           )}
         </div>
@@ -46,7 +48,7 @@ export default function ShortTerm() {
         </div>
       </div>
       <div className="flex px-5 py-2">
-        {cycle && <Items cycle={cycle} shortTerm />}
+        {shortTerm && "short term id: " + shortTerm.id}
       </div>
     </div>
   );

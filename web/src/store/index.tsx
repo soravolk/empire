@@ -51,4 +51,7 @@ export { useFetchCurrentUserQuery } from "./apis/userApi";
 export { useAddCategoryMutation } from "./apis/categoriesApi";
 export { useAddSubcategoryMutation } from "./apis/subcategoriesApi";
 export { useAddContentMutation } from "./apis/contentsApi";
-export { useCreateShortTermMutation } from "./apis/shortTermsApi";
+export {
+  useCreateShortTermMutation,
+  useFetchShortTermsQuery,
+} from "./apis/shortTermsApi";
