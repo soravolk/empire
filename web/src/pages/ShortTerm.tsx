@@ -1,13 +1,16 @@
 import { useState } from "react";
 import Dropdown from "../components/Dropdown";
-import { ShortTermItem, User } from "../types";
+import { CycleContentItem, CycleItem, ShortTermItem, User } from "../types";
 import { getAvailableShortTermOptions } from "../utils/utils";
 import { BsPencilSquare } from "react-icons/bs";
 import {
   useCreateShortTermMutation,
+  useFetchContentsFromCycleQuery,
   useFetchCurrentUserQuery,
+  useFetchCyclesOfLongTermQuery,
   useFetchShortTermsQuery,
 } from "../store";
+import { useLongTermContext } from "../context/longTerm";
 
 interface CreateShortTermProps {
   user: User;
@@ -28,7 +31,11 @@ const CreateShortTerm: React.FC<CreateShortTermProps> = ({ user }) => {
 };
 
 export default function ShortTerm() {
+  const { selectedLongTerm } = useLongTermContext();
   const [shortTerm, setShortTerm] = useState<ShortTermItem | null>(null);
+  const [selectedCycle, setSelectedCycle] = useState<CycleItem | null>(null);
+  const { data: cycleData } = useFetchCyclesOfLongTermQuery(selectedLongTerm);
+  const { data: contentData } = useFetchContentsFromCycleQuery(selectedCycle);
   const { data: userData } = useFetchCurrentUserQuery(null);
   const { data: shortTermData } = useFetchShortTermsQuery(null);
 
@@ -48,6 +55,12 @@ export default function ShortTerm() {
             />
           )}
         </div>
+        {selectedLongTerm && (
+          <div>
+            Long Term: {selectedLongTerm.start_time.toString()} ~{" "}
+            {selectedLongTerm.end_time.toString()}
+          </div>
+        )}
         <div>
           <CreateShortTerm user={userData} />
         </div>
@@ -69,14 +82,38 @@ export default function ShortTerm() {
       </div>
       {isOverlayVisible && (
         <div className="flex justify-center items-center fixed inset-0 bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-lg w-5/6 h-96">
-            <span className="block mb-4">show contents of each cycle</span>
-            <button
-              onClick={toggleOverlay}
-              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-            >
-              Close
-            </button>
+          <div className="flex bg-white p-6 rounded shadow-lg w-5/6 h-96">
+            <div className="flex-1">
+              {cycleData && (
+                <Dropdown
+                  options={cycleData.map((cycle: CycleItem) => ({
+                    data: cycle,
+                    displayText: `Cycle ${cycle.id}`,
+                  }))}
+                  onSelect={setSelectedCycle}
+                />
+              )}
+              {contentData &&
+                contentData.map((content: CycleContentItem) => {
+                  return (
+                    <li key={content.id} className="list-none mt-2">
+                      <button className="w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded">
+                        {content.name}
+                      </button>
+                    </li>
+                  );
+                })}
+            </div>
+            <div className="w-px bg-gray-300 mx-4"></div>
+            <div className="flex-1">
+              <span className="block mb-4">handle details</span>
+              <button
+                onClick={toggleOverlay}
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

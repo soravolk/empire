@@ -21,16 +21,18 @@ import Category from "../components/Category";
 import SubCategory from "../components/Subcategory";
 import Content from "../components/Content";
 import { CycleItemContext, useCycleListContext } from "../context/cycle";
+import { useLongTermContext } from "../context/longTerm";
 import Detail from "../components/Detail";
 
 export default function LongTerm() {
-  const [longTerm, setLongTerm] = useState<LongTermItem | null>(null);
   const {
     data: longTermData,
     error: longTermError,
     isLoading: isLongTermLoading,
   } = useFetchLongTermsQuery(null);
 
+  const { selectedLongTerm: longTerm, setSelectedLongTerm: setLongTerm } =
+    useLongTermContext();
   const { setCycleList } = useCycleListContext();
   const {
     data: cycleData,
