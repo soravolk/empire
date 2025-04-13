@@ -9,6 +9,7 @@ import {
   useFetchCurrentUserQuery,
   useFetchCyclesOfLongTermQuery,
   useFetchShortTermsQuery,
+  useAddDetailMutation,
 } from "../store";
 import { useLongTermContext } from "../context/longTerm";
 
@@ -43,6 +44,8 @@ export default function ShortTerm() {
   const [selectedContent, setSelectedContent] =
     useState<CycleContentItem | null>(null);
   const [isDetailFormVisible, setDetailFormVisible] = useState(false);
+  const [addDetail] = useAddDetailMutation();
+  const [detailName, setDetailName] = useState("");
 
   const toggleOverlay = () => {
     setOverlayVisible(!isOverlayVisible);
@@ -57,6 +60,23 @@ export default function ShortTerm() {
   const handleContentSelect = (content: CycleContentItem) => {
     setSelectedContent(content);
     setDetailFormVisible(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedContent || !shortTerm || !detailName) return;
+
+    try {
+      await addDetail({
+        contentId: String(selectedContent.id),
+        shortTermId: String(shortTerm.id),
+        name: detailName,
+      });
+      setDetailFormVisible(false);
+      setDetailName("");
+    } catch (error) {
+      console.error("Error creating detail:", error);
+    }
   };
 
   return (
@@ -129,28 +149,33 @@ export default function ShortTerm() {
                   <h3 className="text-lg font-semibold mb-4">
                     Create Details for {selectedContent.name}
                   </h3>
-                  <form
-                    onSubmit={(e) => e.preventDefault()}
-                    className="space-y-4"
-                  >
+                  <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
                         Detail Name
                       </label>
                       <input
                         type="text"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500"
+                        value={detailName}
+                        onChange={(e) => setDetailName(e.target.value)}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                       />
                     </div>
                     <div className="flex justify-end space-x-2">
                       <button
                         type="button"
-                        onClick={() => setDetailFormVisible(false)}
+                        onClick={() => {
+                          setDetailFormVisible(false);
+                          setDetailName("");
+                        }}
                         className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
                       >
                         Cancel
                       </button>
-                      <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                      >
                         Save
                       </button>
                     </div>

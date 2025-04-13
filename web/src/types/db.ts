@@ -40,6 +40,13 @@ export interface ShortTermItem {
   user_id: string;
 }
 
+export interface Detail {
+  id: number;
+  short_term_id: number;
+  content_id: number;
+  name: string;
+}
+
 export interface User {
   id: string;
   email: string;

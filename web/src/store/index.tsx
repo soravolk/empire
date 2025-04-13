@@ -7,6 +7,7 @@ import { categoriesApi } from "./apis/categoriesApi";
 import { subcategoriesApi } from "./apis/subcategoriesApi";
 import { contentsApi } from "./apis/contentsApi";
 import { shortTermsApi } from "./apis/shortTermsApi";
+import { detailsApi } from "./apis/detailsApi";
 
 export const store = configureStore({
   reducer: {
@@ -17,6 +18,7 @@ export const store = configureStore({
     [subcategoriesApi.reducerPath]: subcategoriesApi.reducer,
     [contentsApi.reducerPath]: contentsApi.reducer,
     [shortTermsApi.reducerPath]: shortTermsApi.reducer,
+    [detailsApi.reducerPath]: detailsApi.reducer,
   },
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware()
@@ -26,7 +28,8 @@ export const store = configureStore({
       .concat(categoriesApi.middleware)
       .concat(subcategoriesApi.middleware)
       .concat(contentsApi.middleware)
-      .concat(shortTermsApi.middleware);
+      .concat(shortTermsApi.middleware)
+      .concat(detailsApi.middleware);
   },
 });
 
@@ -51,6 +54,7 @@ export { useFetchCurrentUserQuery } from "./apis/userApi";
 export { useAddCategoryMutation } from "./apis/categoriesApi";
 export { useAddSubcategoryMutation } from "./apis/subcategoriesApi";
 export { useAddContentMutation } from "./apis/contentsApi";
+export { useAddDetailMutation } from "./apis/detailsApi";
 export {
   useCreateShortTermMutation,
   useFetchShortTermsQuery,
