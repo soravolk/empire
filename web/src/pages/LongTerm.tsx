@@ -14,7 +14,6 @@ import {
   CycleItem,
   CycleCategoryItem,
   CycleSubcategoryItem,
-  CycleContentItem,
 } from "../types";
 import Cycle from "../components/Cycle";
 import Category from "../components/Category";
@@ -22,7 +21,6 @@ import SubCategory from "../components/Subcategory";
 import Content from "../components/Content";
 import { CycleItemContext, useCycleListContext } from "../context/cycle";
 import { useLongTermContext } from "../context/longTerm";
-import Detail from "../components/Detail";
 
 export default function LongTerm() {
   const {
@@ -63,7 +61,6 @@ export default function LongTerm() {
 
 interface ItemProps {
   cycle: CycleItem;
-  shortTerm?: boolean;
 }
 
 interface CycleOptionsProps {
@@ -84,18 +81,14 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
   );
 };
 
-// TODO: consider refactoring and reusability of this component
-export const Items: React.FC<ItemProps> = ({ cycle, shortTerm }) => {
+export const Items: React.FC<ItemProps> = ({ cycle }) => {
   const [category, setCategory] = useState<CycleCategoryItem | null>(null);
   const [subcategory, setSubcategory] = useState<CycleSubcategoryItem | null>(
     null
   );
-  const [content, setContent] = useState<CycleContentItem | null>(null);
-
   useEffect(() => {
     setCategory(null);
     setSubcategory(null);
-    setContent(null);
   }, [cycle]);
 
   const {
@@ -123,24 +116,14 @@ export const Items: React.FC<ItemProps> = ({ cycle, shortTerm }) => {
     if (item === category) {
       setCategory(null);
       setSubcategory(null);
-      setContent(null);
     } else {
       setCategory(item);
     }
   };
   const handleClickSubcategory = (item: CycleSubcategoryItem) => {
-    if (item === subcategory) {
-      setSubcategory(null);
-      setContent(null);
-    } else {
-      setSubcategory(item);
-    }
+    const setItem = item === subcategory ? null : item;
+    setSubcategory(setItem);
   };
-  const handleClickContent = (item: CycleContentItem) => {
-    const setItem = item === content ? null : item;
-    setContent(setItem);
-  };
-
   return (
     <>
       <div className="basis-1/4">
@@ -163,18 +146,9 @@ export const Items: React.FC<ItemProps> = ({ cycle, shortTerm }) => {
       </div>
       <div className="basis-1/4">
         {subcategory && contentData && (
-          <Content
-            subcategory={subcategory}
-            contents={contentData}
-            handleClickContent={handleClickContent}
-          />
+          <Content subcategory={subcategory} contents={contentData} />
         )}
       </div>
-      {shortTerm && content && (
-        <div className="basis-1/4">
-          <Detail content={content} />
-        </div>
-      )}
     </>
   );
 };
