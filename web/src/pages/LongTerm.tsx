@@ -85,7 +85,7 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
 };
 
 // TODO: consider refactoring and reusability of this component
-export const Items: React.FC<ItemProps> = ({ cycle, shortTerm = false }) => {
+export const Items: React.FC<ItemProps> = ({ cycle, shortTerm }) => {
   const [category, setCategory] = useState<CycleCategoryItem | null>(null);
   const [subcategory, setSubcategory] = useState<CycleSubcategoryItem | null>(
     null
@@ -149,7 +149,6 @@ export const Items: React.FC<ItemProps> = ({ cycle, shortTerm = false }) => {
             categories={categoryData}
             handleClickCategory={handleClickCategory}
             user={userData}
-            shortTerm={shortTerm}
           />
         )}
       </div>
@@ -159,7 +158,6 @@ export const Items: React.FC<ItemProps> = ({ cycle, shortTerm = false }) => {
             category={category}
             subcategories={subcategoryData}
             handleClickSubcategory={handleClickSubcategory}
-            shortTerm={shortTerm}
           />
         )}
       </div>
@@ -169,7 +167,6 @@ export const Items: React.FC<ItemProps> = ({ cycle, shortTerm = false }) => {
             subcategory={subcategory}
             contents={contentData}
             handleClickContent={handleClickContent}
-            shortTerm={shortTerm}
           />
         )}
       </div>
