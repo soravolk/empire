@@ -27,9 +27,17 @@ const detailsApi = createApi({
           };
         },
       }),
+      fetchDetails: builder.query({
+        query: () => {
+          return {
+            method: "GET",
+            url: `/`,
+          };
+        },
+      }),
     };
   },
 });
 
-export const { useAddDetailMutation } = detailsApi;
+export const { useAddDetailMutation, useFetchDetailsQuery } = detailsApi;
 export { detailsApi };

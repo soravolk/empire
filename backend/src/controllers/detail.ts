@@ -17,4 +17,13 @@ const createDetail: RequestHandler = async (req, res) => {
   }
 };
 
-export default { createDetail };
+const getDetails: RequestHandler = async (req, res) => {
+  try {
+    const { rows } = await db.getAll("details");
+    res.status(200).json(rows);
+  } catch (error) {
+    res.status(500).json({ error: "internal server error" });
+  }
+};
+
+export default { createDetail, getDetails };

@@ -5,6 +5,7 @@ import {
   CycleItem,
   LongTermItem,
   ShortTermItem,
+  Detail as DetailItem,
   User,
 } from "../types";
 import { getAvailableShortTermOptions } from "../utils/utils";
@@ -16,6 +17,7 @@ import {
   useFetchCyclesOfLongTermQuery,
   useFetchShortTermsQuery,
   useAddDetailMutation,
+  useFetchDetailsQuery,
 } from "../store";
 import { useLongTermContext } from "../context/longTerm";
 
@@ -27,6 +29,12 @@ interface DetailCreationOverlayProps {
   shortTerm: ShortTermItem;
   selectedLongTerm: LongTermItem;
   toggleOverlay: () => void;
+}
+
+interface DetailViewProps {
+  shortTerm: ShortTermItem;
+  toggleOverlay: () => void;
+  detailItems: DetailItem[];
 }
 
 const CreateShortTerm: React.FC<CreateShortTermProps> = ({ user }) => {
@@ -49,6 +57,7 @@ export default function ShortTerm() {
 
   const { data: userData } = useFetchCurrentUserQuery(null);
   const { data: shortTermData } = useFetchShortTermsQuery(null);
+  const { data: details } = useFetchDetailsQuery(null);
 
   const [isOverlayVisible, setOverlayVisible] = useState(false);
 
@@ -78,18 +87,12 @@ export default function ShortTerm() {
         </div>
       </div>
       <div className="flex px-5 py-2">
-        {shortTerm && (
-          <div>
-            <span className="text-gray-700">
-              {"short term id: " + shortTerm.id}
-            </span>
-            <button
-              onClick={toggleOverlay}
-              className="ml-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Add Details
-            </button>
-          </div>
+        {shortTerm && details && (
+          <DetailView
+            shortTerm={shortTerm}
+            toggleOverlay={toggleOverlay}
+            detailItems={details}
+          />
         )}
       </div>
       {isOverlayVisible && shortTerm && selectedLongTerm && (
@@ -102,6 +105,70 @@ export default function ShortTerm() {
     </div>
   );
 }
+
+const DetailView = ({
+  shortTerm,
+  toggleOverlay,
+  detailItems,
+}: DetailViewProps) => {
+  const displayItems = detailItems.filter(
+    (item: DetailItem) => item.short_term_id === shortTerm.id
+  );
+
+  const [selectedDetailItem, setSelectedDetailItem] =
+    useState<DetailItem | null>(null);
+
+  return (
+    <div className="flex w-full h-full">
+      <div className="w-1/2 border-r p-4">
+        <h2 className="font-bold mb-4">All Details</h2>
+        <div className="mb-4">
+          <ul>
+            {displayItems.map((item: DetailItem, idx: number) => (
+              <li
+                key={item.id}
+                className="cursor-pointer p-2 rounded"
+                onClick={() => setSelectedDetailItem(item)}
+              >
+                {item.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <button
+            onClick={toggleOverlay}
+            className="ml-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Add Details
+          </button>
+        </div>
+      </div>
+      <div className="w-1/2 p-4">
+        {selectedDetailItem !== null ? (
+          <div className="p-4 bg-white shadow rounded-lg">
+            <div>
+              <span className="font-semibold">Category:</span>{" "}
+              {/* {selectedDetailItem.category} TODO: get the detail from subCategory_id*/}
+            </div>
+            <div>
+              <span className="font-semibold">Subcategory:</span>{" "}
+              {/* {selectedDetailItem.subCategory} TODO: get the subCategory from content_id*/}
+            </div>
+            <div>
+              <span className="font-semibold">Content:</span>{" "}
+              {selectedDetailItem.content_id}
+            </div>
+          </div>
+        ) : (
+          <div className="text-gray-500">
+            Select a detail to view its information.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const DetailCreationOverlay = ({
   shortTerm,
