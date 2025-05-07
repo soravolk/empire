@@ -7,6 +7,8 @@ router.post("/", content.createContent);
 
 router.get("/", content.getContents);
 
+router.get("/:id", content.getContentById);
+
 router.delete("/:id", content.deleteContent);
 
 export default router;

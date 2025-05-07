@@ -77,6 +77,14 @@ const cyclesApi = createApi({
           };
         },
       }),
+      fetchContentFromCycleById: builder.query({
+        query: ({ id }) => {
+          return {
+            url: `/contents/${id}`,
+            method: "GET",
+          };
+        },
+      }),
       addCycle: builder.mutation({
         invalidatesTags: (result, error, longTerm) => {
           return [{ type: "LongTerm", id: longTerm.id }];
@@ -188,6 +196,7 @@ export const {
   useFetchCategoriesFromCycleQuery,
   useFetchSubcategoriesFromCycleQuery,
   useFetchContentsFromCycleQuery,
+  useFetchContentFromCycleByIdQuery,
   useAddCycleMutation,
   useDeleteCycleMutation,
   useAddCategoryToCycleMutation,

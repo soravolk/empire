@@ -41,6 +41,7 @@ export {
   useFetchCategoriesFromCycleQuery,
   useFetchSubcategoriesFromCycleQuery,
   useFetchContentsFromCycleQuery,
+  useFetchContentFromCycleByIdQuery,
   useAddCycleMutation,
   useDeleteCycleMutation,
   useAddCategoryToCycleMutation,
@@ -51,8 +52,14 @@ export {
   useDeleteContentFromCycleMutation,
 } from "./apis/cyclesApi";
 export { useFetchCurrentUserQuery } from "./apis/userApi";
-export { useAddCategoryMutation } from "./apis/categoriesApi";
-export { useAddSubcategoryMutation } from "./apis/subcategoriesApi";
+export {
+  useAddCategoryMutation,
+  useFetchCatetoryByIdQuery,
+} from "./apis/categoriesApi";
+export {
+  useAddSubcategoryMutation,
+  useFetchSubcatetoryByIdQuery,
+} from "./apis/subcategoriesApi";
 export { useAddContentMutation } from "./apis/contentsApi";
 export { useAddDetailMutation, useFetchDetailsQuery } from "./apis/detailsApi";
 export {

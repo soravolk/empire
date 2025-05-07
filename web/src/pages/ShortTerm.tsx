@@ -16,6 +16,9 @@ import {
   useFetchCurrentUserQuery,
   useFetchCyclesOfLongTermQuery,
   useFetchShortTermsQuery,
+  useFetchCatetoryByIdQuery,
+  useFetchSubcatetoryByIdQuery,
+  useFetchContentFromCycleByIdQuery,
   useAddDetailMutation,
   useFetchDetailsQuery,
 } from "../store";
@@ -31,6 +34,9 @@ interface DetailCreationOverlayProps {
   toggleOverlay: () => void;
 }
 
+interface DetailItemInfoProps {
+  detailItem: DetailItem;
+}
 interface DetailViewProps {
   shortTerm: ShortTermItem;
   toggleOverlay: () => void;
@@ -145,26 +151,60 @@ const DetailView = ({
         </div>
       </div>
       <div className="w-1/2 p-4">
-        {selectedDetailItem !== null ? (
-          <div className="p-4 bg-white shadow rounded-lg">
-            <div>
-              <span className="font-semibold">Category:</span>{" "}
-              {/* {selectedDetailItem.category} TODO: get the detail from subCategory_id*/}
-            </div>
-            <div>
-              <span className="font-semibold">Subcategory:</span>{" "}
-              {/* {selectedDetailItem.subCategory} TODO: get the subCategory from content_id*/}
-            </div>
-            <div>
-              <span className="font-semibold">Content:</span>{" "}
-              {selectedDetailItem.content_id}
-            </div>
-          </div>
+        {selectedDetailItem ? (
+          <DetailItemInfo detailItem={selectedDetailItem} />
         ) : (
           <div className="text-gray-500">
             Select a detail to view its information.
           </div>
         )}
+      </div>
+    </div>
+  );
+};
+
+const DetailItemInfo = ({ detailItem }: DetailItemInfoProps) => {
+  // TODO: need to refactor: 1. too many rerender, 2. flaky logic to display information and error handling
+  const { data: content, isLoading: isContentLoading } =
+    useFetchContentFromCycleByIdQuery({
+      id: detailItem.content_id,
+    });
+  const {
+    data: subcategory,
+    error: subcatetoryFetchError,
+    isLoading: isSubcategoryLoading,
+  } = useFetchSubcatetoryByIdQuery({
+    id: content ? content[0].subcategory_id : undefined,
+  });
+  const {
+    data: category,
+    error: catetoryFetchError,
+    isLoading: isCategoryLoading,
+  } = useFetchCatetoryByIdQuery({
+    id: subcategory ? subcategory[0].category_id : undefined,
+  });
+
+  return (
+    <div className="p-4 bg-white shadow rounded-lg">
+      <div>
+        <span className="font-semibold">Category:</span>
+        {isCategoryLoading || catetoryFetchError ? (
+          <span>Loading...</span>
+        ) : (
+          category[0].name
+        )}
+      </div>
+      <div>
+        <span className="font-semibold">Subcategory:</span>{" "}
+        {isSubcategoryLoading || subcatetoryFetchError ? (
+          <span>Loading...</span>
+        ) : (
+          subcategory[0].name
+        )}
+      </div>
+      <div>
+        <span className="font-semibold">Content:</span>
+        {isContentLoading ? <span>Loading...</span> : content[0].name}
       </div>
     </div>
   );
