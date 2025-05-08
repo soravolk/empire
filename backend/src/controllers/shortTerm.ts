@@ -11,6 +11,23 @@ const createShortTerm: RequestHandler = async (req, res) => {
   }
 };
 
+const createDetail: RequestHandler = async (req, res) => {
+  const { id: short_term_id } = req.params;
+  const { contentId: content_id, name } = req.body;
+  try {
+    res.status(201).send(
+      await db.insert("details", {
+        content_id,
+        short_term_id,
+        name,
+        time_spent: 0,
+      })
+    );
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+};
+
 const getShortTerms: RequestHandler = async (req, res) => {
   try {
     const { rows } = await db.getAll("short_terms");
@@ -20,4 +37,19 @@ const getShortTerms: RequestHandler = async (req, res) => {
   }
 };
 
-export default { createShortTerm, getShortTerms };
+const getDetailsFromShortTerm: RequestHandler = async (req, res) => {
+  const { id: short_term_id } = req.params;
+  try {
+    const { rows } = await db.getWithCondition("details", { short_term_id });
+    res.status(200).json(rows);
+  } catch (error) {
+    res.status(500).json({ error: "internal server error" });
+  }
+};
+
+export default {
+  createShortTerm,
+  createDetail,
+  getShortTerms,
+  getDetailsFromShortTerm,
+};

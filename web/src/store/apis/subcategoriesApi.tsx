@@ -28,9 +28,18 @@ const subcategoriesApi = createApi({
           };
         },
       }),
+      fetchSubcatetoryById: builder.query({
+        query: ({ id }) => {
+          return {
+            url: `/${id}`,
+            method: "GET",
+          };
+        },
+      }),
     };
   },
 });
 
-export const { useAddSubcategoryMutation } = subcategoriesApi;
+export const { useAddSubcategoryMutation, useFetchSubcatetoryByIdQuery } =
+  subcategoriesApi;
 export { subcategoriesApi };

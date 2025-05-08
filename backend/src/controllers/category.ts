@@ -19,6 +19,16 @@ const getCategories: RequestHandler = async (req, res) => {
   }
 };
 
+const getCategoryById: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { rows } = await db.getById("categories", id);
+    res.status(200).json(rows);
+  } catch (error) {
+    res.status(500).json({ error: "internal server error" });
+  }
+};
+
 const deleteCategory: RequestHandler = async (req, res) => {
   const { id } = req.params;
   try {
@@ -29,4 +39,9 @@ const deleteCategory: RequestHandler = async (req, res) => {
   }
 };
 
-export default { createCategory, getCategories, deleteCategory };
+export default {
+  createCategory,
+  getCategories,
+  getCategoryById,
+  deleteCategory,
+};

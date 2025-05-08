@@ -13,8 +13,6 @@ import { CycleItemContext } from "../context/cycle";
 interface ContentProps {
   subcategory: CycleSubcategoryItem;
   contents: CycleContentItem[];
-  handleClickContent: (content: CycleContentItem) => void;
-  shortTerm: boolean;
 }
 
 interface FormControlProps {
@@ -48,12 +46,7 @@ const ContentForm: React.FC<FormControlProps> = ({
   return <CreationForm handleAddFunc={handleAddContent} />;
 };
 
-const Content: React.FC<ContentProps> = ({
-  subcategory,
-  contents,
-  handleClickContent,
-  shortTerm,
-}) => {
+const Content: React.FC<ContentProps> = ({ subcategory, contents }) => {
   const displayItems = contents.filter(
     (item) => item.subcategory_id === subcategory?.subcategory_id
   );
@@ -69,19 +62,14 @@ const Content: React.FC<ContentProps> = ({
       <ul className="list-inside list-disc space-y-3">
         {displayItems.map((item, idx) => (
           <div key={idx} className="flex items-center space-x-2">
-            <li
-              onClick={() => handleClickContent(item)}
-              className="cursor-pointer"
-            >
-              {item.name}
-            </li>
+            <li>{item.name}</li>
             <button>
               <MdDelete onClick={() => deleteContentFromCycle(item.id)} />
             </button>
           </div>
         ))}
       </ul>
-      {!shortTerm && <ItemCreationButton handleClick={handleAddContent} />}
+      <ItemCreationButton handleClick={handleAddContent} />
       {/* TODO: tidy up subcategory and cycle check logic */}
       {expandForm && subcategory && (
         <ContentForm setExpandForm={setExpandForm} subcategory={subcategory} />

@@ -25,9 +25,18 @@ const contentsApi = createApi({
           };
         },
       }),
+      fetchContentsById: builder.query({
+        query: ({ id }) => {
+          console.log(id);
+          return {
+            url: `/${id}`,
+            method: "GET",
+          };
+        },
+      }),
     };
   },
 });
 
-export const { useAddContentMutation } = contentsApi;
+export const { useAddContentMutation, useFetchContentsByIdQuery } = contentsApi;
 export { contentsApi };

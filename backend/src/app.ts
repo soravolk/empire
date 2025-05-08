@@ -10,6 +10,7 @@ import shortTermRoutes from "./routes/shortTerm";
 import categoryRoutes from "./routes/category";
 import subcategoryRoutes from "./routes/subcategory";
 import contentRoutes from "./routes/content";
+import detailRoutes from "./routes/detail";
 import cycleRoutes from "./routes/cycle";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
@@ -44,6 +45,7 @@ app.use("/shortTerms", shortTermRoutes);
 app.use("/categories", categoryRoutes);
 app.use("/subcategories", subcategoryRoutes);
 app.use("/contents", contentRoutes);
+app.use("/details", detailRoutes);
 app.use("/cycles", cycleRoutes);
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

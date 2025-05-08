@@ -25,9 +25,18 @@ const categoriesApi = createApi({
           };
         },
       }),
+      fetchCatetoryById: builder.query({
+        query: ({ id }) => {
+          return {
+            url: `/${id}`,
+            method: "GET",
+          };
+        },
+      }),
     };
   },
 });
 
-export const { useAddCategoryMutation } = categoriesApi;
+export const { useAddCategoryMutation, useFetchCatetoryByIdQuery } =
+  categoriesApi;
 export { categoriesApi };

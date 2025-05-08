@@ -24,6 +24,8 @@ router.get("/:id/subcategories", cycle.getSubcategoriesFromCycle);
 
 router.get("/:id/contents", cycle.getContentsFromCycle);
 
+router.get("/contents/:id", cycle.getContentFromCycleById);
+
 router.delete("/:id", cycle.deleteCycle);
 
 router.delete("/categories/:id", cycle.deleteCategoryFromCycle);
