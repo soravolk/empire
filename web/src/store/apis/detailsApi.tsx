@@ -1,11 +1,4 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { Detail } from "../../types";
-
-interface AddDetailInput {
-  contentId: string;
-  shortTermId: string;
-  name: string;
-}
 
 const detailsApi = createApi({
   reducerPath: "details",
@@ -14,19 +7,6 @@ const detailsApi = createApi({
   }),
   endpoints(builder) {
     return {
-      addDetail: builder.mutation<Detail, AddDetailInput>({
-        query: ({ contentId, shortTermId, name }) => {
-          return {
-            method: "POST",
-            url: "/",
-            body: {
-              contentId,
-              shortTermId,
-              name,
-            },
-          };
-        },
-      }),
       fetchDetails: builder.query({
         query: () => {
           return {
@@ -39,5 +19,5 @@ const detailsApi = createApi({
   },
 });
 
-export const { useAddDetailMutation, useFetchDetailsQuery } = detailsApi;
+export const { useFetchDetailsQuery } = detailsApi;
 export { detailsApi };

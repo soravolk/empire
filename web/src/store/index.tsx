@@ -61,8 +61,10 @@ export {
   useFetchSubcatetoryByIdQuery,
 } from "./apis/subcategoriesApi";
 export { useAddContentMutation } from "./apis/contentsApi";
-export { useAddDetailMutation, useFetchDetailsQuery } from "./apis/detailsApi";
+export { useFetchDetailsQuery } from "./apis/detailsApi";
 export {
   useCreateShortTermMutation,
+  useCreateDetailMutation,
   useFetchShortTermsQuery,
+  useFetchDetailsFromShortTermQuery,
 } from "./apis/shortTermsApi";

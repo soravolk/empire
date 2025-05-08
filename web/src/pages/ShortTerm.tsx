@@ -19,8 +19,8 @@ import {
   useFetchCatetoryByIdQuery,
   useFetchSubcatetoryByIdQuery,
   useFetchContentFromCycleByIdQuery,
-  useAddDetailMutation,
-  useFetchDetailsQuery,
+  useFetchDetailsFromShortTermQuery,
+  useCreateDetailMutation,
 } from "../store";
 import { useLongTermContext } from "../context/longTerm";
 
@@ -38,7 +38,6 @@ interface DetailItemInfoProps {
   detailItem: DetailItem;
 }
 interface DetailViewProps {
-  shortTerm: ShortTermItem;
   toggleOverlay: () => void;
   detailItems: DetailItem[];
 }
@@ -63,7 +62,9 @@ export default function ShortTerm() {
 
   const { data: userData } = useFetchCurrentUserQuery(null);
   const { data: shortTermData } = useFetchShortTermsQuery(null);
-  const { data: details } = useFetchDetailsQuery(null);
+  const { data: details } = useFetchDetailsFromShortTermQuery({
+    shortTermId: shortTerm?.id,
+  });
 
   const [isOverlayVisible, setOverlayVisible] = useState(false);
 
@@ -94,11 +95,7 @@ export default function ShortTerm() {
       </div>
       <div className="flex px-5 py-2">
         {shortTerm && details && (
-          <DetailView
-            shortTerm={shortTerm}
-            toggleOverlay={toggleOverlay}
-            detailItems={details}
-          />
+          <DetailView toggleOverlay={toggleOverlay} detailItems={details} />
         )}
       </div>
       {isOverlayVisible && shortTerm && selectedLongTerm && (
@@ -112,15 +109,7 @@ export default function ShortTerm() {
   );
 }
 
-const DetailView = ({
-  shortTerm,
-  toggleOverlay,
-  detailItems,
-}: DetailViewProps) => {
-  const displayItems = detailItems.filter(
-    (item: DetailItem) => item.short_term_id === shortTerm.id
-  );
-
+const DetailView = ({ toggleOverlay, detailItems }: DetailViewProps) => {
   const [selectedDetailItem, setSelectedDetailItem] =
     useState<DetailItem | null>(null);
 
@@ -130,7 +119,7 @@ const DetailView = ({
         <h2 className="font-bold mb-4">All Details</h2>
         <div className="mb-4">
           <ul>
-            {displayItems.map((item: DetailItem, idx: number) => (
+            {detailItems.map((item: DetailItem, idx: number) => (
               <li
                 key={item.id}
                 className="cursor-pointer p-2 rounded"
@@ -223,7 +212,7 @@ const DetailCreationOverlay = ({
 
   const { data: cycleData } = useFetchCyclesOfLongTermQuery(selectedLongTerm);
   const { data: contentData } = useFetchContentsFromCycleQuery(selectedCycle);
-  const [addDetail] = useAddDetailMutation();
+  const [addDetail] = useCreateDetailMutation();
 
   const handleCycleSelect = (cycle: CycleItem) => {
     setSelectedCycle(cycle);
