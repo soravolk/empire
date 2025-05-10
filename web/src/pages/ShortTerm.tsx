@@ -21,6 +21,7 @@ import {
   useFetchContentFromCycleByIdQuery,
   useFetchDetailsFromShortTermQuery,
   useCreateDetailMutation,
+  useUpdateDetailTimeSpentMutation,
 } from "../store";
 import { useLongTermContext } from "../context/longTerm";
 
@@ -173,6 +174,12 @@ const DetailItemInfo = ({ detailItem }: DetailItemInfoProps) => {
     id: subcategory ? subcategory[0].category_id : undefined,
   });
 
+  const [timeSpent, setTimeSpent] = useState(detailItem.time_spent || 0);
+  const handleTimeSpentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const timeSpent = parseInt(e.target.value) || 0;
+    setTimeSpent(timeSpent);
+  };
+
   return (
     <div className="p-4 bg-white shadow rounded-lg">
       <div>
@@ -194,6 +201,18 @@ const DetailItemInfo = ({ detailItem }: DetailItemInfoProps) => {
       <div>
         <span className="font-semibold">Content:</span>
         {isContentLoading ? <span>Loading...</span> : content[0].name}
+      </div>
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-gray-700">
+          Time Spent (minutes)
+        </label>
+        <input
+          type="number"
+          min="0"
+          value={timeSpent}
+          onChange={handleTimeSpentChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        />
       </div>
     </div>
   );
