@@ -124,7 +124,9 @@ const DetailView = ({ toggleOverlay, detailItems }: DetailViewProps) => {
             {detailItems.map((item: DetailItem, idx: number) => (
               <li
                 key={item.id}
-                className="cursor-pointer p-2 rounded"
+                className={`cursor-pointer p-2 rounded bg-gray-100 hover:bg-gray-200 mt-2 ${
+                  selectedDetailItem?.id === item.id && "bg-gray-200"
+                }`}
                 onClick={() => setSelectedDetailItem(item)}
               >
                 {item.name}
