@@ -25,6 +25,11 @@ interface UpdateFinishedDateInput {
   finishedDate: string | null;
 }
 
+interface DeleteDetailInput {
+  id: string;
+  detailId: string;
+}
+
 const shortTermsApi = createApi({
   reducerPath: "shortTerms",
   baseQuery: fetchBaseQuery({
@@ -135,6 +140,17 @@ const shortTermsApi = createApi({
           };
         },
       }),
+      deleteShortTermDetail: builder.mutation<Detail, DeleteDetailInput>({
+        invalidatesTags: (result, error, args) => {
+          return [{ type: "ShortTerm", id: args.id }];
+        },
+        query: ({ id, detailId }) => {
+          return {
+            method: "DELETE",
+            url: `/details/${detailId}`,
+          };
+        },
+      }),
     };
   },
 });
@@ -147,5 +163,6 @@ export const {
   useUpdateTimeSpentMutation,
   useUpdateFinishedDateMutation,
   useDeleteShortTermMutation,
+  useDeleteShortTermDetailMutation,
 } = shortTermsApi;
 export { shortTermsApi };

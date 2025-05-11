@@ -25,6 +25,7 @@ import {
   useUpdateTimeSpentMutation,
   useUpdateFinishedDateMutation,
   useDeleteShortTermMutation,
+  useDeleteShortTermDetailMutation,
 } from "../store";
 import { useLongTermContext } from "../context/longTerm";
 
@@ -44,10 +45,17 @@ interface DetailCreationOverlayProps {
 
 interface DetailItemInfoProps {
   detailItem: DetailItem;
+  shortTerm: ShortTermItem;
 }
 interface DetailViewProps {
   toggleOverlay: () => void;
+  shortTerm: ShortTermItem;
   detailItems: DetailItem[];
+}
+
+interface DeleteDetailItemProps {
+  detailItem: DetailItem;
+  shortTerm: ShortTermItem;
 }
 
 const CreateShortTerm: React.FC<CreateShortTermProps> = ({ user }) => {
@@ -120,7 +128,11 @@ export default function ShortTerm() {
       </div>
       <div className="flex px-5 py-2">
         {shortTerm && details && (
-          <DetailView toggleOverlay={toggleOverlay} detailItems={details} />
+          <DetailView
+            toggleOverlay={toggleOverlay}
+            shortTerm={shortTerm}
+            detailItems={details}
+          />
         )}
       </div>
       {isOverlayVisible && shortTerm && selectedLongTerm && (
@@ -134,7 +146,11 @@ export default function ShortTerm() {
   );
 }
 
-const DetailView = ({ toggleOverlay, detailItems }: DetailViewProps) => {
+const DetailView = ({
+  toggleOverlay,
+  shortTerm,
+  detailItems,
+}: DetailViewProps) => {
   const [selectedDetailItem, setSelectedDetailItem] =
     useState<DetailItem | null>(null);
 
@@ -168,7 +184,10 @@ const DetailView = ({ toggleOverlay, detailItems }: DetailViewProps) => {
       </div>
       <div className="w-1/2 p-4">
         {selectedDetailItem ? (
-          <DetailItemInfo detailItem={selectedDetailItem} />
+          <DetailItemInfo
+            shortTerm={shortTerm}
+            detailItem={selectedDetailItem}
+          />
         ) : (
           <div className="text-gray-500">
             Select a detail to view its information.
@@ -179,7 +198,7 @@ const DetailView = ({ toggleOverlay, detailItems }: DetailViewProps) => {
   );
 };
 
-const DetailItemInfo = ({ detailItem }: DetailItemInfoProps) => {
+const DetailItemInfo = ({ shortTerm, detailItem }: DetailItemInfoProps) => {
   // TODO: need to refactor: 1. too many rerender, 2. flaky logic to display information and error handling
   const { data: content, isLoading: isContentLoading } =
     useFetchContentFromCycleByIdQuery({
@@ -293,7 +312,10 @@ const DetailItemInfo = ({ detailItem }: DetailItemInfoProps) => {
           )}
         </div>
       </div>
-      <div className="mt-4">
+      <div
+        className="flex mt-4 justify-between
+      "
+      >
         {finished ? (
           <button
             className="rounded bg-red-500 px-2 py-1 text-white hover:bg-red-600"
@@ -309,8 +331,26 @@ const DetailItemInfo = ({ detailItem }: DetailItemInfoProps) => {
             Finish
           </button>
         )}
+        <DeleteDetailItem shortTerm={shortTerm} detailItem={detailItem} />
       </div>
     </div>
+  );
+};
+
+const DeleteDetailItem = ({ shortTerm, detailItem }: DeleteDetailItemProps) => {
+  const [removeShortTerm] = useDeleteShortTermDetailMutation();
+
+  const handleClick = () => {
+    removeShortTerm({
+      id: String(shortTerm.id),
+      detailId: String(detailItem.id),
+    });
+  };
+
+  return (
+    <button onClick={handleClick}>
+      <MdDelete />
+    </button>
   );
 };
 

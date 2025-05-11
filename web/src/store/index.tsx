@@ -70,4 +70,5 @@ export {
   useUpdateTimeSpentMutation,
   useUpdateFinishedDateMutation,
   useDeleteShortTermMutation,
+  useDeleteShortTermDetailMutation,
 } from "./apis/shortTermsApi";
