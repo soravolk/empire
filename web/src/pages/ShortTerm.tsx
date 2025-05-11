@@ -199,6 +199,14 @@ const DetailItemInfo = ({ detailItem }: DetailItemInfoProps) => {
     setIsEditing(false);
   };
 
+  const handleFinish = () => {
+    console.log("finish");
+  };
+
+  const handleUnfinish = () => {
+    console.log("unfinish");
+  };
+
   return (
     <div className="p-4 bg-white shadow rounded-lg">
       <div>
@@ -250,6 +258,25 @@ const DetailItemInfo = ({ detailItem }: DetailItemInfoProps) => {
             </div>
           )}
         </div>
+      </div>
+      <div className="mt-4">
+        <label className="flex items-center space-x-2">
+          {detailItem.finished_date ? (
+            <button
+              className="rounded bg-red-500 px-2 py-1 text-white hover:bg-red-600"
+              onClick={handleUnfinish}
+            >
+              Unfinish
+            </button>
+          ) : (
+            <button
+              className="rounded bg-green-500 px-2 py-1 text-white hover:bg-green-600"
+              onClick={handleFinish}
+            >
+              Finish
+            </button>
+          )}
+        </label>
       </div>
     </div>
   );

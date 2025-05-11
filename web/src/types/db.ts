@@ -46,6 +46,7 @@ export interface Detail {
   content_id: number;
   name: string;
   time_spent: number;
+  finished_date: string | null;
 }
 
 export interface User {
