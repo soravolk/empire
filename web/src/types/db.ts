@@ -45,6 +45,8 @@ export interface Detail {
   short_term_id: number;
   content_id: number;
   name: string;
+  time_spent: number;
+  finished_date: string | null;
 }
 
 export interface User {

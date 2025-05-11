@@ -77,6 +77,26 @@ const deleteById = async (table: string, id: string) => {
   await pg.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
 };
 
+const updateById = async (
+  table: string,
+  data: { [key: string]: any },
+  id: string
+) => {
+  let lastIndexCount = 0;
+  const setClause = Object.keys(data)
+    .map((key, index) => {
+      lastIndexCount = index + 1;
+      return `${key} = $${lastIndexCount}`;
+    })
+    .join(", ");
+  const values = [...Object.values(data), id];
+  const query = `UPDATE ${table} SET ${setClause} WHERE id = $${
+    lastIndexCount + 1
+  } RETURNING *`;
+  const { rows } = await pg.query(query, values);
+  return rows[0];
+};
+
 export default {
   insert,
   getAll,
@@ -84,4 +104,5 @@ export default {
   getWithCondition,
   getFromInnerJoin,
   deleteById,
+  updateById,
 };

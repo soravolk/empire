@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Dropdown from "../components/Dropdown";
 import {
   CycleContentItem,
@@ -21,6 +21,8 @@ import {
   useFetchContentFromCycleByIdQuery,
   useFetchDetailsFromShortTermQuery,
   useCreateDetailMutation,
+  useUpdateTimeSpentMutation,
+  useUpdateFinishedDateMutation,
 } from "../store";
 import { useLongTermContext } from "../context/longTerm";
 
@@ -173,6 +175,47 @@ const DetailItemInfo = ({ detailItem }: DetailItemInfoProps) => {
     id: subcategory ? subcategory[0].category_id : undefined,
   });
 
+  const [updateTimeSpent] = useUpdateTimeSpentMutation();
+  const [updateFinishedDate] = useUpdateFinishedDateMutation();
+  const [timeSpent, setTimeSpent] = useState(detailItem.time_spent);
+  const [finished, setFinished] = useState<boolean>(false);
+
+  useEffect(() => {
+    setTimeSpent(detailItem.time_spent);
+    setFinished(detailItem.finished_date != null);
+  }, [detailItem]);
+
+  const [isEditing, setIsEditing] = useState(false);
+
+  const handleTimeSpentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTimeSpent = parseInt(e.target.value) || 0;
+    setTimeSpent(newTimeSpent);
+    setIsEditing(true);
+  };
+
+  const handleConfirmTimeSpent = () => {
+    updateTimeSpent({ id: String(detailItem.id), timeSpent });
+    setIsEditing(false);
+  };
+
+  const handleCancelTimeSpent = () => {
+    setTimeSpent(detailItem.time_spent || 0);
+    setIsEditing(false);
+  };
+
+  const handleFinish = () => {
+    updateFinishedDate({
+      id: String(detailItem.id),
+      finishedDate: new Date().toISOString(),
+    });
+    setFinished(true);
+  };
+
+  const handleUnfinish = () => {
+    updateFinishedDate({ id: String(detailItem.id), finishedDate: null });
+    setFinished(false);
+  };
+
   return (
     <div className="p-4 bg-white shadow rounded-lg">
       <div>
@@ -194,6 +237,53 @@ const DetailItemInfo = ({ detailItem }: DetailItemInfoProps) => {
       <div>
         <span className="font-semibold">Content:</span>
         {isContentLoading ? <span>Loading...</span> : content[0].name}
+      </div>
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-gray-700">
+          Time Spent (minutes)
+        </label>
+        <div className="flex items-center space-x-2">
+          <input
+            type="number"
+            min="0"
+            value={timeSpent}
+            onChange={handleTimeSpentChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+          {isEditing && (
+            <div className="flex space-x-2 mt-1">
+              <button
+                onClick={handleConfirmTimeSpent}
+                className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+              >
+                ✓
+              </button>
+              <button
+                onClick={handleCancelTimeSpent}
+                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="mt-4">
+        {finished ? (
+          <button
+            className="rounded bg-red-500 px-2 py-1 text-white hover:bg-red-600"
+            onClick={handleUnfinish}
+          >
+            Unfinish
+          </button>
+        ) : (
+          <button
+            className="rounded bg-green-500 px-2 py-1 text-white hover:bg-green-600"
+            onClick={handleFinish}
+          >
+            Finish
+          </button>
+        )}
       </div>
     </div>
   );
