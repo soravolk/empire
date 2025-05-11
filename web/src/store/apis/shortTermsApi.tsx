@@ -67,6 +67,9 @@ const shortTermsApi = createApi({
         },
       }),
       createShortTerm: builder.mutation<ShortTermItem, CreateShortTermInput>({
+        invalidatesTags: (result, error, args) => {
+          return [{ type: "All" }];
+        },
         query: ({ userId }) => {
           return {
             method: "POST",
