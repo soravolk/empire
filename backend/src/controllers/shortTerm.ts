@@ -58,10 +58,22 @@ const updateDetailTimeSpent: RequestHandler = async (req, res) => {
   }
 };
 
+const updateDetailFinishedDate: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  const { finishedDate: finished_date } = req.body;
+  try {
+    const result = await db.updateById("details", { finished_date }, id);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+};
+
 export default {
   createShortTerm,
   createDetail,
   getShortTerms,
   getDetailsFromShortTerm,
   updateDetailTimeSpent,
+  updateDetailFinishedDate,
 };

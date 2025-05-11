@@ -22,6 +22,7 @@ import {
   useFetchDetailsFromShortTermQuery,
   useCreateDetailMutation,
   useUpdateTimeSpentMutation,
+  useUpdateFinishedDateMutation,
 } from "../store";
 import { useLongTermContext } from "../context/longTerm";
 
@@ -175,10 +176,13 @@ const DetailItemInfo = ({ detailItem }: DetailItemInfoProps) => {
   });
 
   const [updateTimeSpent] = useUpdateTimeSpentMutation();
+  const [updateFinishedDate] = useUpdateFinishedDateMutation();
   const [timeSpent, setTimeSpent] = useState(detailItem.time_spent);
+  const [finished, setFinished] = useState<boolean>(false);
 
   useEffect(() => {
     setTimeSpent(detailItem.time_spent);
+    setFinished(detailItem.finished_date != null);
   }, [detailItem]);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -200,11 +204,16 @@ const DetailItemInfo = ({ detailItem }: DetailItemInfoProps) => {
   };
 
   const handleFinish = () => {
-    console.log("finish");
+    updateFinishedDate({
+      id: String(detailItem.id),
+      finishedDate: new Date().toISOString(),
+    });
+    setFinished(true);
   };
 
   const handleUnfinish = () => {
-    console.log("unfinish");
+    updateFinishedDate({ id: String(detailItem.id), finishedDate: null });
+    setFinished(false);
   };
 
   return (
@@ -260,23 +269,21 @@ const DetailItemInfo = ({ detailItem }: DetailItemInfoProps) => {
         </div>
       </div>
       <div className="mt-4">
-        <label className="flex items-center space-x-2">
-          {detailItem.finished_date ? (
-            <button
-              className="rounded bg-red-500 px-2 py-1 text-white hover:bg-red-600"
-              onClick={handleUnfinish}
-            >
-              Unfinish
-            </button>
-          ) : (
-            <button
-              className="rounded bg-green-500 px-2 py-1 text-white hover:bg-green-600"
-              onClick={handleFinish}
-            >
-              Finish
-            </button>
-          )}
-        </label>
+        {finished ? (
+          <button
+            className="rounded bg-red-500 px-2 py-1 text-white hover:bg-red-600"
+            onClick={handleUnfinish}
+          >
+            Unfinish
+          </button>
+        ) : (
+          <button
+            className="rounded bg-green-500 px-2 py-1 text-white hover:bg-green-600"
+            onClick={handleFinish}
+          >
+            Finish
+          </button>
+        )}
       </div>
     </div>
   );

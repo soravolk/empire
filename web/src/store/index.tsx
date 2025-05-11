@@ -68,4 +68,5 @@ export {
   useFetchShortTermsQuery,
   useFetchDetailsFromShortTermQuery,
   useUpdateTimeSpentMutation,
+  useUpdateFinishedDateMutation,
 } from "./apis/shortTermsApi";

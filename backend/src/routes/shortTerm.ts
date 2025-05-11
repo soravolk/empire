@@ -13,4 +13,6 @@ router.get("/:id/details", shortTerm.getDetailsFromShortTerm);
 
 router.put("/details/:id/time-spent", shortTerm.updateDetailTimeSpent);
 
+router.put("/details/:id/finished-date", shortTerm.updateDetailFinishedDate);
+
 export default router;
