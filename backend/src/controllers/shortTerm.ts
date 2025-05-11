@@ -47,9 +47,21 @@ const getDetailsFromShortTerm: RequestHandler = async (req, res) => {
   }
 };
 
+const updateDetailTimeSpent: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  const { timeSpent: time_spent } = req.body;
+  try {
+    const result = await db.updateById("details", { time_spent }, id);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+};
+
 export default {
   createShortTerm,
   createDetail,
   getShortTerms,
   getDetailsFromShortTerm,
+  updateDetailTimeSpent,
 };

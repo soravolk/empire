@@ -11,6 +11,11 @@ interface CreateDetailInput {
   name: string;
 }
 
+interface UpdateTimeSpentInput {
+  id: string;
+  timeSpent: number;
+}
+
 const shortTermsApi = createApi({
   reducerPath: "shortTerms",
   baseQuery: fetchBaseQuery({
@@ -71,6 +76,20 @@ const shortTermsApi = createApi({
           };
         },
       }),
+      updateTimeSpent: builder.mutation<Detail, UpdateTimeSpentInput>({
+        invalidatesTags: (result, error, args) => {
+          return [{ type: "Detail", id: args.id }];
+        },
+        query: ({ id, timeSpent }) => {
+          return {
+            method: "PUT",
+            url: `/details/${id}/time-spent`,
+            body: {
+              timeSpent,
+            },
+          };
+        },
+      }),
     };
   },
 });
@@ -80,5 +99,6 @@ export const {
   useCreateDetailMutation,
   useFetchShortTermsQuery,
   useFetchDetailsFromShortTermQuery,
+  useUpdateTimeSpentMutation,
 } = shortTermsApi;
 export { shortTermsApi };
