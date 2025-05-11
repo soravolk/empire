@@ -10,6 +10,7 @@ import {
 } from "../types";
 import { getAvailableShortTermOptions } from "../utils/utils";
 import { BsPencilSquare } from "react-icons/bs";
+import { MdDelete } from "react-icons/md";
 import {
   useCreateShortTermMutation,
   useFetchContentsFromCycleQuery,
@@ -23,11 +24,16 @@ import {
   useCreateDetailMutation,
   useUpdateTimeSpentMutation,
   useUpdateFinishedDateMutation,
+  useDeleteShortTermMutation,
 } from "../store";
 import { useLongTermContext } from "../context/longTerm";
 
 interface CreateShortTermProps {
   user: User;
+}
+
+interface DeleteShortTermProps {
+  selectedShortTerm: ShortTermItem;
 }
 
 interface DetailCreationOverlayProps {
@@ -54,6 +60,22 @@ const CreateShortTerm: React.FC<CreateShortTermProps> = ({ user }) => {
   return (
     <button onClick={handleClick}>
       <BsPencilSquare />
+    </button>
+  );
+};
+
+const DeleteShortTerm: React.FC<DeleteShortTermProps> = ({
+  selectedShortTerm,
+}) => {
+  const [removeShortTerm] = useDeleteShortTermMutation();
+
+  const handleClick = () => {
+    removeShortTerm({ id: String(selectedShortTerm.id) });
+  };
+
+  return (
+    <button onClick={handleClick}>
+      <MdDelete />
     </button>
   );
 };
@@ -91,8 +113,9 @@ export default function ShortTerm() {
             {selectedLongTerm.end_time.toString()}
           </div>
         )}
-        <div>
+        <div className="flex space-x-2">
           <CreateShortTerm user={userData} />
+          {shortTerm && <DeleteShortTerm selectedShortTerm={shortTerm} />}
         </div>
       </div>
       <div className="flex px-5 py-2">

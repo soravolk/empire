@@ -15,4 +15,6 @@ router.put("/details/:id/time-spent", shortTerm.updateDetailTimeSpent);
 
 router.put("/details/:id/finished-date", shortTerm.updateDetailFinishedDate);
 
+router.delete("/:id", shortTerm.deleteShortTerm);
+
 export default router;

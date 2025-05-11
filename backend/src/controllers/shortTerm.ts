@@ -69,6 +69,16 @@ const updateDetailFinishedDate: RequestHandler = async (req, res) => {
   }
 };
 
+const deleteShortTerm: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.deleteById("short_terms", id);
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: "internal server error" });
+  }
+};
+
 export default {
   createShortTerm,
   createDetail,
@@ -76,4 +86,5 @@ export default {
   getDetailsFromShortTerm,
   updateDetailTimeSpent,
   updateDetailFinishedDate,
+  deleteShortTerm,
 };
