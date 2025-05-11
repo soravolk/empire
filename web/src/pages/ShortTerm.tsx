@@ -353,7 +353,9 @@ const DetailCreationOverlay = ({
                 <li key={content.id} className="list-none mt-2">
                   <button
                     onClick={() => handleContentSelect(content)}
-                    className="w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded"
+                    className={`w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded ${
+                      content.id === selectedContent?.id && "bg-gray-200"
+                    }`}
                   >
                     {content.name}
                   </button>
