@@ -2,10 +2,14 @@ import { RequestHandler } from "express";
 import db from "../db/utils";
 
 const createLongTerm: RequestHandler = async (req, res) => {
-  const { user_id } = req.body;
+  const {
+    userId: user_id,
+    startTime: start_time,
+    endTime: end_time,
+  } = req.body;
   try {
-    await db.insert("long_terms", { user_id });
-    res.status(201);
+    await db.insert("long_terms", { user_id, start_time, end_time });
+    res.status(201).send();
   } catch (error) {
     res.status(500).json({ error: "internal server error" });
   }

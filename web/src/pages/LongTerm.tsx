@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Calendar from "react-calendar";
 import {
   useFetchLongTermsQuery,
   useFetchCyclesOfLongTermQuery,
@@ -6,6 +7,7 @@ import {
   useFetchSubcategoriesFromCycleQuery,
   useFetchContentsFromCycleQuery,
   useFetchCurrentUserQuery,
+  useCreateLongTermMutation,
 } from "../store";
 import Dropdown from "../components/Dropdown";
 import { getLongTermHistoryOptions } from "../utils/utils";
@@ -14,6 +16,7 @@ import {
   CycleItem,
   CycleCategoryItem,
   CycleSubcategoryItem,
+  User,
 } from "../types";
 import Cycle from "../components/Cycle";
 import Category from "../components/Category";
@@ -21,8 +24,55 @@ import SubCategory from "../components/Subcategory";
 import Content from "../components/Content";
 import { CycleItemContext, useCycleListContext } from "../context/cycle";
 import { useLongTermContext } from "../context/longTerm";
+import { BsPencilSquare } from "react-icons/bs";
+
+interface CreateLongTermProps {
+  user: User;
+}
+
+type DateValue = Date | null;
+
+type CycleRange = DateValue | [DateValue, DateValue];
+
+const CreateLongTerm: React.FC<CreateLongTermProps> = ({ user }) => {
+  const [createLongTerm] = useCreateLongTermMutation();
+
+  const [date, setDate] = useState<CycleRange>(null);
+  const [expandCalendar, setExpandCalendar] = useState(false);
+
+  const handleClick = () => {
+    setExpandCalendar(!expandCalendar);
+  };
+
+  const handleSelectCycleRange = (e: CycleRange) => {
+    setDate(e);
+    setExpandCalendar(false);
+  };
+
+  useEffect(() => {
+    if (Array.isArray(date)) {
+      createLongTerm({
+        userId: user.id,
+        startTime: date[0],
+        endTime: date[1],
+      });
+    }
+  }, [date]);
+
+  return (
+    <div>
+      <button onClick={handleClick}>
+        <BsPencilSquare />
+      </button>
+      {expandCalendar && (
+        <Calendar selectRange value={date} onChange={handleSelectCycleRange} />
+      )}
+    </div>
+  );
+};
 
 export default function LongTerm() {
+  const { data: userData } = useFetchCurrentUserQuery(null);
   const {
     data: longTermData,
     error: longTermError,
@@ -44,13 +94,14 @@ export default function LongTerm() {
 
   return (
     <div className="flex flex-col">
-      <div className="w-full mb-4">
+      <div className="flex items-center justify-between mb-4">
         {longTermData && (
           <Dropdown
             options={getLongTermHistoryOptions(longTermData)}
             onSelect={setLongTerm}
           />
         )}
+        <CreateLongTerm user={userData} />
       </div>
       <div className="flex px-5 py-2">
         {longTerm && <CycleOptions longTerm={longTerm} />}
