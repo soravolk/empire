@@ -60,12 +60,14 @@ const CreateLongTerm: React.FC<CreateLongTermProps> = ({ user }) => {
   }, [date]);
 
   return (
-    <div>
+    <div className="relative">
       <button onClick={handleClick}>
         <BsPencilSquare />
       </button>
       {expandCalendar && (
-        <Calendar selectRange value={date} onChange={handleSelectCycleRange} />
+        <div className="absolute right-0 shadow-lg">
+          <Calendar selectRange value={date} onChange={handleSelectCycleRange} />
+        </div>
       )}
     </div>
   );
