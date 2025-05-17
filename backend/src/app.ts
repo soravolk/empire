@@ -12,6 +12,7 @@ import subcategoryRoutes from "./routes/subcategory";
 import contentRoutes from "./routes/content";
 import detailRoutes from "./routes/detail";
 import cycleRoutes from "./routes/cycle";
+import { checkAuthentication } from "./middleware/auth";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 import "./services/auth";
@@ -39,6 +40,7 @@ app.use(passport.session());
 
 app.use(express.json());
 app.use("/auth", AuthRoutes);
+app.use(checkAuthentication);
 app.use("/users", UserRoutes);
 app.use("/longTerms", longTermRoutes);
 app.use("/shortTerms", shortTermRoutes);
