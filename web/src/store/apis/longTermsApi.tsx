@@ -31,10 +31,24 @@ const longTermsApi = createApi({
           };
         },
       }),
+      deleteLongTerm: builder.mutation({
+        invalidatesTags: (result, error, args) => {
+          return [{ type: "LongTerm" }];
+        },
+        query: ({ id }) => {
+          return {
+            method: "DELETE",
+            url: `/${id}`,
+          };
+        },
+      }),
     };
   },
 });
 
-export const { useCreateLongTermMutation, useFetchLongTermsQuery } =
-  longTermsApi;
+export const {
+  useCreateLongTermMutation,
+  useFetchLongTermsQuery,
+  useDeleteLongTermMutation,
+} = longTermsApi;
 export { longTermsApi };

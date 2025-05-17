@@ -24,4 +24,14 @@ const getLongTerms: RequestHandler = async (req, res) => {
   }
 };
 
-export default { createLongTerm, getLongTerms };
+const deleteLongTerm: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.deleteById("long_terms", id);
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: "internal server error" });
+  }
+};
+
+export default { createLongTerm, getLongTerms, deleteLongTerm };

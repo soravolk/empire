@@ -8,6 +8,7 @@ import {
   useFetchContentsFromCycleQuery,
   useFetchCurrentUserQuery,
   useCreateLongTermMutation,
+  useDeleteLongTermMutation,
 } from "../store";
 import Dropdown from "../components/Dropdown";
 import { getLongTermHistoryOptions } from "../utils/utils";
@@ -25,9 +26,15 @@ import Content from "../components/Content";
 import { CycleItemContext, useCycleListContext } from "../context/cycle";
 import { useLongTermContext } from "../context/longTerm";
 import { BsPencilSquare } from "react-icons/bs";
+import { MdDelete } from "react-icons/md";
 
 interface CreateLongTermProps {
   user: User;
+}
+
+interface DeleteLongTermProps {
+  selectedLongTerm: LongTermItem;
+  setSelectedLongTerm: (longTerm: LongTermItem | null) => void;
 }
 
 type DateValue = Date | null;
@@ -66,10 +73,32 @@ const CreateLongTerm: React.FC<CreateLongTermProps> = ({ user }) => {
       </button>
       {expandCalendar && (
         <div className="absolute right-0 shadow-lg">
-          <Calendar selectRange value={date} onChange={handleSelectCycleRange} />
+          <Calendar
+            selectRange
+            value={date}
+            onChange={handleSelectCycleRange}
+          />
         </div>
       )}
     </div>
+  );
+};
+
+const DeleteLongTerm: React.FC<DeleteLongTermProps> = ({
+  selectedLongTerm,
+  setSelectedLongTerm,
+}) => {
+  const [deleteLongTerm] = useDeleteLongTermMutation();
+
+  const handleClick = () => {
+    deleteLongTerm({ id: String(selectedLongTerm.id) });
+    setSelectedLongTerm(null);
+  };
+
+  return (
+    <button onClick={handleClick}>
+      <MdDelete />
+    </button>
   );
 };
 
@@ -103,7 +132,15 @@ export default function LongTerm() {
             onSelect={setLongTerm}
           />
         )}
-        <CreateLongTerm user={userData} />
+        <div className="flex space-x-2">
+          <CreateLongTerm user={userData} />
+          {longTerm && (
+            <DeleteLongTerm
+              selectedLongTerm={longTerm}
+              setSelectedLongTerm={setLongTerm}
+            />
+          )}
+        </div>
       </div>
       <div className="flex px-5 py-2">
         {longTerm && <CycleOptions longTerm={longTerm} />}
