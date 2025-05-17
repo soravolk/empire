@@ -5,6 +5,10 @@ interface CreateShortTermInput {
   userId: string;
 }
 
+interface DeleteShortTermInput {
+  id: string;
+}
+
 interface CreateDetailInput {
   contentId: string;
   shortTermId: string;
@@ -21,15 +25,28 @@ interface UpdateFinishedDateInput {
   finishedDate: string | null;
 }
 
+interface DeleteDetailInput {
+  id: string;
+  detailId: string;
+}
+
 const shortTermsApi = createApi({
   reducerPath: "shortTerms",
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:5001/shortTerms",
   }),
-  tagTypes: ["ShortTerm", "Detail"],
+  tagTypes: ["All", "ShortTerm", "Detail"],
   endpoints(builder) {
     return {
       fetchShortTerms: builder.query({
+        providesTags: (result, error, args) => {
+          if (error) return [];
+          const tags = result.map((shortTerm: ShortTermItem) => {
+            return { type: "ShortTerm", id: shortTerm.id };
+          });
+          tags.push({ type: "All" });
+          return tags;
+        },
         query: () => {
           return {
             method: "GET",
@@ -55,6 +72,9 @@ const shortTermsApi = createApi({
         },
       }),
       createShortTerm: builder.mutation<ShortTermItem, CreateShortTermInput>({
+        invalidatesTags: (result, error, args) => {
+          return [{ type: "All" }];
+        },
         query: ({ userId }) => {
           return {
             method: "POST",
@@ -109,6 +129,28 @@ const shortTermsApi = createApi({
           };
         },
       }),
+      deleteShortTerm: builder.mutation<ShortTermItem, DeleteShortTermInput>({
+        invalidatesTags: (result, error, args) => {
+          return [{ type: "All" }];
+        },
+        query: ({ id }) => {
+          return {
+            method: "DELETE",
+            url: `/${id}`,
+          };
+        },
+      }),
+      deleteShortTermDetail: builder.mutation<Detail, DeleteDetailInput>({
+        invalidatesTags: (result, error, args) => {
+          return [{ type: "ShortTerm", id: args.id }];
+        },
+        query: ({ id, detailId }) => {
+          return {
+            method: "DELETE",
+            url: `/details/${detailId}`,
+          };
+        },
+      }),
     };
   },
 });
@@ -120,5 +162,7 @@ export const {
   useFetchDetailsFromShortTermQuery,
   useUpdateTimeSpentMutation,
   useUpdateFinishedDateMutation,
+  useDeleteShortTermMutation,
+  useDeleteShortTermDetailMutation,
 } = shortTermsApi;
 export { shortTermsApi };

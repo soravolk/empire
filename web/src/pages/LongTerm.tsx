@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Calendar from "react-calendar";
 import {
   useFetchLongTermsQuery,
   useFetchCyclesOfLongTermQuery,
@@ -6,6 +7,8 @@ import {
   useFetchSubcategoriesFromCycleQuery,
   useFetchContentsFromCycleQuery,
   useFetchCurrentUserQuery,
+  useCreateLongTermMutation,
+  useDeleteLongTermMutation,
 } from "../store";
 import Dropdown from "../components/Dropdown";
 import { getLongTermHistoryOptions } from "../utils/utils";
@@ -14,6 +17,7 @@ import {
   CycleItem,
   CycleCategoryItem,
   CycleSubcategoryItem,
+  User,
 } from "../types";
 import Cycle from "../components/Cycle";
 import Category from "../components/Category";
@@ -21,8 +25,85 @@ import SubCategory from "../components/Subcategory";
 import Content from "../components/Content";
 import { CycleItemContext, useCycleListContext } from "../context/cycle";
 import { useLongTermContext } from "../context/longTerm";
+import { BsPencilSquare } from "react-icons/bs";
+import { MdDelete } from "react-icons/md";
+
+interface CreateLongTermProps {
+  user: User;
+}
+
+interface DeleteLongTermProps {
+  selectedLongTerm: LongTermItem;
+  setSelectedLongTerm: (longTerm: LongTermItem | null) => void;
+}
+
+type DateValue = Date | null;
+
+type CycleRange = DateValue | [DateValue, DateValue];
+
+const CreateLongTerm: React.FC<CreateLongTermProps> = ({ user }) => {
+  const [createLongTerm] = useCreateLongTermMutation();
+
+  const [date, setDate] = useState<CycleRange>(null);
+  const [expandCalendar, setExpandCalendar] = useState(false);
+
+  const handleClick = () => {
+    setExpandCalendar(!expandCalendar);
+  };
+
+  const handleSelectCycleRange = (e: CycleRange) => {
+    setDate(e);
+    setExpandCalendar(false);
+  };
+
+  useEffect(() => {
+    if (Array.isArray(date)) {
+      createLongTerm({
+        userId: user.id,
+        startTime: date[0],
+        endTime: date[1],
+      });
+    }
+  }, [date]);
+
+  return (
+    <div className="relative">
+      <button onClick={handleClick}>
+        <BsPencilSquare />
+      </button>
+      {expandCalendar && (
+        <div className="absolute right-0 shadow-lg">
+          <Calendar
+            selectRange
+            value={date}
+            onChange={handleSelectCycleRange}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+const DeleteLongTerm: React.FC<DeleteLongTermProps> = ({
+  selectedLongTerm,
+  setSelectedLongTerm,
+}) => {
+  const [deleteLongTerm] = useDeleteLongTermMutation();
+
+  const handleClick = () => {
+    deleteLongTerm({ id: String(selectedLongTerm.id) });
+    setSelectedLongTerm(null);
+  };
+
+  return (
+    <button onClick={handleClick}>
+      <MdDelete />
+    </button>
+  );
+};
 
 export default function LongTerm() {
+  const { data: userData } = useFetchCurrentUserQuery(null);
   const {
     data: longTermData,
     error: longTermError,
@@ -44,13 +125,22 @@ export default function LongTerm() {
 
   return (
     <div className="flex flex-col">
-      <div className="w-full mb-4">
+      <div className="flex items-center justify-between mb-4">
         {longTermData && (
           <Dropdown
             options={getLongTermHistoryOptions(longTermData)}
             onSelect={setLongTerm}
           />
         )}
+        <div className="flex space-x-2">
+          <CreateLongTerm user={userData} />
+          {longTerm && (
+            <DeleteLongTerm
+              selectedLongTerm={longTerm}
+              setSelectedLongTerm={setLongTerm}
+            />
+          )}
+        </div>
       </div>
       <div className="flex px-5 py-2">
         {longTerm && <CycleOptions longTerm={longTerm} />}

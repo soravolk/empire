@@ -10,6 +10,7 @@ import {
 } from "../types";
 import { getAvailableShortTermOptions } from "../utils/utils";
 import { BsPencilSquare } from "react-icons/bs";
+import { MdDelete } from "react-icons/md";
 import {
   useCreateShortTermMutation,
   useFetchContentsFromCycleQuery,
@@ -23,11 +24,17 @@ import {
   useCreateDetailMutation,
   useUpdateTimeSpentMutation,
   useUpdateFinishedDateMutation,
+  useDeleteShortTermMutation,
+  useDeleteShortTermDetailMutation,
 } from "../store";
 import { useLongTermContext } from "../context/longTerm";
 
 interface CreateShortTermProps {
   user: User;
+}
+
+interface DeleteShortTermProps {
+  selectedShortTerm: ShortTermItem;
 }
 
 interface DetailCreationOverlayProps {
@@ -38,10 +45,17 @@ interface DetailCreationOverlayProps {
 
 interface DetailItemInfoProps {
   detailItem: DetailItem;
+  shortTerm: ShortTermItem;
 }
 interface DetailViewProps {
   toggleOverlay: () => void;
+  shortTerm: ShortTermItem;
   detailItems: DetailItem[];
+}
+
+interface DeleteDetailItemProps {
+  detailItem: DetailItem;
+  shortTerm: ShortTermItem;
 }
 
 const CreateShortTerm: React.FC<CreateShortTermProps> = ({ user }) => {
@@ -54,6 +68,22 @@ const CreateShortTerm: React.FC<CreateShortTermProps> = ({ user }) => {
   return (
     <button onClick={handleClick}>
       <BsPencilSquare />
+    </button>
+  );
+};
+
+const DeleteShortTerm: React.FC<DeleteShortTermProps> = ({
+  selectedShortTerm,
+}) => {
+  const [removeShortTerm] = useDeleteShortTermMutation();
+
+  const handleClick = () => {
+    removeShortTerm({ id: String(selectedShortTerm.id) });
+  };
+
+  return (
+    <button onClick={handleClick}>
+      <MdDelete />
     </button>
   );
 };
@@ -91,13 +121,18 @@ export default function ShortTerm() {
             {selectedLongTerm.end_time.toString()}
           </div>
         )}
-        <div>
+        <div className="flex space-x-2">
           <CreateShortTerm user={userData} />
+          {shortTerm && <DeleteShortTerm selectedShortTerm={shortTerm} />}
         </div>
       </div>
       <div className="flex px-5 py-2">
         {shortTerm && details && (
-          <DetailView toggleOverlay={toggleOverlay} detailItems={details} />
+          <DetailView
+            toggleOverlay={toggleOverlay}
+            shortTerm={shortTerm}
+            detailItems={details}
+          />
         )}
       </div>
       {isOverlayVisible && shortTerm && selectedLongTerm && (
@@ -111,7 +146,11 @@ export default function ShortTerm() {
   );
 }
 
-const DetailView = ({ toggleOverlay, detailItems }: DetailViewProps) => {
+const DetailView = ({
+  toggleOverlay,
+  shortTerm,
+  detailItems,
+}: DetailViewProps) => {
   const [selectedDetailItem, setSelectedDetailItem] =
     useState<DetailItem | null>(null);
 
@@ -124,7 +163,9 @@ const DetailView = ({ toggleOverlay, detailItems }: DetailViewProps) => {
             {detailItems.map((item: DetailItem, idx: number) => (
               <li
                 key={item.id}
-                className="cursor-pointer p-2 rounded"
+                className={`cursor-pointer p-2 rounded bg-gray-100 hover:bg-gray-200 mt-2 ${
+                  selectedDetailItem?.id === item.id && "bg-gray-200"
+                }`}
                 onClick={() => setSelectedDetailItem(item)}
               >
                 {item.name}
@@ -143,7 +184,10 @@ const DetailView = ({ toggleOverlay, detailItems }: DetailViewProps) => {
       </div>
       <div className="w-1/2 p-4">
         {selectedDetailItem ? (
-          <DetailItemInfo detailItem={selectedDetailItem} />
+          <DetailItemInfo
+            shortTerm={shortTerm}
+            detailItem={selectedDetailItem}
+          />
         ) : (
           <div className="text-gray-500">
             Select a detail to view its information.
@@ -154,7 +198,7 @@ const DetailView = ({ toggleOverlay, detailItems }: DetailViewProps) => {
   );
 };
 
-const DetailItemInfo = ({ detailItem }: DetailItemInfoProps) => {
+const DetailItemInfo = ({ shortTerm, detailItem }: DetailItemInfoProps) => {
   // TODO: need to refactor: 1. too many rerender, 2. flaky logic to display information and error handling
   const { data: content, isLoading: isContentLoading } =
     useFetchContentFromCycleByIdQuery({
@@ -268,7 +312,10 @@ const DetailItemInfo = ({ detailItem }: DetailItemInfoProps) => {
           )}
         </div>
       </div>
-      <div className="mt-4">
+      <div
+        className="flex mt-4 justify-between
+      "
+      >
         {finished ? (
           <button
             className="rounded bg-red-500 px-2 py-1 text-white hover:bg-red-600"
@@ -284,8 +331,26 @@ const DetailItemInfo = ({ detailItem }: DetailItemInfoProps) => {
             Finish
           </button>
         )}
+        <DeleteDetailItem shortTerm={shortTerm} detailItem={detailItem} />
       </div>
     </div>
+  );
+};
+
+const DeleteDetailItem = ({ shortTerm, detailItem }: DeleteDetailItemProps) => {
+  const [removeShortTerm] = useDeleteShortTermDetailMutation();
+
+  const handleClick = () => {
+    removeShortTerm({
+      id: String(shortTerm.id),
+      detailId: String(detailItem.id),
+    });
+  };
+
+  return (
+    <button onClick={handleClick}>
+      <MdDelete />
+    </button>
   );
 };
 
@@ -351,7 +416,9 @@ const DetailCreationOverlay = ({
                 <li key={content.id} className="list-none mt-2">
                   <button
                     onClick={() => handleContentSelect(content)}
-                    className="w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded"
+                    className={`w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded ${
+                      content.id === selectedContent?.id && "bg-gray-200"
+                    }`}
                   >
                     {content.name}
                   </button>

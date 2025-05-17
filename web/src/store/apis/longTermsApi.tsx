@@ -5,9 +5,25 @@ const longTermsApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:5001/longTerms",
   }),
+  tagTypes: ["LongTerm"],
   endpoints(builder) {
     return {
+      createLongTerm: builder.mutation({
+        invalidatesTags: ["LongTerm"],
+        query: ({ userId, startTime, endTime }) => {
+          return {
+            method: "POST",
+            url: "/",
+            body: {
+              userId,
+              startTime,
+              endTime,
+            },
+          };
+        },
+      }),
       fetchLongTerms: builder.query({
+        providesTags: ["LongTerm"],
         query: () => {
           return {
             url: "/",
@@ -15,9 +31,24 @@ const longTermsApi = createApi({
           };
         },
       }),
+      deleteLongTerm: builder.mutation({
+        invalidatesTags: (result, error, args) => {
+          return [{ type: "LongTerm" }];
+        },
+        query: ({ id }) => {
+          return {
+            method: "DELETE",
+            url: `/${id}`,
+          };
+        },
+      }),
     };
   },
 });
 
-export const { useFetchLongTermsQuery } = longTermsApi;
+export const {
+  useCreateLongTermMutation,
+  useFetchLongTermsQuery,
+  useDeleteLongTermMutation,
+} = longTermsApi;
 export { longTermsApi };
