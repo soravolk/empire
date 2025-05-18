@@ -8,21 +8,26 @@ import ItemCreationButton from "./ItemCreationButton";
 
 interface CycleProps {
   cycles: CycleItem[];
-  setCycle: (cycle: CycleItem | null) => void;
+  selectedCycle: CycleItem | null;
+  setSelectedCycle: (cycle: CycleItem | null) => void;
 }
 
 type DateValue = Date | null;
 
 type CycleRange = DateValue | [DateValue, DateValue];
 
-const Cycle: React.FC<CycleProps> = ({ cycles, setCycle }) => {
+const Cycle: React.FC<CycleProps> = ({
+  cycles,
+  selectedCycle,
+  setSelectedCycle,
+}) => {
   const [addCycle, addCycleResults] = useAddCycleMutation();
   const [deleteCycle, deleteCycleResults] = useDeleteCycleMutation();
   const [date, setDate] = useState<CycleRange>(null);
   const [expandCalendar, setExpandCalendar] = useState(false);
 
   const handleClick = (cycle: CycleItem) => {
-    setCycle(cycle);
+    setSelectedCycle(cycle);
   };
 
   const handleAddCycle = () => {
@@ -50,7 +55,9 @@ const Cycle: React.FC<CycleProps> = ({ cycles, setCycle }) => {
         cycles.map((item: CycleItem, id: number) => (
           <div key={id} className="flex items-center space-x-2">
             <button
-              className="items-center justify-center bg-gray-300 rounded-full w-20 h-20"
+              className={`items-center justify-center bg-gray-200 rounded-full w-20 h-20 ${
+                item.id === selectedCycle?.id && "bg-gray-300"
+              }`}
               onClick={() => handleClick(item)}
             >
               {`Cycle ${id + 1}`}

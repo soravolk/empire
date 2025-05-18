@@ -12,6 +12,7 @@ import { CycleItemContext } from "../context/cycle";
 
 interface CategoryProps {
   categories: CycleCategoryItem[];
+  selectedCategory: CycleCategoryItem | null;
   handleClickCategory: (category: CycleCategoryItem) => void;
   user: User;
 }
@@ -45,6 +46,7 @@ const CategoryForm: React.FC<FormControlProps> = ({ setExpandForm, user }) => {
 
 const Category: React.FC<CategoryProps> = ({
   categories,
+  selectedCategory,
   handleClickCategory,
   user,
 }) => {
@@ -60,6 +62,7 @@ const Category: React.FC<CategoryProps> = ({
         <div key={id}>
           <TodoItem
             item={item}
+            selectedItem={selectedCategory}
             handleClick={handleClickCategory}
             handleDelete={deleteCategoryFromCycle}
           />
