@@ -23,9 +23,7 @@ const router = createBrowserRouter([
         path: "/shortTerm",
         element: (
           <ProtectedRoute>
-            <CycleListProvider>
-              <ShortTerm />
-            </CycleListProvider>
+            <ShortTerm />
           </ProtectedRoute>
         ),
       },
