@@ -10,6 +10,7 @@ const subcategoriesApi = createApi({
   reducerPath: "subcategories",
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:5001/subcategories",
+    credentials: "include",
   }),
   endpoints(builder) {
     return {

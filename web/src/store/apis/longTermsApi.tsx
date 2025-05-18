@@ -4,6 +4,7 @@ const longTermsApi = createApi({
   reducerPath: "longTerms",
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:5001/longTerms",
+    credentials: "include",
   }),
   tagTypes: ["LongTerm"],
   endpoints(builder) {

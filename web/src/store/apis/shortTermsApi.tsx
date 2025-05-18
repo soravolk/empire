@@ -34,6 +34,7 @@ const shortTermsApi = createApi({
   reducerPath: "shortTerms",
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:5001/shortTerms",
+    credentials: "include",
   }),
   tagTypes: ["All", "ShortTerm", "Detail"],
   endpoints(builder) {

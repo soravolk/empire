@@ -10,6 +10,7 @@ const contentsApi = createApi({
   reducerPath: "contents",
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:5001/contents",
+    credentials: "include",
   }),
   endpoints(builder) {
     return {
