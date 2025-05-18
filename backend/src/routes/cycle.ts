@@ -16,8 +16,6 @@ router.post("/", cycle.createCycle);
 
 router.get("/", cycle.getCycles);
 
-router.get("/:id", cycle.getCycle);
-
 router.get("/:id/categories", cycle.getCategoriesFromCycle);
 
 router.get("/:id/subcategories", cycle.getSubcategoriesFromCycle);
