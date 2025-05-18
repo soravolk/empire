@@ -8,7 +8,10 @@ import {
   Detail as DetailItem,
   User,
 } from "../types";
-import { getAvailableShortTermOptions } from "../utils/utils";
+import {
+  getAvailableCycleOptions,
+  getAvailableShortTermOptions,
+} from "../utils/utils";
 import { BsPencilSquare } from "react-icons/bs";
 import { MdDelete } from "react-icons/md";
 import {
@@ -405,10 +408,7 @@ const DetailCreationOverlay = ({
         <div className="flex-1">
           {cycleData && (
             <Dropdown
-              options={cycleData.map((cycle: CycleItem) => ({
-                data: cycle,
-                displayText: `Cycle ${cycle.id}`,
-              }))}
+              options={getAvailableCycleOptions(cycleData)}
               selectedItemId={selectedCycle && String(selectedCycle.id)}
               onSelect={handleCycleSelect}
             />
