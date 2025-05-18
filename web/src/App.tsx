@@ -9,6 +9,7 @@ import { CycleListProvider } from "./context/cycle";
 import { LongTermProvider } from "./context/longTerm";
 import { AuthProvider } from "./context/auth";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { ShortTermProvider } from "./context/shortTerm";
 
 const router = createBrowserRouter([
   {
@@ -53,7 +54,9 @@ function App() {
   return (
     <AuthProvider>
       <LongTermProvider>
-        <RouterProvider router={router} />
+        <ShortTermProvider>
+          <RouterProvider router={router} />
+        </ShortTermProvider>
       </LongTermProvider>
     </AuthProvider>
   );

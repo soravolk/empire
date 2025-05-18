@@ -28,6 +28,7 @@ import {
   useDeleteShortTermDetailMutation,
 } from "../store";
 import { useLongTermContext } from "../context/longTerm";
+import { useShortTermContext } from "../context/shortTerm";
 
 interface CreateShortTermProps {
   user: User;
@@ -90,7 +91,8 @@ const DeleteShortTerm: React.FC<DeleteShortTermProps> = ({
 
 export default function ShortTerm() {
   const { selectedLongTerm } = useLongTermContext();
-  const [shortTerm, setShortTerm] = useState<ShortTermItem | null>(null);
+  const { selectedShortTerm: shortTerm, setSelectedShortTerm: setShortTerm } =
+    useShortTermContext();
   const { data: userData } = useFetchCurrentUserQuery(null);
   const { data: shortTermData } = useFetchShortTermsQuery(null);
   const { data: details } = useFetchDetailsFromShortTermQuery({
