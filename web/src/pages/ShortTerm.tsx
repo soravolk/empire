@@ -91,7 +91,6 @@ const DeleteShortTerm: React.FC<DeleteShortTermProps> = ({
 export default function ShortTerm() {
   const { selectedLongTerm } = useLongTermContext();
   const [shortTerm, setShortTerm] = useState<ShortTermItem | null>(null);
-
   const { data: userData } = useFetchCurrentUserQuery(null);
   const { data: shortTermData } = useFetchShortTermsQuery(null);
   const { data: details } = useFetchDetailsFromShortTermQuery({
@@ -111,6 +110,7 @@ export default function ShortTerm() {
           {shortTermData && (
             <Dropdown
               options={getAvailableShortTermOptions(shortTermData)}
+              selectedItemId={shortTerm && String(shortTerm.id)}
               onSelect={setShortTerm}
             />
           )}
@@ -407,6 +407,7 @@ const DetailCreationOverlay = ({
                 data: cycle,
                 displayText: `Cycle ${cycle.id}`,
               }))}
+              selectedItemId={selectedCycle && String(selectedCycle.id)}
               onSelect={handleCycleSelect}
             />
           )}

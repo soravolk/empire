@@ -129,6 +129,7 @@ export default function LongTerm() {
         {longTermData && (
           <Dropdown
             options={getLongTermHistoryOptions(longTermData)}
+            selectedItemId={longTerm && String(longTerm.id)}
             onSelect={setLongTerm}
           />
         )}
