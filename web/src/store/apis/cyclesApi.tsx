@@ -10,6 +10,7 @@ const cyclesApi = createApi({
   reducerPath: "cycles",
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:5001/cycles",
+    credentials: "include",
   }),
   tagTypes: ["Cycle", "LongTerm", "Category", "Subcategory", "Content"],
   endpoints(builder) {

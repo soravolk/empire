@@ -1,4 +1,5 @@
 import { Router, RequestHandler } from "express";
+import { checkAuthentication } from "../middleware/auth";
 import user from "../controllers/user";
 
 const router = Router();
@@ -13,7 +14,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/me", async (req, res) => {
+router.get("/me", checkAuthentication, async (req, res) => {
   res.send(req.user);
 });
 

@@ -4,6 +4,7 @@ const detailsApi = createApi({
   reducerPath: "details",
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:5001/details",
+    credentials: "include",
   }),
   endpoints(builder) {
     return {

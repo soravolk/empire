@@ -7,6 +7,8 @@ import LongTerm from "./pages/LongTerm";
 import Setting from "./pages/Setting";
 import { CycleListProvider } from "./context/cycle";
 import { LongTermProvider } from "./context/longTerm";
+import { AuthProvider } from "./context/auth";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const router = createBrowserRouter([
   {
@@ -20,22 +22,30 @@ const router = createBrowserRouter([
       {
         path: "/shortTerm",
         element: (
-          <CycleListProvider>
-            <ShortTerm />
-          </CycleListProvider>
+          <ProtectedRoute>
+            <CycleListProvider>
+              <ShortTerm />
+            </CycleListProvider>
+          </ProtectedRoute>
         ),
       },
       {
         path: "/longTerm",
         element: (
-          <CycleListProvider>
-            <LongTerm />
-          </CycleListProvider>
+          <ProtectedRoute>
+            <CycleListProvider>
+              <LongTerm />
+            </CycleListProvider>
+          </ProtectedRoute>
         ),
       },
       {
         path: "/setting",
-        element: <Setting />,
+        element: (
+          <ProtectedRoute>
+            <Setting />
+          </ProtectedRoute>
+        ),
       },
     ],
   },
@@ -43,9 +53,11 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <LongTermProvider>
-      <RouterProvider router={router} />
-    </LongTermProvider>
+    <AuthProvider>
+      <LongTermProvider>
+        <RouterProvider router={router} />
+      </LongTermProvider>
+    </AuthProvider>
   );
 }
 
