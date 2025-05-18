@@ -1,5 +1,6 @@
 import React from "react";
 import { useAuth } from "../context/auth";
+import LoginReminder from "./LoginReminder";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -9,7 +10,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
-    return <div> You need to be logged in to access this content.</div>;
+    return <LoginReminder />;
   }
 
   return <>{children}</>;
