@@ -84,13 +84,14 @@ const getContentFromCycleById: RequestHandler = async (req, res) => {
 };
 
 const getCycles: RequestHandler = async (req, res) => {
+  const { id: uid } = req.user!;
   const { longTermId } = req.query;
   try {
     const { rows } = longTermId
       ? await db.getWithCondition("cycles", {
           long_term_id: longTermId,
         })
-      : await db.getAll("cycles");
+      : await db.getAll("cycles", uid);
     res.status(200).json(rows);
   } catch (error) {
     res.status(500).json({ error: "internal server error" });

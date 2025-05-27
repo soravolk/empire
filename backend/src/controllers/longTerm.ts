@@ -16,8 +16,9 @@ const createLongTerm: RequestHandler = async (req, res) => {
 };
 
 const getLongTerms: RequestHandler = async (req, res) => {
+  const { id: uid } = req.user!;
   try {
-    const { rows } = await db.getAll("long_terms");
+    const { rows } = await db.getAll("long_terms", uid);
     res.status(200).json(rows);
   } catch (error) {
     res.status(500).json({ error: "internal server error" });

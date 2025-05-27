@@ -13,9 +13,10 @@ const createSubcategory: RequestHandler = async (req, res) => {
 };
 
 const getSubcategoryById: RequestHandler = async (req, res) => {
+  const { id: uid } = req.user!;
   const { id } = req.params;
   try {
-    const { rows } = await db.getById("subcategories", id);
+    const { rows } = await db.getById("subcategories", id, uid);
     res.status(200).json(rows);
   } catch (error) {
     res.status(500).json({ error: "internal server error" });
