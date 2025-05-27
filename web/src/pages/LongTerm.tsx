@@ -129,6 +129,7 @@ export default function LongTerm() {
         {longTermData && (
           <Dropdown
             options={getLongTermHistoryOptions(longTermData)}
+            selectedItemId={longTerm && String(longTerm.id)}
             onSelect={setLongTerm}
           />
         )}
@@ -164,7 +165,13 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
   return (
     <CycleItemContext.Provider value={cycle}>
       <div className="basis-1/4">
-        {cycleList && <Cycle cycles={cycleList} setCycle={setCycle} />}
+        {cycleList && (
+          <Cycle
+            cycles={cycleList}
+            selectedCycle={cycle}
+            setSelectedCycle={setCycle}
+          />
+        )}
       </div>
       {cycle && <Items cycle={cycle} />}
     </CycleItemContext.Provider>
@@ -220,6 +227,7 @@ export const Items: React.FC<ItemProps> = ({ cycle }) => {
         {categoryData && (
           <Category
             categories={categoryData}
+            selectedCategory={category}
             handleClickCategory={handleClickCategory}
             user={userData}
           />
@@ -230,6 +238,7 @@ export const Items: React.FC<ItemProps> = ({ cycle }) => {
           <SubCategory
             category={category}
             subcategories={subcategoryData}
+            selectedSubcategory={subcategory}
             handleClickSubcategory={handleClickSubcategory}
           />
         )}

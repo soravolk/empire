@@ -26,7 +26,7 @@ const cyclesApi = createApi({
         query: (longTerm) => {
           return {
             url: "/",
-            query: {
+            params: {
               longTermId: longTerm.id,
             },
             method: "GET",

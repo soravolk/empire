@@ -15,16 +15,6 @@ const createCycle: RequestHandler = async (req, res) => {
   }
 };
 
-const getCycle: RequestHandler = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const { rows } = await db.getById("cycles", id);
-    res.status(200).json(rows[0]);
-  } catch (error) {
-    res.status(500).json({ error: "internal server error" });
-  }
-};
-
 const getCategoriesFromCycle: RequestHandler = async (req, res) => {
   const { id } = req.params;
   try {
@@ -94,13 +84,14 @@ const getContentFromCycleById: RequestHandler = async (req, res) => {
 };
 
 const getCycles: RequestHandler = async (req, res) => {
+  const { id: uid } = req.user!;
   const { longTermId } = req.query;
   try {
     const { rows } = longTermId
       ? await db.getWithCondition("cycles", {
           long_term_id: longTermId,
         })
-      : await db.getAll("cycles");
+      : await db.getAll("cycles", uid);
     res.status(200).json(rows);
   } catch (error) {
     res.status(500).json({ error: "internal server error" });
@@ -182,7 +173,6 @@ const deleteContentFromCycle: RequestHandler = async (req, res) => {
 
 export default {
   createCycle,
-  getCycle,
   getCategoriesFromCycle,
   getSubcategoriesFromCycle,
   getContentsFromCycle,

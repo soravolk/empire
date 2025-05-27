@@ -13,6 +13,7 @@ import { CycleItemContext } from "../context/cycle";
 interface SubcategoryProps {
   category: CycleCategoryItem;
   subcategories: CycleSubcategoryItem[];
+  selectedSubcategory: CycleSubcategoryItem | null;
   handleClickSubcategory: (subcategory: CycleSubcategoryItem) => void;
 }
 
@@ -52,6 +53,7 @@ const SubcategoryForm: React.FC<FormControlProps> = ({
 const SubCategory: React.FC<SubcategoryProps> = ({
   category,
   subcategories,
+  selectedSubcategory,
   handleClickSubcategory,
 }) => {
   const displayItems = subcategories.filter(
@@ -71,6 +73,7 @@ const SubCategory: React.FC<SubcategoryProps> = ({
         <div key={id}>
           <TodoItem
             item={item}
+            selectedItem={selectedSubcategory}
             handleClick={handleClickSubcategory}
             handleDelete={deleteSubcategoryFromCycle}
           />

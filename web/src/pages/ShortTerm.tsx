@@ -8,7 +8,10 @@ import {
   Detail as DetailItem,
   User,
 } from "../types";
-import { getAvailableShortTermOptions } from "../utils/utils";
+import {
+  getAvailableCycleOptions,
+  getAvailableShortTermOptions,
+} from "../utils/utils";
 import { BsPencilSquare } from "react-icons/bs";
 import { MdDelete } from "react-icons/md";
 import {
@@ -28,6 +31,7 @@ import {
   useDeleteShortTermDetailMutation,
 } from "../store";
 import { useLongTermContext } from "../context/longTerm";
+import { useShortTermContext } from "../context/shortTerm";
 
 interface CreateShortTermProps {
   user: User;
@@ -90,8 +94,8 @@ const DeleteShortTerm: React.FC<DeleteShortTermProps> = ({
 
 export default function ShortTerm() {
   const { selectedLongTerm } = useLongTermContext();
-  const [shortTerm, setShortTerm] = useState<ShortTermItem | null>(null);
-
+  const { selectedShortTerm: shortTerm, setSelectedShortTerm: setShortTerm } =
+    useShortTermContext();
   const { data: userData } = useFetchCurrentUserQuery(null);
   const { data: shortTermData } = useFetchShortTermsQuery(null);
   const { data: details } = useFetchDetailsFromShortTermQuery({
@@ -111,6 +115,7 @@ export default function ShortTerm() {
           {shortTermData && (
             <Dropdown
               options={getAvailableShortTermOptions(shortTermData)}
+              selectedItemId={shortTerm && String(shortTerm.id)}
               onSelect={setShortTerm}
             />
           )}
@@ -403,10 +408,8 @@ const DetailCreationOverlay = ({
         <div className="flex-1">
           {cycleData && (
             <Dropdown
-              options={cycleData.map((cycle: CycleItem) => ({
-                data: cycle,
-                displayText: `Cycle ${cycle.id}`,
-              }))}
+              options={getAvailableCycleOptions(cycleData)}
+              selectedItemId={selectedCycle && String(selectedCycle.id)}
               onSelect={handleCycleSelect}
             />
           )}

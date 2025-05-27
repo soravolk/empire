@@ -12,30 +12,12 @@ const createSubcategory: RequestHandler = async (req, res) => {
   }
 };
 
-const getSubcategories: RequestHandler = async (req, res) => {
-  try {
-    const { rows } = await db.getAll("subcategories");
-    res.status(200).json(rows);
-  } catch (error) {
-    res.status(500).json({ error: "internal server error" });
-  }
-};
-
 const getSubcategoryById: RequestHandler = async (req, res) => {
+  const { id: uid } = req.user!;
   const { id } = req.params;
   try {
-    const { rows } = await db.getById("subcategories", id);
+    const { rows } = await db.getById("subcategories", id, uid);
     res.status(200).json(rows);
-  } catch (error) {
-    res.status(500).json({ error: "internal server error" });
-  }
-};
-
-const deleteSubcategory: RequestHandler = async (req, res) => {
-  const { id } = req.params;
-  try {
-    await db.deleteById("subcategories", id);
-    res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: "internal server error" });
   }
@@ -43,7 +25,5 @@ const deleteSubcategory: RequestHandler = async (req, res) => {
 
 export default {
   createSubcategory,
-  getSubcategories,
   getSubcategoryById,
-  deleteSubcategory,
 };

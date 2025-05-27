@@ -1,5 +1,43 @@
 import pg from "../db/postgre";
 
+const mustHasRelations: Record<
+  string,
+  { parentTable: string; parentKey: string }
+> = {
+  long_terms: { parentTable: "users", parentKey: "user_id" },
+  short_terms: { parentTable: "users", parentKey: "user_id " },
+  cycles: { parentTable: "long_terms", parentKey: "long_term_id" },
+  cycle_categories: { parentTable: "cycles", parentKey: "cycle_id" },
+  cycle_subcategories: { parentTable: "cycles", parentKey: "cycle_id" },
+  cycle_contents: { parentTable: "cycles", parentKey: "cycle_id" },
+};
+
+const buildOwnershipQueries = (leafTable: string, uid: string) => {
+  const joins: string[] = [];
+  const params = [];
+  const wheres = [];
+
+  let current = leafTable;
+
+  while (mustHasRelations[current]) {
+    const rel = mustHasRelations[current];
+
+    joins.push(
+      `JOIN ${rel.parentTable}` +
+        ` ON ${rel.parentTable}.id = ${current}.${rel.parentKey}`
+    );
+
+    current = rel.parentTable;
+  }
+
+  if (current === "users") {
+    params.push(uid);
+    wheres.push(`users.id = $1`);
+  }
+
+  return { params, wheres, joins };
+};
+
 const insert = async (table: string, data: { [key: string]: any }) => {
   const columns = Object.keys(data);
   const values = Object.values(data);
@@ -13,8 +51,21 @@ const insert = async (table: string, data: { [key: string]: any }) => {
   return res.rows[0];
 };
 
-const getById = async (table: string, id: string) =>
-  await pg.query(`SELECT * FROM ${table} WHERE id = $1`, [id]);
+const getById = async (table: string, id: string, uid: string) => {
+  const { params, wheres, joins } = buildOwnershipQueries(table, uid);
+
+  wheres.push(`${table}.id = $${params.length + 1}`);
+  params.push(id);
+
+  const sql = `
+    SELECT ${table}.*
+      FROM ${table}
+      ${joins.join("\n")}
+     WHERE ${wheres.join(" AND ")}
+  `;
+
+  return await pg.query(sql, params);
+};
 
 const getWithCondition = async (
   table: string,
@@ -30,8 +81,18 @@ const getWithCondition = async (
   );
 };
 
-const getAll = async (table: string) =>
-  await pg.query(`SELECT * FROM ${table}`);
+const getAll = async (table: string, uid: string) => {
+  const { params, wheres, joins } = buildOwnershipQueries(table, uid);
+
+  const sql = `
+    SELECT ${table}.*
+      FROM ${table}
+      ${joins.join("\n")}
+     WHERE ${wheres.join(" AND ")}
+  `;
+
+  return await pg.query(sql, params);
+};
 
 const getColumnNamesWithoutId = async (table: string) => {
   const res = await pg.query(

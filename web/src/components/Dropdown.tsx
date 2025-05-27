@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GoChevronDown } from "react-icons/go";
 
 interface Option {
@@ -8,6 +8,7 @@ interface Option {
 
 interface DropdownProps {
   options: Option[];
+  selectedItemId: string | null;
   onSelect: (selection: any) => void;
   buttonComponent?: (displayText: string) => JSX.Element;
 }
@@ -21,6 +22,7 @@ const defaultDropdownButton = (displayText: string) => (
 
 const Dropdown: React.FC<DropdownProps> = ({
   options,
+  selectedItemId,
   onSelect,
   buttonComponent = defaultDropdownButton,
 }) => {
@@ -32,6 +34,14 @@ const Dropdown: React.FC<DropdownProps> = ({
     setDisplayText(option.displayText);
     setIsOpen(false);
   };
+
+  useEffect(() => {
+    options.forEach((option) => {
+      if (String(option.data.id) === selectedItemId) {
+        setDisplayText(option.displayText);
+      }
+    });
+  }, [selectedItemId, options]);
 
   return (
     <div className="relative">

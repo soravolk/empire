@@ -10,30 +10,12 @@ const createCategory: RequestHandler = async (req, res) => {
   }
 };
 
-const getCategories: RequestHandler = async (req, res) => {
-  try {
-    const { rows } = await db.getAll("categories");
-    res.status(200).json(rows);
-  } catch (error) {
-    res.status(500).json({ error: "internal server error" });
-  }
-};
-
 const getCategoryById: RequestHandler = async (req, res) => {
+  const { id: uid } = req.user!;
   const { id } = req.params;
   try {
-    const { rows } = await db.getById("categories", id);
+    const { rows } = await db.getById("categories", id, uid);
     res.status(200).json(rows);
-  } catch (error) {
-    res.status(500).json({ error: "internal server error" });
-  }
-};
-
-const deleteCategory: RequestHandler = async (req, res) => {
-  const { id } = req.params;
-  try {
-    await db.deleteById("categories", id);
-    res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: "internal server error" });
   }
@@ -41,7 +23,5 @@ const deleteCategory: RequestHandler = async (req, res) => {
 
 export default {
   createCategory,
-  getCategories,
   getCategoryById,
-  deleteCategory,
 };
