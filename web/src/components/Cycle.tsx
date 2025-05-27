@@ -5,6 +5,7 @@ import Calendar from "react-calendar";
 import { MdDelete } from "react-icons/md";
 import "react-calendar/dist/Calendar.css";
 import ItemCreationButton from "./ItemCreationButton";
+import { useLongTermContext } from "../context/longTerm";
 
 interface CycleProps {
   cycles: CycleItem[];
@@ -21,9 +22,10 @@ const Cycle: React.FC<CycleProps> = ({
   selectedCycle,
   setSelectedCycle,
 }) => {
+  const { selectedLongTerm: longTerm } = useLongTermContext();
+
   const [addCycle, addCycleResults] = useAddCycleMutation();
   const [deleteCycle, deleteCycleResults] = useDeleteCycleMutation();
-  const [date, setDate] = useState<CycleRange>(null);
   const [expandCalendar, setExpandCalendar] = useState(false);
 
   const handleClick = (cycle: CycleItem) => {
@@ -34,20 +36,16 @@ const Cycle: React.FC<CycleProps> = ({
     setExpandCalendar(!expandCalendar);
   };
 
-  const handleSelectCycleRange = (e: CycleRange) => {
-    setDate(e);
+  const handleSelectCycleRange = (date: CycleRange) => {
     setExpandCalendar(!expandCalendar);
-  };
-
-  useEffect(() => {
     if (Array.isArray(date)) {
       addCycle({
-        longTermId: cycles[0].long_term_id,
+        longTermId: longTerm?.id,
         startTime: date[0],
         endTime: date[1],
       });
     }
-  }, [date]);
+  };
 
   return (
     <div className="flex flex-col items-center space-y-2">
@@ -69,7 +67,7 @@ const Cycle: React.FC<CycleProps> = ({
         ))}
       <ItemCreationButton handleClick={handleAddCycle} />
       {expandCalendar && (
-        <Calendar selectRange value={date} onChange={handleSelectCycleRange} />
+        <Calendar selectRange onChange={handleSelectCycleRange} />
       )}
     </div>
   );
