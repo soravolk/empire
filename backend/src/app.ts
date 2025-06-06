@@ -34,6 +34,7 @@ app.use(
     saveUninitialized: true,
     cookie: {
       secure: false, // TODO: set to true ASAP
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   })
 );
