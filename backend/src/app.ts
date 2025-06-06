@@ -18,7 +18,11 @@ dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 import "./services/auth";
 
 const app: Express = express();
-const allowedOrigins = ["http://localhost:3000"];
+const allowedOrigins =
+  process.env.NODE_ENV === "production"
+    ? [process.env.FRONTEND_URL || ""]
+    : ["http://localhost:3000"];
+
 app.use(
   cors({
     origin: allowedOrigins,
@@ -31,7 +35,9 @@ app.use(
     secret: process.env.SESSION_SECRET!,
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }, // TODO: https
+    cookie: {
+      secure: false, // TODO: set to true ASAP
+    },
   })
 );
 
@@ -54,4 +60,5 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json({ message: err.message });
 });
 
-app.listen(5001);
+const PORT = process.env.PORT;
+app.listen(PORT);
