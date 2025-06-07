@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "NODE_ENV=dev nodemon dist/app.js"
+    "start": "NODE_ENV=dev nodemon dist/app.js",
+    "prod": "NODE_ENV=production node dist/app.js",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
