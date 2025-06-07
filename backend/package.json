@@ -1,7 +1,7 @@
 {
-  "name": "backend",
+  "name": "empire-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend server for Empire project",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
