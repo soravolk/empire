@@ -1,6 +1,6 @@
 {
   "name": "empire-server",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha",
   "description": "Backend server for Empire project",
   "main": "index.js",
   "scripts": {
