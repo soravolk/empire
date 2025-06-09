@@ -1,5 +1,7 @@
 import express, { Express, Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
+
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 import passport from "passport";
 import session from "express-session";
 import cors from "cors";
@@ -13,50 +15,62 @@ import contentRoutes from "./routes/content";
 import detailRoutes from "./routes/detail";
 import cycleRoutes from "./routes/cycle";
 import { checkAuthentication } from "./middleware/auth";
+import { init as dbInit, pg } from "./db/postgre";
 
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 import "./services/auth";
 
-const app: Express = express();
-const allowedOrigins = [process.env.FRONTEND_URL || ""];
+async function start() {
+  const app: Express = express();
+  const allowedOrigins = [process.env.FRONTEND_URL || ""];
 
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-  })
-);
+  app.use(
+    cors({
+      origin: allowedOrigins,
+      credentials: true,
+    })
+  );
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET!,
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-      secure: false, // TODO: set to true ASAP
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    },
-  })
-);
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET!,
+      resave: false,
+      saveUninitialized: true,
+      cookie: {
+        secure: false, // TODO: set to true ASAP
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      },
+    })
+  );
 
-app.use(passport.initialize());
-app.use(passport.session());
+  app.use(passport.initialize());
+  app.use(passport.session());
 
-app.use(express.json());
-app.use("/auth", AuthRoutes);
-app.use(checkAuthentication);
-app.use("/users", UserRoutes);
-app.use("/longTerms", longTermRoutes);
-app.use("/shortTerms", shortTermRoutes);
-app.use("/categories", categoryRoutes);
-app.use("/subcategories", subcategoryRoutes);
-app.use("/contents", contentRoutes);
-app.use("/details", detailRoutes);
-app.use("/cycles", cycleRoutes);
+  app.use(express.json());
+  app.use("/auth", AuthRoutes);
+  app.use(checkAuthentication);
+  app.use("/users", UserRoutes);
+  app.use("/longTerms", longTermRoutes);
+  app.use("/shortTerms", shortTermRoutes);
+  app.use("/categories", categoryRoutes);
+  app.use("/subcategories", subcategoryRoutes);
+  app.use("/contents", contentRoutes);
+  app.use("/details", detailRoutes);
+  app.use("/cycles", cycleRoutes);
 
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  res.status(500).json({ message: err.message });
+  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    res.status(500).json({ message: err.message });
+  });
+
+  const PORT = process.env.PORT;
+  app.listen(PORT);
+
+  await dbInit();
+  if (pg === undefined) {
+    throw new Error("db undefined");
+  }
+}
+
+start().catch((err) => {
+  console.error("Failed to start app:", err);
+  process.exit(1);
 });
-
-const PORT = process.env.PORT;
-app.listen(PORT);
