@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { Detail, ShortTermItem } from "../../types";
+import { API_URL } from "../constants";
 
 interface CreateShortTermInput {
   userId: string;
@@ -33,7 +34,7 @@ interface DeleteDetailInput {
 const shortTermsApi = createApi({
   reducerPath: "shortTerms",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5001/shortTerms",
+    baseUrl: `${API_URL}/shortTerms`,
     credentials: "include",
   }),
   tagTypes: ["All", "ShortTerm", "Detail"],

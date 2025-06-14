@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { CycleCategoryItem } from "../../types";
+import { API_URL } from "../constants";
 
 interface AddCategoryInput {
   userId: string;
@@ -9,7 +10,7 @@ interface AddCategoryInput {
 const categoriesApi = createApi({
   reducerPath: "categories",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5001/categories",
+    baseUrl: `${API_URL}/categories`,
     credentials: "include",
   }),
   endpoints(builder) {
