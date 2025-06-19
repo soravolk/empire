@@ -1,6 +1,6 @@
 {
   "name": "empire",
-  "version": "0.1.0",
+  "version": "1.0.0-alpha",
   "private": true,
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.3",

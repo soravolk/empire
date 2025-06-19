@@ -1,9 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { API_URL } from "../constants";
 
 const longTermsApi = createApi({
   reducerPath: "longTerms",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5001/longTerms",
+    baseUrl: `${API_URL}/longTerms`,
     credentials: "include",
   }),
   tagTypes: ["LongTerm"],

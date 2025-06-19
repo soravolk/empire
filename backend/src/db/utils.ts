@@ -1,4 +1,4 @@
-import pg from "../db/postgre";
+import { pg } from "../db/postgre";
 
 const mustHasRelations: Record<
   string,

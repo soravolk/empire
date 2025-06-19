@@ -5,11 +5,12 @@ import {
   CycleItem,
   CycleContentItem,
 } from "../../types";
+import { API_URL } from "../constants";
 
 const cyclesApi = createApi({
   reducerPath: "cycles",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5001/cycles",
+    baseUrl: `${API_URL}/cycles`,
     credentials: "include",
   }),
   tagTypes: ["Cycle", "LongTerm", "Category", "Subcategory", "Content"],

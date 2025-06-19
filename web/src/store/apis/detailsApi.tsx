@@ -1,9 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { API_URL } from "../constants";
 
 const detailsApi = createApi({
   reducerPath: "details",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5001/details",
+    baseUrl: `${API_URL}/details`,
     credentials: "include",
   }),
   endpoints(builder) {
