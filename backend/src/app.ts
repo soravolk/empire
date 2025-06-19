@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 import passport from "passport";
-import session from "express-session";
+import session, { CookieOptions } from "express-session";
 import cors from "cors";
 import AuthRoutes from "./routes/auth";
 import UserRoutes from "./routes/user";
@@ -23,22 +23,28 @@ async function start() {
   const app: Express = express();
   const allowedOrigins = [process.env.FRONTEND_URL || ""];
 
+  const sessionConfig = {
+    secret: process.env.SESSION_SECRET!,
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      secure: false,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    } as CookieOptions,
+  };
+
+  if (process.env.NODE_ENV === "production") {
+    sessionConfig.cookie.secure = true;
+    sessionConfig.cookie.sameSite = "none";
+    sessionConfig.cookie.httpOnly = true;
+  }
+
+  app.use(session(sessionConfig));
+
   app.use(
     cors({
       origin: allowedOrigins,
       credentials: true,
-    })
-  );
-
-  app.use(
-    session({
-      secret: process.env.SESSION_SECRET!,
-      resave: false,
-      saveUninitialized: true,
-      cookie: {
-        secure: false, // TODO: set to true ASAP
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      },
     })
   );
 
