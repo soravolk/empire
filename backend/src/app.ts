@@ -34,12 +34,19 @@ async function start() {
   };
 
   if (process.env.NODE_ENV === "production") {
+    app.set("trust proxy", 1);
     sessionConfig.cookie.secure = true;
     sessionConfig.cookie.sameSite = "none";
     sessionConfig.cookie.httpOnly = true;
   }
 
   app.use(session(sessionConfig));
+
+  app.use((req, res, next) => {
+    const cf = req.headers["cloudfront-forwarded-proto"];
+    if (cf) req.headers["x-forwarded-proto"] = cf;
+    next();
+  });
 
   app.use(
     cors({
