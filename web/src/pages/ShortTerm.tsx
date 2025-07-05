@@ -405,7 +405,7 @@ const DetailCreationOverlay = ({
   return (
     <div className="flex justify-center items-center fixed inset-0 bg-black bg-opacity-50">
       <div className="flex bg-white p-6 rounded shadow-lg w-5/6 h-96">
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col">
           {cycleData && (
             <Dropdown
               options={getAvailableCycleOptions(cycleData)}
@@ -413,21 +413,25 @@ const DetailCreationOverlay = ({
               onSelect={handleCycleSelect}
             />
           )}
-          {contentData &&
-            contentData.map((content: CycleContentItem) => {
-              return (
-                <li key={content.id} className="list-none mt-2">
-                  <button
-                    onClick={() => handleContentSelect(content)}
-                    className={`w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded ${
-                      content.id === selectedContent?.id && "bg-gray-200"
-                    }`}
-                  >
-                    {content.name}
-                  </button>
-                </li>
-              );
-            })}
+          <div className="flex-1 overflow-y-auto mt-4 pr-2">
+            <ul className="space-y-2">
+              {contentData &&
+                contentData.map((content: CycleContentItem) => {
+                  return (
+                    <li key={content.id} className="list-none">
+                      <button
+                        onClick={() => handleContentSelect(content)}
+                        className={`w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded ${
+                          content.id === selectedContent?.id && "bg-gray-200"
+                        }`}
+                      >
+                        {content.name}
+                      </button>
+                    </li>
+                  );
+                })}
+            </ul>
+          </div>
         </div>
         <div className="w-px bg-gray-300 mx-4"></div>
         <div className="flex-1">
