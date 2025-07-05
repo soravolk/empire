@@ -7,6 +7,7 @@ export const init = async () => {
   const { PG_USER, PG_HOST, PG_DATABASE, PORT, NODE_ENV } = process.env;
 
   let databasePassword = undefined;
+  let sslConfig = undefined;
 
   if (NODE_ENV === "production") {
     databasePassword = await getDatabaseSecret();
@@ -17,6 +18,10 @@ export const init = async () => {
     if (typeof databasePassword !== "string") {
       throw new Error("RDS secret is not string");
     }
+
+    sslConfig = {
+      rejectUnauthorized: false, // TODO: add SSL and set to true ASAP
+    };
   }
 
   pg = new Pool({
@@ -25,8 +30,6 @@ export const init = async () => {
     database: PG_DATABASE,
     port: 5432,
     password: databasePassword,
-    ssl: {
-      rejectUnauthorized: false, // TODO: add SSL and set to true ASAP
-    },
+    ssl: sslConfig,
   });
 };
