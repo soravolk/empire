@@ -39,6 +39,7 @@ const Cycle: React.FC<CycleProps> = ({
   const [addSubcategoryToCycle] = useAddSubcategoryToCycleMutation();
   const [addContentToCycle] = useAddContentToCycleMutation();
   const [expandCalendar, setExpandCalendar] = useState(false);
+  const [cycleToCopy, setCycleToCopy] = useState<CycleItem | null>(null);
 
   const handleClick = (cycle: CycleItem) => {
     setSelectedCycle(cycle);
@@ -48,38 +49,44 @@ const Cycle: React.FC<CycleProps> = ({
     setExpandCalendar(!expandCalendar);
   };
 
-  const handleSelectCycleRange = (date: CycleRange) => {
-    setExpandCalendar(!expandCalendar);
-    if (Array.isArray(date)) {
-      addCycle({
-        longTermId: longTerm?.id,
-        startTime: date[0],
-        endTime: date[1],
-      });
-    }
+  const handleCopyCycle = async (cycle: CycleItem) => {
+    setCycleToCopy(cycle);
+    setExpandCalendar(true);
   };
 
-  const handleCopyCycle = async (cycle: CycleItem) => {
-    // Create a new cycle
+  const handleSelectCycleRange = async (date: CycleRange) => {
+    setExpandCalendar(!expandCalendar);
+    if (!Array.isArray(date)) return;
+
     const newCycleResult = await addCycle({
       longTermId: longTerm?.id,
-      startTime: cycle.start_time,
-      endTime: cycle.end_time,
+      startTime: date[0],
+      endTime: date[1],
     });
     if (!("data" in newCycleResult) || !newCycleResult.data) {
       throw new Error("Failed to create new cycle");
     }
     const newCycle = newCycleResult.data;
 
+    if (cycleToCopy) {
+      copyCycleContents(cycleToCopy, newCycle);
+      setCycleToCopy(null);
+    }
+  };
+
+  const copyCycleContents = async (
+    cycleToCopy: CycleItem,
+    newCycle: CycleItem
+  ) => {
     // Fetch all data from the original cycle using RTK Query
     const categoriesPromise = store.dispatch(
-      cyclesApi.endpoints.fetchCategoriesFromCycle.initiate(cycle)
+      cyclesApi.endpoints.fetchCategoriesFromCycle.initiate(cycleToCopy)
     );
     const subcategoriesPromise = store.dispatch(
-      cyclesApi.endpoints.fetchSubcategoriesFromCycle.initiate(cycle)
+      cyclesApi.endpoints.fetchSubcategoriesFromCycle.initiate(cycleToCopy)
     );
     const contentsPromise = store.dispatch(
-      cyclesApi.endpoints.fetchContentsFromCycle.initiate(cycle)
+      cyclesApi.endpoints.fetchContentsFromCycle.initiate(cycleToCopy)
     );
     const [categoriesResult, subcategoriesResult, contentsResult] =
       await Promise.all([
