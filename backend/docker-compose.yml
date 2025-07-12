@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_USER: empire
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: empire
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./.pgdata:/var/lib/postgresql/data # local data directory
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/init.sql # database initialization script
+
