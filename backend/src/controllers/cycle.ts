@@ -8,8 +8,9 @@ const createCycle: RequestHandler = async (req, res) => {
     endTime: end_time,
   } = req.body;
   try {
-    await db.insert("cycles", { long_term_id, start_time, end_time });
-    res.status(201).send();
+    res
+      .status(201)
+      .send(await db.insert("cycles", { long_term_id, start_time, end_time }));
   } catch (error) {
     res.status(500).json({ error: "internal server error" });
   }
