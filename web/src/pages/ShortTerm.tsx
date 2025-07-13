@@ -14,6 +14,7 @@ import {
 } from "../utils/utils";
 import { BsPencilSquare } from "react-icons/bs";
 import { MdDelete } from "react-icons/md";
+import { MdContentCopy } from "react-icons/md";
 import {
   useCreateShortTermMutation,
   useFetchContentsFromCycleQuery,
@@ -39,6 +40,11 @@ interface CreateShortTermProps {
 
 interface DeleteShortTermProps {
   selectedShortTerm: ShortTermItem;
+}
+
+interface CopyShortTermProps {
+  selectedShortTerm: ShortTermItem;
+  user: User;
 }
 
 interface DetailCreationOverlayProps {
@@ -92,6 +98,44 @@ const DeleteShortTerm: React.FC<DeleteShortTermProps> = ({
   );
 };
 
+const CopyShortTerm: React.FC<CopyShortTermProps> = ({
+  selectedShortTerm,
+  user,
+}) => {
+  const [createShortTerm] = useCreateShortTermMutation();
+  const [createDetail] = useCreateDetailMutation();
+  const { data: details } = useFetchDetailsFromShortTermQuery({
+    shortTermId: selectedShortTerm.id,
+  });
+
+  const handleCopy = async () => {
+    if (!details) {
+      throw new Error("Failed to create new short term");
+    }
+
+    const newShortTermResult = await createShortTerm({ userId: user.id });
+    if (!("data" in newShortTermResult) || !newShortTermResult.data) {
+      throw new Error("Failed to create new short term");
+    }
+    const newShortTerm = newShortTermResult.data;
+
+    // Copy details for the new short term
+    for (const detail of details) {
+      await createDetail({
+        contentId: String(detail.content_id),
+        shortTermId: String(newShortTerm.id),
+        name: detail.name,
+      });
+    }
+  };
+
+  return (
+    <button onClick={handleCopy} title="Copy short term">
+      <MdContentCopy />
+    </button>
+  );
+};
+
 export default function ShortTerm() {
   const { selectedLongTerm } = useLongTermContext();
   const { selectedShortTerm: shortTerm, setSelectedShortTerm: setShortTerm } =
@@ -128,7 +172,12 @@ export default function ShortTerm() {
         )}
         <div className="flex space-x-2">
           <CreateShortTerm user={userData} />
-          {shortTerm && <DeleteShortTerm selectedShortTerm={shortTerm} />}
+          {shortTerm && (
+            <>
+              <CopyShortTerm selectedShortTerm={shortTerm} user={userData} />
+              <DeleteShortTerm selectedShortTerm={shortTerm} />
+            </>
+          )}
         </div>
       </div>
       <div className="flex px-5 py-2">
