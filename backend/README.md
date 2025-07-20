@@ -69,6 +69,16 @@ We use Google OAuth for authentication. To use Google OAuth, you need to create 
 
 For more details, refer to the [official Google documentation](https://developers.google.com/identity/protocols/oauth2/web-server#enable-apis).
 
+### PostgreSQL Database
+
+Setup your PostgreSQL database for development and get host name, user name, and database name for environment variables.
+
+Other than set up the database by yourself, we will provide a Dockerfile to quickly set up a local PostgreSQL database for development.
+
+#### Using Docker
+
+TBD
+
 ## Installation
 
 ```bash
@@ -122,11 +132,6 @@ backend/
 ├── tsconfig.json      # TypeScript configuration
 └── .env.*             # Environment variable files (never commit)
 ```
-
-## Database
-
-- Uses PostgreSQL. Configure through environment variables.
-- Database initialization is handled in `src/db/postgre.ts`.
 
 ## Troubleshooting
 
