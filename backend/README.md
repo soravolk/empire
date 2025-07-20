@@ -55,6 +55,20 @@ PG_DATABASE=<postgre_database_name> # from your postgreSQL
 - The backend loads environment variables from `.env.<NODE_ENV>` (e.g. `.env.dev` if `NODE_ENV=dev`).
 - Never commit your `.env.*` files to version control.
 
+### Obtaining Google Client ID and Secret
+
+We use Google OAuth for authentication. To use Google OAuth, you need to create credentials in the Google Cloud Console:
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+2. Create a new project (or select an existing one).
+3. Navigate to **APIs & Services > Credentials**.
+4. Click **Create Credentials** and select **OAuth client ID**.
+5. Configure the consent screen and set the application type (usually "Web application").
+6. Add your authorized redirect URIs.
+7. After creation, you will see your **Client ID** and **Client Secret**.
+
+For more details, refer to the [official Google documentation](https://developers.google.com/identity/protocols/oauth2/web-server#enable-apis).
+
 ## Installation
 
 ```bash
