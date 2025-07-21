@@ -226,11 +226,11 @@ const DetailItemInfo = ({ shortTerm, detailItem }: DetailItemInfoProps) => {
 
   const [updateTimeSpent] = useUpdateTimeSpentMutation();
   const [updateFinishedDate] = useUpdateFinishedDateMutation();
-  const [timeSpent, setTimeSpent] = useState(detailItem.time_spent);
+  const [timeSpent, setTimeSpent] = useState(detailItem.time_spent || 0);
   const [finished, setFinished] = useState<boolean>(false);
 
   useEffect(() => {
-    setTimeSpent(detailItem.time_spent);
+    setTimeSpent(detailItem.time_spent || 0);
     setFinished(detailItem.finished_date != null);
   }, [detailItem]);
 
@@ -297,6 +297,7 @@ const DetailItemInfo = ({ shortTerm, detailItem }: DetailItemInfoProps) => {
             min="0"
             value={timeSpent}
             onChange={handleTimeSpentChange}
+            onFocus={(e) => e.target.select()}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
           {isEditing && (
