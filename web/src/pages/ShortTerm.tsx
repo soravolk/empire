@@ -414,38 +414,21 @@ const DetailCreationOverlay = ({
   toggleOverlay,
 }: DetailCreationOverlayProps) => {
   const [selectedCycle, setSelectedCycle] = useState<CycleItem | null>(null);
-  const [selectedContent, setSelectedContent] =
-    useState<CycleContentItem | null>(null);
-  const [isDetailFormVisible, setDetailFormVisible] = useState(false);
-  const [detailName, setDetailName] = useState("");
-
   const { data: cycleData } = useFetchCyclesOfLongTermQuery(selectedLongTerm);
   const { data: contentData } = useFetchContentsFromCycleQuery(selectedCycle);
   const [addDetail] = useCreateDetailMutation();
 
   const handleCycleSelect = (cycle: CycleItem) => {
     setSelectedCycle(cycle);
-    setDetailFormVisible(false);
-    setSelectedContent(null);
   };
 
-  const handleContentSelect = (content: CycleContentItem) => {
-    setSelectedContent(content);
-    setDetailFormVisible(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedContent || !shortTerm || !detailName) return;
-
+  const handleContentSelect = async (content: CycleContentItem) => {
     try {
       await addDetail({
-        contentId: String(selectedContent.id),
+        contentId: String(content.id),
         shortTermId: String(shortTerm.id),
-        name: detailName,
+        name: content.name,
       });
-      setDetailFormVisible(false);
-      setDetailName("");
     } catch (error) {
       console.error("Error creating detail:", error);
     }
@@ -453,86 +436,37 @@ const DetailCreationOverlay = ({
 
   return (
     <div className="flex justify-center items-center fixed inset-0 bg-black bg-opacity-50">
-      <div className="flex bg-white p-6 rounded shadow-lg w-5/6 h-96">
-        <div className="flex-1 flex flex-col">
-          {cycleData && (
-            <Dropdown
-              options={getAvailableCycleOptions(cycleData)}
-              selectedItemId={selectedCycle && String(selectedCycle.id)}
-              onSelect={handleCycleSelect}
-            />
-          )}
-          <div className="flex-1 overflow-y-auto mt-4 pr-2">
-            <ul className="space-y-2">
-              {contentData &&
-                contentData.map((content: CycleContentItem) => {
-                  return (
-                    <li key={content.id} className="list-none">
-                      <button
-                        onClick={() => handleContentSelect(content)}
-                        className={`w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded ${
-                          content.id === selectedContent?.id && "bg-gray-200"
-                        }`}
-                      >
-                        {content.name}
-                      </button>
-                    </li>
-                  );
-                })}
-            </ul>
-          </div>
+      <div className="flex flex-col bg-white p-6 rounded shadow-lg w-1/2 h-96">
+        {cycleData && (
+          <Dropdown
+            options={getAvailableCycleOptions(cycleData)}
+            selectedItemId={selectedCycle && String(selectedCycle.id)}
+            onSelect={handleCycleSelect}
+          />
+        )}
+        <div className="flex-1 overflow-y-auto mt-4 pr-2">
+          <ul className="space-y-2">
+            {contentData &&
+              contentData.map((content: CycleContentItem) => {
+                return (
+                  <li key={content.id} className="list-none">
+                    <button
+                      onClick={() => handleContentSelect(content)}
+                      className={`w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded`}
+                    >
+                      {content.name}
+                    </button>
+                  </li>
+                );
+              })}
+          </ul>
         </div>
-        <div className="w-px bg-gray-300 mx-4"></div>
-        <div className="flex-1">
-          {isDetailFormVisible && selectedContent ? (
-            <div>
-              <h3 className="text-lg font-semibold mb-4">
-                Create Details for {selectedContent.name}
-              </h3>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Detail Name
-                  </label>
-                  <input
-                    type="text"
-                    value={detailName}
-                    onChange={(e) => setDetailName(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-                <div className="flex justify-end space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDetailFormVisible(false);
-                      setDetailName("");
-                    }}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    Save
-                  </button>
-                </div>
-              </form>
-            </div>
-          ) : (
-            <span className="block mb-4">
-              Select a content item to create details
-            </span>
-          )}
-          <button
-            onClick={toggleOverlay}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-          >
-            Close
-          </button>
-        </div>
+        <button
+          onClick={toggleOverlay}
+          className="self-start bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+        >
+          Close
+        </button>
       </div>
     </div>
   );
