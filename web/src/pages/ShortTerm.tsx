@@ -211,7 +211,7 @@ const DetailView = ({
   return (
     <div className="flex w-full h-full">
       <div className="w-1/2 border-r p-4">
-        <h2 className="font-bold mb-4">All Details</h2>
+        <h2 className="font-bold mb-4">All Tasks</h2>
         <div className="mb-4">
           <ul>
             {detailItems.map((item: DetailItem, idx: number) => (
@@ -232,7 +232,7 @@ const DetailView = ({
             onClick={toggleOverlay}
             className="ml-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
           >
-            Add Details
+            Select Tasks
           </button>
         </div>
       </div>
