@@ -51,6 +51,7 @@ interface DetailCreationOverlayProps {
   shortTerm: ShortTermItem;
   selectedLongTerm: LongTermItem;
   toggleOverlay: () => void;
+  detailItems: DetailItem[];
 }
 
 interface DetailItemInfoProps {
@@ -194,6 +195,7 @@ export default function ShortTerm() {
           shortTerm={shortTerm}
           selectedLongTerm={selectedLongTerm}
           toggleOverlay={toggleOverlay}
+          detailItems={details}
         />
       )}
     </div>
@@ -412,11 +414,20 @@ const DetailCreationOverlay = ({
   shortTerm,
   selectedLongTerm,
   toggleOverlay,
+  detailItems,
 }: DetailCreationOverlayProps) => {
   const [selectedCycle, setSelectedCycle] = useState<CycleItem | null>(null);
+
   const { data: cycleData } = useFetchCyclesOfLongTermQuery(selectedLongTerm);
   const { data: contentData } = useFetchContentsFromCycleQuery(selectedCycle);
   const [addDetail] = useCreateDetailMutation();
+  const [removeDetail] = useDeleteShortTermDetailMutation();
+  // maintain a local list of existing details for immediate UI update
+  const [localDetails, setLocalDetails] = useState<DetailItem[]>(detailItems);
+
+  useEffect(() => {
+    setLocalDetails(detailItems);
+  }, [detailItems]);
 
   const handleCycleSelect = (cycle: CycleItem) => {
     setSelectedCycle(cycle);
@@ -429,8 +440,21 @@ const DetailCreationOverlay = ({
         shortTermId: String(shortTerm.id),
         name: content.name,
       });
+      // don't close, allow multiple additions and update detailItems
     } catch (error) {
       console.error("Error creating detail:", error);
+    }
+  };
+
+  const handleRemoveDetail = async (detail: DetailItem) => {
+    try {
+      await removeDetail({
+        id: String(shortTerm.id),
+        detailId: String(detail.id),
+      });
+      setLocalDetails(localDetails.filter((d) => d.id !== detail.id));
+    } catch (error) {
+      console.error("Error removing detail:", error);
     }
   };
 
@@ -444,22 +468,45 @@ const DetailCreationOverlay = ({
             onSelect={handleCycleSelect}
           />
         )}
-        <div className="flex-1 overflow-y-auto mt-4 pr-2">
-          <ul className="space-y-2">
-            {contentData &&
-              contentData.map((content: CycleContentItem) => {
-                return (
-                  <li key={content.id} className="list-none">
+        <div className="flex flex-1 mt-4 overflow-hidden">
+          <div className="w-1/2 pr-2 overflow-y-auto">
+            <h3 className="font-semibold mb-2">Available Tasks</h3>
+            <ul className="space-y-2">
+              {contentData
+                ?.filter(
+                  (content: CycleContentItem) =>
+                    !localDetails?.some(
+                      (detail: DetailItem) => detail.content_id === content.id
+                    )
+                )
+                .map((content: CycleContentItem) => (
+                  <li key={content.id}>
                     <button
                       onClick={() => handleContentSelect(content)}
-                      className={`w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded`}
+                      className="w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded"
                     >
                       {content.name}
                     </button>
                   </li>
-                );
-              })}
-          </ul>
+                ))}
+            </ul>
+          </div>
+          <div className="w-px bg-gray-300 mx-4"></div>
+          <div className="w-1/2 pl-2 overflow-y-auto">
+            <h3 className="font-semibold mb-2">Existing Tasks</h3>
+            <ul className="space-y-2">
+              {localDetails.map((detail) => (
+                <li key={detail.id}>
+                  <button
+                    onClick={() => handleRemoveDetail(detail)}
+                    className="w-full text-left px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded"
+                  >
+                    {detail.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
         <button
           onClick={toggleOverlay}
