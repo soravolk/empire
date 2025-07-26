@@ -461,13 +461,21 @@ const DetailCreationOverlay = ({
   return (
     <div className="flex justify-center items-center fixed inset-0 bg-black bg-opacity-50">
       <div className="flex flex-col bg-white p-6 rounded shadow-lg w-1/2 h-96">
-        {cycleData && (
-          <Dropdown
-            options={getAvailableCycleOptions(cycleData)}
-            selectedItemId={selectedCycle && String(selectedCycle.id)}
-            onSelect={handleCycleSelect}
-          />
-        )}
+        <div className="flex items-center justify-between">
+          {cycleData && (
+            <Dropdown
+              options={getAvailableCycleOptions(cycleData)}
+              selectedItemId={selectedCycle && String(selectedCycle.id)}
+              onSelect={handleCycleSelect}
+            />
+          )}
+          <button
+            onClick={toggleOverlay}
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          >
+            Close
+          </button>
+        </div>
         <div className="flex flex-1 mt-4 overflow-hidden">
           <div className="w-1/2 pr-2 overflow-y-auto">
             <h3 className="font-semibold mb-2">Available Tasks</h3>
@@ -508,12 +516,6 @@ const DetailCreationOverlay = ({
             </ul>
           </div>
         </div>
-        <button
-          onClick={toggleOverlay}
-          className="self-start bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-        >
-          Close
-        </button>
       </div>
     </div>
   );
