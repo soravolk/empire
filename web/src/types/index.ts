@@ -6,6 +6,7 @@ import {
   CycleContentItem,
   ShortTermItem,
   Task,
+  Subtask,
   User,
 } from "./db";
 
@@ -17,5 +18,6 @@ export type {
   CycleContentItem,
   ShortTermItem,
   Task,
+  Subtask,
   User,
 };

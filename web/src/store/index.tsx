@@ -8,6 +8,7 @@ import { subcategoriesApi } from "./apis/subcategoriesApi";
 import { contentsApi } from "./apis/contentsApi";
 import { shortTermsApi } from "./apis/shortTermsApi";
 import { detailsApi } from "./apis/detailsApi";
+import { subtasksApi } from "./apis/subtasksApi";
 
 export const store = configureStore({
   reducer: {
@@ -19,6 +20,7 @@ export const store = configureStore({
     [contentsApi.reducerPath]: contentsApi.reducer,
     [shortTermsApi.reducerPath]: shortTermsApi.reducer,
     [detailsApi.reducerPath]: detailsApi.reducer,
+    [subtasksApi.reducerPath]: subtasksApi.reducer,
   },
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware()
@@ -29,7 +31,8 @@ export const store = configureStore({
       .concat(subcategoriesApi.middleware)
       .concat(contentsApi.middleware)
       .concat(shortTermsApi.middleware)
-      .concat(detailsApi.middleware);
+      .concat(detailsApi.middleware)
+      .concat(subtasksApi.middleware);
   },
 });
 
@@ -76,3 +79,11 @@ export {
   useDeleteShortTermMutation,
   useDeleteShortTermTaskMutation,
 } from "./apis/shortTermsApi";
+export {
+  useFetchSubtasksFromTaskQuery,
+  useCreateSubtaskMutation,
+  useUpdateSubtaskTimeSpentMutation,
+  useUpdateSubtaskFinishedDateMutation,
+  useUpdateSubtaskMutation,
+  useDeleteSubtaskMutation,
+} from "./apis/subtasksApi";

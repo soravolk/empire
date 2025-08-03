@@ -49,6 +49,17 @@ export interface Task {
   finished_date: string | null;
 }
 
+export interface Subtask {
+  id: number;
+  task_id: number;
+  name: string;
+  description?: string;
+  time_spent: number;
+  finished_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface User {
   id: string;
   email: string;

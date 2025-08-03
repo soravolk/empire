@@ -6,6 +6,7 @@ import {
   LongTermItem,
   ShortTermItem,
   Task,
+  Subtask,
   User,
 } from "../types";
 import {
@@ -30,6 +31,11 @@ import {
   useUpdateFinishedDateMutation,
   useDeleteShortTermMutation,
   useDeleteShortTermTaskMutation,
+  useFetchSubtasksFromTaskQuery,
+  useCreateSubtaskMutation,
+  useUpdateSubtaskTimeSpentMutation,
+  useUpdateSubtaskFinishedDateMutation,
+  useDeleteSubtaskMutation,
 } from "../store";
 import { useLongTermContext } from "../context/longTerm";
 import { useShortTermContext } from "../context/shortTerm";
@@ -121,9 +127,9 @@ const CopyShortTerm: React.FC<CopyShortTermProps> = ({
     const newShortTerm = newShortTermResult.data;
 
     // Copy tasks for the new short term
-    for (const detail of tasks) {
+    for (const task of tasks) {
       await createTask({
-        contentId: String(detail.content_id),
+        contentId: String(task.content_id),
         shortTermId: String(newShortTerm.id),
       });
     }
@@ -234,7 +240,7 @@ const TaskView = ({ toggleOverlay, shortTerm, tasks }: TaskViewProps) => {
           <TaskItemInfo shortTerm={shortTerm} task={selectedTaskItem} />
         ) : (
           <div className="text-gray-500">
-            Select a detail to view its information.
+            Select a task to view its information.
           </div>
         )}
       </div>
@@ -289,10 +295,20 @@ const TaskItemInfo = ({ shortTerm, task }: TaskItemInfoProps) => {
     id: subcategory ? subcategory[0].category_id : undefined,
   });
 
+  const { data: subtasks } = useFetchSubtasksFromTaskQuery({
+    taskId: task.id,
+  });
+
   const [updateTimeSpent] = useUpdateTimeSpentMutation();
   const [updateFinishedDate] = useUpdateFinishedDateMutation();
   const [timeSpent, setTimeSpent] = useState(task.time_spent);
   const [finished, setFinished] = useState<boolean>(false);
+
+  // Subtask creation state
+  const [isCreatingSubtask, setIsCreatingSubtask] = useState(false);
+  const [newSubtaskName, setNewSubtaskName] = useState("");
+  const [newSubtaskDescription, setNewSubtaskDescription] = useState("");
+  const [createSubtask] = useCreateSubtaskMutation();
 
   useEffect(() => {
     setTimeSpent(task.time_spent);
@@ -328,6 +344,23 @@ const TaskItemInfo = ({ shortTerm, task }: TaskItemInfoProps) => {
   const handleUnfinish = () => {
     updateFinishedDate({ id: String(task.id), finishedDate: null });
     setFinished(false);
+  };
+
+  const handleCreateSubtask = async () => {
+    if (!newSubtaskName.trim()) return;
+
+    try {
+      await createSubtask({
+        taskId: String(task.id),
+        name: newSubtaskName,
+        description: newSubtaskDescription || undefined,
+      });
+      setNewSubtaskName("");
+      setNewSubtaskDescription("");
+      setIsCreatingSubtask(false);
+    } catch (error) {
+      console.error("Error creating subtask:", error);
+    }
   };
 
   return (
@@ -382,10 +415,69 @@ const TaskItemInfo = ({ shortTerm, task }: TaskItemInfoProps) => {
           )}
         </div>
       </div>
-      <div
-        className="flex mt-4 justify-between
-      "
-      >
+
+      {/* Subtasks Section */}
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="font-semibold">Subtasks</h4>
+          <button
+            onClick={() => setIsCreatingSubtask(true)}
+            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+          >
+            Add Subtask
+          </button>
+        </div>
+
+        {/* Create subtask form */}
+        {isCreatingSubtask && (
+          <div className="mb-4 p-3 border rounded-lg bg-gray-50">
+            <input
+              type="text"
+              placeholder="Subtask name"
+              value={newSubtaskName}
+              onChange={(e) => setNewSubtaskName(e.target.value)}
+              className="w-full mb-2 px-3 py-2 border rounded-md"
+            />
+            <textarea
+              placeholder="Description (optional)"
+              value={newSubtaskDescription}
+              onChange={(e) => setNewSubtaskDescription(e.target.value)}
+              className="w-full mb-2 px-3 py-2 border rounded-md"
+              rows={2}
+            />
+            <div className="flex space-x-2">
+              <button
+                onClick={handleCreateSubtask}
+                className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+              >
+                Create
+              </button>
+              <button
+                onClick={() => {
+                  setIsCreatingSubtask(false);
+                  setNewSubtaskName("");
+                  setNewSubtaskDescription("");
+                }}
+                className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Subtasks list */}
+        <div className="space-y-2 max-h-60 overflow-y-auto">
+          {subtasks?.map((subtask: Subtask) => (
+            <SubtaskItem key={subtask.id} subtask={subtask} />
+          ))}
+          {!subtasks?.length && !isCreatingSubtask && (
+            <p className="text-gray-500 text-sm">No subtasks yet</p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex mt-4 justify-between">
         {finished ? (
           <button
             className="rounded bg-red-500 px-2 py-1 text-white hover:bg-red-600"
@@ -402,6 +494,123 @@ const TaskItemInfo = ({ shortTerm, task }: TaskItemInfoProps) => {
           </button>
         )}
         <DeleteTaskItem shortTerm={shortTerm} task={task} />
+      </div>
+    </div>
+  );
+};
+
+// SubtaskItem component for displaying and managing individual subtasks
+const SubtaskItem = ({ subtask }: { subtask: Subtask }) => {
+  const [updateSubtaskTimeSpent] = useUpdateSubtaskTimeSpentMutation();
+  const [updateSubtaskFinishedDate] = useUpdateSubtaskFinishedDateMutation();
+  const [deleteSubtask] = useDeleteSubtaskMutation();
+
+  const [timeSpent, setTimeSpent] = useState(subtask.time_spent);
+  const [isEditing, setIsEditing] = useState(false);
+  const [finished, setFinished] = useState(subtask.finished_date != null);
+
+  useEffect(() => {
+    setTimeSpent(subtask.time_spent);
+    setFinished(subtask.finished_date != null);
+  }, [subtask]);
+
+  const handleTimeSpentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTimeSpent = parseInt(e.target.value) || 0;
+    setTimeSpent(newTimeSpent);
+    setIsEditing(true);
+  };
+
+  const handleConfirmTimeSpent = () => {
+    updateSubtaskTimeSpent({ id: String(subtask.id), timeSpent });
+    setIsEditing(false);
+  };
+
+  const handleCancelTimeSpent = () => {
+    setTimeSpent(subtask.time_spent);
+    setIsEditing(false);
+  };
+
+  const handleToggleFinished = () => {
+    const finishedDate = finished ? null : new Date().toISOString();
+    updateSubtaskFinishedDate({
+      id: String(subtask.id),
+      finishedDate,
+    });
+    setFinished(!finished);
+  };
+
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this subtask?")) {
+      deleteSubtask({ id: String(subtask.id) });
+    }
+  };
+
+  return (
+    <div
+      className={`p-3 border rounded-lg ${
+        finished ? "bg-green-50 border-green-200" : "bg-white border-gray-200"
+      }`}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="flex items-center space-x-2 mb-2">
+            <input
+              type="checkbox"
+              checked={finished}
+              onChange={handleToggleFinished}
+              className="rounded"
+            />
+            <h5
+              className={`font-medium ${
+                finished ? "line-through text-gray-500" : ""
+              }`}
+            >
+              {subtask.name}
+            </h5>
+          </div>
+          {subtask.description && (
+            <p
+              className={`text-sm text-gray-600 mb-2 ${
+                finished ? "line-through" : ""
+              }`}
+            >
+              {subtask.description}
+            </p>
+          )}
+          <div className="flex items-center space-x-2">
+            <input
+              type="number"
+              min="0"
+              value={timeSpent}
+              onChange={handleTimeSpentChange}
+              className="w-20 px-2 py-1 text-sm border rounded"
+              placeholder="mins"
+            />
+            <span className="text-sm text-gray-500">minutes</span>
+            {isEditing && (
+              <div className="flex space-x-1">
+                <button
+                  onClick={handleConfirmTimeSpent}
+                  className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
+                >
+                  ✓
+                </button>
+                <button
+                  onClick={handleCancelTimeSpent}
+                  className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+        <button
+          onClick={handleDelete}
+          className="ml-2 text-red-500 hover:text-red-700"
+        >
+          <MdDelete />
+        </button>
       </div>
     </div>
   );
@@ -449,18 +658,18 @@ const TaskCreationOverlay = ({
       });
       // don't close, allow multiple additions and update tasks
     } catch (error) {
-      console.error("Error creating detail:", error);
+      console.error("Error creating task:", error);
     }
   };
 
-  const handleRemoveTask = async (detail: Task) => {
+  const handleRemoveTask = async (task: Task) => {
     try {
       await removeTask({
         id: String(shortTerm.id),
-        taskId: String(detail.id),
+        taskId: String(task.id),
       });
     } catch (error) {
-      console.error("Error removing detail:", error);
+      console.error("Error removing task:", error);
     }
   };
 
@@ -489,9 +698,7 @@ const TaskCreationOverlay = ({
               {contentData
                 ?.filter(
                   (content: CycleContentItem) =>
-                    !tasks?.some(
-                      (detail: Task) => detail.content_id === content.id
-                    )
+                    !tasks?.some((task: Task) => task.content_id === content.id)
                 )
                 .map((content: CycleContentItem) => (
                   <li key={content.id}>
@@ -509,11 +716,11 @@ const TaskCreationOverlay = ({
           <div className="w-1/2 pl-2 overflow-y-auto">
             <h3 className="font-semibold mb-2">Existing Tasks</h3>
             <ul className="space-y-2">
-              {tasks.map((detail) => (
+              {tasks.map((task) => (
                 <TaskListItemForOverlay
-                  key={detail.id}
-                  detail={detail}
-                  onRemove={() => handleRemoveTask(detail)}
+                  key={task.id}
+                  task={task}
+                  onRemove={() => handleRemoveTask(task)}
                 />
               ))}
             </ul>
@@ -524,16 +731,16 @@ const TaskCreationOverlay = ({
   );
 };
 
-// Add this new component to display detail items in the overlay with content names
+// Add this new component to display task items in the overlay with content names
 const TaskListItemForOverlay = ({
-  detail,
+  task,
   onRemove,
 }: {
-  detail: Task;
+  task: Task;
   onRemove: () => void;
 }) => {
   const { data: content, isLoading } = useFetchContentFromCycleByIdQuery({
-    id: detail.content_id,
+    id: task.content_id,
   });
 
   return (
