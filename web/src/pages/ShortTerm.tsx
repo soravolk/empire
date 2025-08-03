@@ -125,7 +125,6 @@ const CopyShortTerm: React.FC<CopyShortTermProps> = ({
       await createDetail({
         contentId: String(detail.content_id),
         shortTermId: String(newShortTerm.id),
-        name: detail.name,
       });
     }
   };
@@ -217,15 +216,12 @@ const DetailView = ({
         <div className="mb-4">
           <ul>
             {detailItems.map((item: DetailItem, idx: number) => (
-              <li
+              <DetailListItem
                 key={item.id}
-                className={`cursor-pointer p-2 rounded bg-gray-100 hover:bg-gray-200 mt-2 ${
-                  selectedDetailItem?.id === item.id && "bg-gray-200"
-                }`}
-                onClick={() => setSelectedDetailItem(item)}
-              >
-                {item.name}
-              </li>
+                item={item}
+                isSelected={selectedDetailItem?.id === item.id}
+                onSelect={() => setSelectedDetailItem(item)}
+              />
             ))}
           </ul>
         </div>
@@ -251,6 +247,32 @@ const DetailView = ({
         )}
       </div>
     </div>
+  );
+};
+
+// Add this new component to fetch and display content name
+const DetailListItem = ({
+  item,
+  isSelected,
+  onSelect,
+}: {
+  item: DetailItem;
+  isSelected: boolean;
+  onSelect: () => void;
+}) => {
+  const { data: content, isLoading } = useFetchContentFromCycleByIdQuery({
+    id: item.content_id,
+  });
+
+  return (
+    <li
+      className={`cursor-pointer p-2 rounded bg-gray-100 hover:bg-gray-200 mt-2 ${
+        isSelected && "bg-gray-200"
+      }`}
+      onClick={onSelect}
+    >
+      {isLoading ? "Loading..." : content?.[0]?.name || "Unknown content"}
+    </li>
   );
 };
 
@@ -422,12 +444,6 @@ const DetailCreationOverlay = ({
   const { data: contentData } = useFetchContentsFromCycleQuery(selectedCycle);
   const [addDetail] = useCreateDetailMutation();
   const [removeDetail] = useDeleteShortTermDetailMutation();
-  // maintain a local list of existing details for immediate UI update
-  const [localDetails, setLocalDetails] = useState<DetailItem[]>(detailItems);
-
-  useEffect(() => {
-    setLocalDetails(detailItems);
-  }, [detailItems]);
 
   const handleCycleSelect = (cycle: CycleItem) => {
     setSelectedCycle(cycle);
@@ -438,7 +454,6 @@ const DetailCreationOverlay = ({
       await addDetail({
         contentId: String(content.id),
         shortTermId: String(shortTerm.id),
-        name: content.name,
       });
       // don't close, allow multiple additions and update detailItems
     } catch (error) {
@@ -452,7 +467,6 @@ const DetailCreationOverlay = ({
         id: String(shortTerm.id),
         detailId: String(detail.id),
       });
-      setLocalDetails(localDetails.filter((d) => d.id !== detail.id));
     } catch (error) {
       console.error("Error removing detail:", error);
     }
@@ -483,7 +497,7 @@ const DetailCreationOverlay = ({
               {contentData
                 ?.filter(
                   (content: CycleContentItem) =>
-                    !localDetails?.some(
+                    !detailItems?.some(
                       (detail: DetailItem) => detail.content_id === content.id
                     )
                 )
@@ -503,20 +517,41 @@ const DetailCreationOverlay = ({
           <div className="w-1/2 pl-2 overflow-y-auto">
             <h3 className="font-semibold mb-2">Existing Tasks</h3>
             <ul className="space-y-2">
-              {localDetails.map((detail) => (
-                <li key={detail.id}>
-                  <button
-                    onClick={() => handleRemoveDetail(detail)}
-                    className="w-full text-left px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded"
-                  >
-                    {detail.name}
-                  </button>
-                </li>
+              {detailItems.map((detail) => (
+                <DetailListItemForOverlay
+                  key={detail.id}
+                  detail={detail}
+                  onRemove={() => handleRemoveDetail(detail)}
+                />
               ))}
             </ul>
           </div>
         </div>
       </div>
     </div>
+  );
+};
+
+// Add this new component to display detail items in the overlay with content names
+const DetailListItemForOverlay = ({
+  detail,
+  onRemove,
+}: {
+  detail: DetailItem;
+  onRemove: () => void;
+}) => {
+  const { data: content, isLoading } = useFetchContentFromCycleByIdQuery({
+    id: detail.content_id,
+  });
+
+  return (
+    <li>
+      <button
+        onClick={onRemove}
+        className="w-full text-left px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded"
+      >
+        {isLoading ? "Loading..." : content?.[0]?.name || "Unknown content"}
+      </button>
+    </li>
   );
 };

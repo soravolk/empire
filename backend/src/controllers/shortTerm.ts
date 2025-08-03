@@ -12,13 +12,12 @@ const createShortTerm: RequestHandler = async (req, res) => {
 
 const createDetail: RequestHandler = async (req, res) => {
   const { id: short_term_id } = req.params;
-  const { contentId: content_id, name } = req.body;
+  const { contentId: content_id } = req.body;
   try {
     res.status(201).send(
       await db.insert("details", {
         content_id,
         short_term_id,
-        name,
         time_spent: 0,
       })
     );

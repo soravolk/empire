@@ -13,7 +13,6 @@ interface DeleteShortTermInput {
 interface CreateDetailInput {
   contentId: string;
   shortTermId: string;
-  name: string;
 }
 
 interface UpdateTimeSpentInput {
@@ -92,13 +91,12 @@ const shortTermsApi = createApi({
           const { shortTermId } = args;
           return [{ type: "ShortTerm", id: shortTermId }];
         },
-        query: ({ contentId, shortTermId, name }) => {
+        query: ({ contentId, shortTermId }) => {
           return {
             method: "POST",
             url: `/${shortTermId}/details`,
             body: {
               contentId,
-              name,
             },
           };
         },
