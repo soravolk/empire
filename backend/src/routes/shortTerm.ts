@@ -5,17 +5,17 @@ const router = Router();
 
 router.post("/", shortTerm.createShortTerm);
 
-router.post("/:id/details", shortTerm.createDetail);
+router.post("/:id/tasks", shortTerm.createTask);
 
 router.get("/", shortTerm.getShortTerms);
 
-router.get("/:id/details", shortTerm.getDetailsFromShortTerm);
+router.get("/:id/tasks", shortTerm.getTasksFromShortTerm);
 
-router.put("/details/:id/time-spent", shortTerm.updateDetailTimeSpent);
+router.put("/tasks/:id/time-spent", shortTerm.updateTaskTimeSpent);
 
-router.put("/details/:id/finished-date", shortTerm.updateDetailFinishedDate);
+router.put("/tasks/:id/finished-date", shortTerm.updateTaskFinishedDate);
 
-router.delete("/details/:id", shortTerm.deleteShortTermDetail);
+router.delete("/tasks/:id", shortTerm.deleteShortTermTask);
 
 router.delete("/:id", shortTerm.deleteShortTerm);
 

@@ -68,11 +68,11 @@ export { useAddContentMutation } from "./apis/contentsApi";
 export { useFetchDetailsQuery } from "./apis/detailsApi";
 export {
   useCreateShortTermMutation,
-  useCreateDetailMutation,
+  useCreateTaskMutation,
   useFetchShortTermsQuery,
-  useFetchDetailsFromShortTermQuery,
+  useFetchTasksFromShortTermQuery,
   useUpdateTimeSpentMutation,
   useUpdateFinishedDateMutation,
   useDeleteShortTermMutation,
-  useDeleteShortTermDetailMutation,
+  useDeleteShortTermTaskMutation,
 } from "./apis/shortTermsApi";

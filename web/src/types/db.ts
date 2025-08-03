@@ -40,11 +40,11 @@ export interface ShortTermItem {
   user_id: string;
 }
 
-export interface Detail {
+export interface Task {
   id: number;
   short_term_id: number;
   content_id: number;
-  name: string;
+  name?: string; // Make optional since we're removing it
   time_spent: number;
   finished_date: string | null;
 }

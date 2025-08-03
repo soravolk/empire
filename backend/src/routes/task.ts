@@ -1,8 +1,8 @@
 import { Router } from "express";
-import detail from "../controllers/detail";
+import task from "../controllers/task";
 
 const router = Router();
 
-router.get("/", detail.getDetails);
+router.get("/", task.getTasks);
 
 export default router;

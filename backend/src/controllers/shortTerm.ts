@@ -10,12 +10,12 @@ const createShortTerm: RequestHandler = async (req, res) => {
   }
 };
 
-const createDetail: RequestHandler = async (req, res) => {
+const createTask: RequestHandler = async (req, res) => {
   const { id: short_term_id } = req.params;
   const { contentId: content_id } = req.body;
   try {
     res.status(201).send(
-      await db.insert("details", {
+      await db.insert("tasks", {
         content_id,
         short_term_id,
         time_spent: 0,
@@ -36,32 +36,32 @@ const getShortTerms: RequestHandler = async (req, res) => {
   }
 };
 
-const getDetailsFromShortTerm: RequestHandler = async (req, res) => {
+const getTasksFromShortTerm: RequestHandler = async (req, res) => {
   const { id: short_term_id } = req.params;
   try {
-    const { rows } = await db.getWithCondition("details", { short_term_id });
+    const { rows } = await db.getWithCondition("tasks", { short_term_id });
     res.status(200).json(rows);
   } catch (error) {
     res.status(500).json({ error: "internal server error" });
   }
 };
 
-const updateDetailTimeSpent: RequestHandler = async (req, res) => {
+const updateTaskTimeSpent: RequestHandler = async (req, res) => {
   const { id } = req.params;
   const { timeSpent: time_spent } = req.body;
   try {
-    const result = await db.updateById("details", { time_spent }, id);
+    const result = await db.updateById("tasks", { time_spent }, id);
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error });
   }
 };
 
-const updateDetailFinishedDate: RequestHandler = async (req, res) => {
+const updateTaskFinishedDate: RequestHandler = async (req, res) => {
   const { id } = req.params;
   const { finishedDate: finished_date } = req.body;
   try {
-    const result = await db.updateById("details", { finished_date }, id);
+    const result = await db.updateById("tasks", { finished_date }, id);
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error });
@@ -78,10 +78,10 @@ const deleteShortTerm: RequestHandler = async (req, res) => {
   }
 };
 
-const deleteShortTermDetail: RequestHandler = async (req, res) => {
+const deleteShortTermTask: RequestHandler = async (req, res) => {
   const { id } = req.params;
   try {
-    await db.deleteById("details", id);
+    await db.deleteById("tasks", id);
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: "internal server error" });
@@ -90,11 +90,11 @@ const deleteShortTermDetail: RequestHandler = async (req, res) => {
 
 export default {
   createShortTerm,
-  createDetail,
+  createTask,
   getShortTerms,
-  getDetailsFromShortTerm,
-  updateDetailTimeSpent,
-  updateDetailFinishedDate,
+  getTasksFromShortTerm,
+  updateTaskTimeSpent,
+  updateTaskFinishedDate,
   deleteShortTerm,
-  deleteShortTermDetail,
+  deleteShortTermTask,
 };

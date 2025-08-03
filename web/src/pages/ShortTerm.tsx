@@ -5,7 +5,7 @@ import {
   CycleItem,
   LongTermItem,
   ShortTermItem,
-  Detail as DetailItem,
+  Task,
   User,
 } from "../types";
 import {
@@ -24,12 +24,12 @@ import {
   useFetchCatetoryByIdQuery,
   useFetchSubcatetoryByIdQuery,
   useFetchContentFromCycleByIdQuery,
-  useFetchDetailsFromShortTermQuery,
-  useCreateDetailMutation,
+  useFetchTasksFromShortTermQuery,
+  useCreateTaskMutation,
   useUpdateTimeSpentMutation,
   useUpdateFinishedDateMutation,
   useDeleteShortTermMutation,
-  useDeleteShortTermDetailMutation,
+  useDeleteShortTermTaskMutation,
 } from "../store";
 import { useLongTermContext } from "../context/longTerm";
 import { useShortTermContext } from "../context/shortTerm";
@@ -47,25 +47,25 @@ interface CopyShortTermProps {
   user: User;
 }
 
-interface DetailCreationOverlayProps {
+interface TaskCreationOverlayProps {
   shortTerm: ShortTermItem;
   selectedLongTerm: LongTermItem;
   toggleOverlay: () => void;
-  detailItems: DetailItem[];
+  tasks: Task[];
 }
 
-interface DetailItemInfoProps {
-  detailItem: DetailItem;
+interface TaskItemInfoProps {
+  task: Task;
   shortTerm: ShortTermItem;
 }
-interface DetailViewProps {
+interface TaskViewProps {
   toggleOverlay: () => void;
   shortTerm: ShortTermItem;
-  detailItems: DetailItem[];
+  tasks: Task[];
 }
 
-interface DeleteDetailItemProps {
-  detailItem: DetailItem;
+interface DeleteTaskItemProps {
+  task: Task;
   shortTerm: ShortTermItem;
 }
 
@@ -104,13 +104,13 @@ const CopyShortTerm: React.FC<CopyShortTermProps> = ({
   user,
 }) => {
   const [createShortTerm] = useCreateShortTermMutation();
-  const [createDetail] = useCreateDetailMutation();
-  const { data: details } = useFetchDetailsFromShortTermQuery({
+  const [createTask] = useCreateTaskMutation();
+  const { data: tasks } = useFetchTasksFromShortTermQuery({
     shortTermId: selectedShortTerm.id,
   });
 
   const handleCopy = async () => {
-    if (!details) {
+    if (!tasks) {
       throw new Error("Failed to create new short term");
     }
 
@@ -120,9 +120,9 @@ const CopyShortTerm: React.FC<CopyShortTermProps> = ({
     }
     const newShortTerm = newShortTermResult.data;
 
-    // Copy details for the new short term
-    for (const detail of details) {
-      await createDetail({
+    // Copy tasks for the new short term
+    for (const detail of tasks) {
+      await createTask({
         contentId: String(detail.content_id),
         shortTermId: String(newShortTerm.id),
       });
@@ -142,7 +142,7 @@ export default function ShortTerm() {
     useShortTermContext();
   const { data: userData } = useFetchCurrentUserQuery(null);
   const { data: shortTermData } = useFetchShortTermsQuery(null);
-  const { data: details } = useFetchDetailsFromShortTermQuery({
+  const { data: tasks } = useFetchTasksFromShortTermQuery({
     shortTermId: shortTerm?.id,
   });
 
@@ -181,33 +181,28 @@ export default function ShortTerm() {
         </div>
       </div>
       <div className="flex px-5 py-2">
-        {shortTerm && details && (
-          <DetailView
+        {shortTerm && tasks && (
+          <TaskView
             toggleOverlay={toggleOverlay}
             shortTerm={shortTerm}
-            detailItems={details}
+            tasks={tasks}
           />
         )}
       </div>
       {isOverlayVisible && shortTerm && selectedLongTerm && (
-        <DetailCreationOverlay
+        <TaskCreationOverlay
           shortTerm={shortTerm}
           selectedLongTerm={selectedLongTerm}
           toggleOverlay={toggleOverlay}
-          detailItems={details}
+          tasks={tasks}
         />
       )}
     </div>
   );
 }
 
-const DetailView = ({
-  toggleOverlay,
-  shortTerm,
-  detailItems,
-}: DetailViewProps) => {
-  const [selectedDetailItem, setSelectedDetailItem] =
-    useState<DetailItem | null>(null);
+const TaskView = ({ toggleOverlay, shortTerm, tasks }: TaskViewProps) => {
+  const [selectedTaskItem, setSelectedTaskItem] = useState<Task | null>(null);
 
   return (
     <div className="flex w-full h-full">
@@ -215,12 +210,12 @@ const DetailView = ({
         <h2 className="font-bold mb-4">All Tasks</h2>
         <div className="mb-4">
           <ul>
-            {detailItems.map((item: DetailItem, idx: number) => (
-              <DetailListItem
+            {tasks.map((item: Task, idx: number) => (
+              <TaskListItem
                 key={item.id}
                 item={item}
-                isSelected={selectedDetailItem?.id === item.id}
-                onSelect={() => setSelectedDetailItem(item)}
+                isSelected={selectedTaskItem?.id === item.id}
+                onSelect={() => setSelectedTaskItem(item)}
               />
             ))}
           </ul>
@@ -235,11 +230,8 @@ const DetailView = ({
         </div>
       </div>
       <div className="w-1/2 p-4">
-        {selectedDetailItem ? (
-          <DetailItemInfo
-            shortTerm={shortTerm}
-            detailItem={selectedDetailItem}
-          />
+        {selectedTaskItem ? (
+          <TaskItemInfo shortTerm={shortTerm} task={selectedTaskItem} />
         ) : (
           <div className="text-gray-500">
             Select a detail to view its information.
@@ -251,12 +243,12 @@ const DetailView = ({
 };
 
 // Add this new component to fetch and display content name
-const DetailListItem = ({
+const TaskListItem = ({
   item,
   isSelected,
   onSelect,
 }: {
-  item: DetailItem;
+  item: Task;
   isSelected: boolean;
   onSelect: () => void;
 }) => {
@@ -276,11 +268,11 @@ const DetailListItem = ({
   );
 };
 
-const DetailItemInfo = ({ shortTerm, detailItem }: DetailItemInfoProps) => {
+const TaskItemInfo = ({ shortTerm, task }: TaskItemInfoProps) => {
   // TODO: need to refactor: 1. too many rerender, 2. flaky logic to display information and error handling
   const { data: content, isLoading: isContentLoading } =
     useFetchContentFromCycleByIdQuery({
-      id: detailItem.content_id,
+      id: task.content_id,
     });
   const {
     data: subcategory,
@@ -299,13 +291,13 @@ const DetailItemInfo = ({ shortTerm, detailItem }: DetailItemInfoProps) => {
 
   const [updateTimeSpent] = useUpdateTimeSpentMutation();
   const [updateFinishedDate] = useUpdateFinishedDateMutation();
-  const [timeSpent, setTimeSpent] = useState(detailItem.time_spent);
+  const [timeSpent, setTimeSpent] = useState(task.time_spent);
   const [finished, setFinished] = useState<boolean>(false);
 
   useEffect(() => {
-    setTimeSpent(detailItem.time_spent);
-    setFinished(detailItem.finished_date != null);
-  }, [detailItem]);
+    setTimeSpent(task.time_spent);
+    setFinished(task.finished_date != null);
+  }, [task]);
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -316,25 +308,25 @@ const DetailItemInfo = ({ shortTerm, detailItem }: DetailItemInfoProps) => {
   };
 
   const handleConfirmTimeSpent = () => {
-    updateTimeSpent({ id: String(detailItem.id), timeSpent });
+    updateTimeSpent({ id: String(task.id), timeSpent });
     setIsEditing(false);
   };
 
   const handleCancelTimeSpent = () => {
-    setTimeSpent(detailItem.time_spent || 0);
+    setTimeSpent(task.time_spent || 0);
     setIsEditing(false);
   };
 
   const handleFinish = () => {
     updateFinishedDate({
-      id: String(detailItem.id),
+      id: String(task.id),
       finishedDate: new Date().toISOString(),
     });
     setFinished(true);
   };
 
   const handleUnfinish = () => {
-    updateFinishedDate({ id: String(detailItem.id), finishedDate: null });
+    updateFinishedDate({ id: String(task.id), finishedDate: null });
     setFinished(false);
   };
 
@@ -409,19 +401,19 @@ const DetailItemInfo = ({ shortTerm, detailItem }: DetailItemInfoProps) => {
             Finish
           </button>
         )}
-        <DeleteDetailItem shortTerm={shortTerm} detailItem={detailItem} />
+        <DeleteTaskItem shortTerm={shortTerm} task={task} />
       </div>
     </div>
   );
 };
 
-const DeleteDetailItem = ({ shortTerm, detailItem }: DeleteDetailItemProps) => {
-  const [removeShortTerm] = useDeleteShortTermDetailMutation();
+const DeleteTaskItem = ({ shortTerm, task }: DeleteTaskItemProps) => {
+  const [removeShortTerm] = useDeleteShortTermTaskMutation();
 
   const handleClick = () => {
     removeShortTerm({
       id: String(shortTerm.id),
-      detailId: String(detailItem.id),
+      taskId: String(task.id),
     });
   };
 
@@ -432,18 +424,18 @@ const DeleteDetailItem = ({ shortTerm, detailItem }: DeleteDetailItemProps) => {
   );
 };
 
-const DetailCreationOverlay = ({
+const TaskCreationOverlay = ({
   shortTerm,
   selectedLongTerm,
   toggleOverlay,
-  detailItems,
-}: DetailCreationOverlayProps) => {
+  tasks,
+}: TaskCreationOverlayProps) => {
   const [selectedCycle, setSelectedCycle] = useState<CycleItem | null>(null);
 
   const { data: cycleData } = useFetchCyclesOfLongTermQuery(selectedLongTerm);
   const { data: contentData } = useFetchContentsFromCycleQuery(selectedCycle);
-  const [addDetail] = useCreateDetailMutation();
-  const [removeDetail] = useDeleteShortTermDetailMutation();
+  const [addTask] = useCreateTaskMutation();
+  const [removeTask] = useDeleteShortTermTaskMutation();
 
   const handleCycleSelect = (cycle: CycleItem) => {
     setSelectedCycle(cycle);
@@ -451,21 +443,21 @@ const DetailCreationOverlay = ({
 
   const handleContentSelect = async (content: CycleContentItem) => {
     try {
-      await addDetail({
+      await addTask({
         contentId: String(content.id),
         shortTermId: String(shortTerm.id),
       });
-      // don't close, allow multiple additions and update detailItems
+      // don't close, allow multiple additions and update tasks
     } catch (error) {
       console.error("Error creating detail:", error);
     }
   };
 
-  const handleRemoveDetail = async (detail: DetailItem) => {
+  const handleRemoveTask = async (detail: Task) => {
     try {
-      await removeDetail({
+      await removeTask({
         id: String(shortTerm.id),
-        detailId: String(detail.id),
+        taskId: String(detail.id),
       });
     } catch (error) {
       console.error("Error removing detail:", error);
@@ -497,8 +489,8 @@ const DetailCreationOverlay = ({
               {contentData
                 ?.filter(
                   (content: CycleContentItem) =>
-                    !detailItems?.some(
-                      (detail: DetailItem) => detail.content_id === content.id
+                    !tasks?.some(
+                      (detail: Task) => detail.content_id === content.id
                     )
                 )
                 .map((content: CycleContentItem) => (
@@ -517,11 +509,11 @@ const DetailCreationOverlay = ({
           <div className="w-1/2 pl-2 overflow-y-auto">
             <h3 className="font-semibold mb-2">Existing Tasks</h3>
             <ul className="space-y-2">
-              {detailItems.map((detail) => (
-                <DetailListItemForOverlay
+              {tasks.map((detail) => (
+                <TaskListItemForOverlay
                   key={detail.id}
                   detail={detail}
-                  onRemove={() => handleRemoveDetail(detail)}
+                  onRemove={() => handleRemoveTask(detail)}
                 />
               ))}
             </ul>
@@ -533,11 +525,11 @@ const DetailCreationOverlay = ({
 };
 
 // Add this new component to display detail items in the overlay with content names
-const DetailListItemForOverlay = ({
+const TaskListItemForOverlay = ({
   detail,
   onRemove,
 }: {
-  detail: DetailItem;
+  detail: Task;
   onRemove: () => void;
 }) => {
   const { data: content, isLoading } = useFetchContentFromCycleByIdQuery({
