@@ -310,14 +310,33 @@ const TaskItemInfo = ({ shortTerm, task }: TaskItemInfoProps) => {
   const [newSubtaskDescription, setNewSubtaskDescription] = useState("");
   const [createSubtask] = useCreateSubtaskMutation();
 
+  const calculatedTimeFromSubtasks =
+    subtasks?.reduce(
+      (total: number, subtask: Subtask) => total + (subtask.time_spent || 0),
+      0
+    ) || 0;
+  const hasSubtasks = subtasks && subtasks.length > 0;
+
   useEffect(() => {
-    setTimeSpent(task.time_spent);
+    const effectiveTimeSpent = hasSubtasks
+      ? calculatedTimeFromSubtasks
+      : task.time_spent;
+    setTimeSpent(effectiveTimeSpent);
     setFinished(task.finished_date != null);
-  }, [task]);
+
+    if (hasSubtasks) {
+      updateTimeSpent({
+        id: String(task.id),
+        timeSpent: calculatedTimeFromSubtasks,
+      });
+    }
+  }, [task, calculatedTimeFromSubtasks, hasSubtasks]);
 
   const [isEditing, setIsEditing] = useState(false);
 
   const handleTimeSpentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (hasSubtasks) return;
+
     const newTimeSpent = parseInt(e.target.value) || 0;
     setTimeSpent(newTimeSpent);
     setIsEditing(true);
@@ -395,9 +414,12 @@ const TaskItemInfo = ({ shortTerm, task }: TaskItemInfoProps) => {
             min="0"
             value={timeSpent}
             onChange={handleTimeSpentChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            disabled={hasSubtasks}
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
+              hasSubtasks ? "bg-gray-100 cursor-not-allowed" : ""
+            }`}
           />
-          {isEditing && (
+          {isEditing && !hasSubtasks && (
             <div className="flex space-x-2 mt-1">
               <button
                 onClick={handleConfirmTimeSpent}
@@ -521,7 +543,10 @@ const SubtaskItem = ({ subtask }: { subtask: Subtask }) => {
   };
 
   const handleConfirmTimeSpent = () => {
-    updateSubtaskTimeSpent({ id: String(subtask.id), timeSpent });
+    updateSubtaskTimeSpent({
+      id: String(subtask.id),
+      timeSpent,
+    });
     setIsEditing(false);
   };
 
