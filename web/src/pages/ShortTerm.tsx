@@ -5,7 +5,8 @@ import {
   CycleItem,
   LongTermItem,
   ShortTermItem,
-  Detail as DetailItem,
+  Task,
+  Subtask,
   User,
 } from "../types";
 import {
@@ -24,12 +25,17 @@ import {
   useFetchCatetoryByIdQuery,
   useFetchSubcatetoryByIdQuery,
   useFetchContentFromCycleByIdQuery,
-  useFetchDetailsFromShortTermQuery,
-  useCreateDetailMutation,
+  useFetchTasksFromShortTermQuery,
+  useCreateTaskMutation,
   useUpdateTimeSpentMutation,
   useUpdateFinishedDateMutation,
   useDeleteShortTermMutation,
-  useDeleteShortTermDetailMutation,
+  useDeleteShortTermTaskMutation,
+  useFetchSubtasksFromTaskQuery,
+  useCreateSubtaskMutation,
+  useUpdateSubtaskTimeSpentMutation,
+  useUpdateSubtaskFinishedDateMutation,
+  useDeleteSubtaskMutation,
 } from "../store";
 import { useLongTermContext } from "../context/longTerm";
 import { useShortTermContext } from "../context/shortTerm";
@@ -47,25 +53,25 @@ interface CopyShortTermProps {
   user: User;
 }
 
-interface DetailCreationOverlayProps {
+interface TaskCreationOverlayProps {
   shortTerm: ShortTermItem;
   selectedLongTerm: LongTermItem;
   toggleOverlay: () => void;
-  detailItems: DetailItem[];
+  tasks: Task[];
 }
 
-interface DetailItemInfoProps {
-  detailItem: DetailItem;
+interface TaskItemInfoProps {
+  task: Task;
   shortTerm: ShortTermItem;
 }
-interface DetailViewProps {
+interface TaskViewProps {
   toggleOverlay: () => void;
   shortTerm: ShortTermItem;
-  detailItems: DetailItem[];
+  tasks: Task[];
 }
 
-interface DeleteDetailItemProps {
-  detailItem: DetailItem;
+interface DeleteTaskItemProps {
+  task: Task;
   shortTerm: ShortTermItem;
 }
 
@@ -104,13 +110,13 @@ const CopyShortTerm: React.FC<CopyShortTermProps> = ({
   user,
 }) => {
   const [createShortTerm] = useCreateShortTermMutation();
-  const [createDetail] = useCreateDetailMutation();
-  const { data: details } = useFetchDetailsFromShortTermQuery({
+  const [createTask] = useCreateTaskMutation();
+  const { data: tasks } = useFetchTasksFromShortTermQuery({
     shortTermId: selectedShortTerm.id,
   });
 
   const handleCopy = async () => {
-    if (!details) {
+    if (!tasks) {
       throw new Error("Failed to create new short term");
     }
 
@@ -120,12 +126,11 @@ const CopyShortTerm: React.FC<CopyShortTermProps> = ({
     }
     const newShortTerm = newShortTermResult.data;
 
-    // Copy details for the new short term
-    for (const detail of details) {
-      await createDetail({
-        contentId: String(detail.content_id),
+    // Copy tasks for the new short term
+    for (const task of tasks) {
+      await createTask({
+        contentId: String(task.content_id),
         shortTermId: String(newShortTerm.id),
-        name: detail.name,
       });
     }
   };
@@ -143,7 +148,7 @@ export default function ShortTerm() {
     useShortTermContext();
   const { data: userData } = useFetchCurrentUserQuery(null);
   const { data: shortTermData } = useFetchShortTermsQuery(null);
-  const { data: details } = useFetchDetailsFromShortTermQuery({
+  const { data: tasks } = useFetchTasksFromShortTermQuery({
     shortTermId: shortTerm?.id,
   });
 
@@ -182,33 +187,28 @@ export default function ShortTerm() {
         </div>
       </div>
       <div className="flex px-5 py-2">
-        {shortTerm && details && (
-          <DetailView
+        {shortTerm && tasks && (
+          <TaskView
             toggleOverlay={toggleOverlay}
             shortTerm={shortTerm}
-            detailItems={details}
+            tasks={tasks}
           />
         )}
       </div>
       {isOverlayVisible && shortTerm && selectedLongTerm && (
-        <DetailCreationOverlay
+        <TaskCreationOverlay
           shortTerm={shortTerm}
           selectedLongTerm={selectedLongTerm}
           toggleOverlay={toggleOverlay}
-          detailItems={details}
+          tasks={tasks}
         />
       )}
     </div>
   );
 }
 
-const DetailView = ({
-  toggleOverlay,
-  shortTerm,
-  detailItems,
-}: DetailViewProps) => {
-  const [selectedDetailItem, setSelectedDetailItem] =
-    useState<DetailItem | null>(null);
+const TaskView = ({ toggleOverlay, shortTerm, tasks }: TaskViewProps) => {
+  const [selectedTaskItem, setSelectedTaskItem] = useState<Task | null>(null);
 
   return (
     <div className="flex w-full h-full">
@@ -216,16 +216,13 @@ const DetailView = ({
         <h2 className="font-bold mb-4">All Tasks</h2>
         <div className="mb-4">
           <ul>
-            {detailItems.map((item: DetailItem, idx: number) => (
-              <li
+            {tasks.map((item: Task, idx: number) => (
+              <TaskListItem
                 key={item.id}
-                className={`cursor-pointer p-2 rounded bg-gray-100 hover:bg-gray-200 mt-2 ${
-                  selectedDetailItem?.id === item.id && "bg-gray-200"
-                }`}
-                onClick={() => setSelectedDetailItem(item)}
-              >
-                {item.name}
-              </li>
+                item={item}
+                isSelected={selectedTaskItem?.id === item.id}
+                onSelect={() => setSelectedTaskItem(item)}
+              />
             ))}
           </ul>
         </div>
@@ -239,14 +236,11 @@ const DetailView = ({
         </div>
       </div>
       <div className="w-1/2 p-4">
-        {selectedDetailItem ? (
-          <DetailItemInfo
-            shortTerm={shortTerm}
-            detailItem={selectedDetailItem}
-          />
+        {selectedTaskItem ? (
+          <TaskItemInfo shortTerm={shortTerm} task={selectedTaskItem} />
         ) : (
           <div className="text-gray-500">
-            Select a detail to view its information.
+            Select a task to view its information.
           </div>
         )}
       </div>
@@ -254,11 +248,37 @@ const DetailView = ({
   );
 };
 
-const DetailItemInfo = ({ shortTerm, detailItem }: DetailItemInfoProps) => {
+// Add this new component to fetch and display content name
+const TaskListItem = ({
+  item,
+  isSelected,
+  onSelect,
+}: {
+  item: Task;
+  isSelected: boolean;
+  onSelect: () => void;
+}) => {
+  const { data: content, isLoading } = useFetchContentFromCycleByIdQuery({
+    id: item.content_id,
+  });
+
+  return (
+    <li
+      className={`cursor-pointer p-2 rounded bg-gray-100 hover:bg-gray-200 mt-2 ${
+        isSelected && "bg-gray-200"
+      }`}
+      onClick={onSelect}
+    >
+      {isLoading ? "Loading..." : content?.[0]?.name || "Unknown content"}
+    </li>
+  );
+};
+
+const TaskItemInfo = ({ shortTerm, task }: TaskItemInfoProps) => {
   // TODO: need to refactor: 1. too many rerender, 2. flaky logic to display information and error handling
   const { data: content, isLoading: isContentLoading } =
     useFetchContentFromCycleByIdQuery({
-      id: detailItem.content_id,
+      id: task.content_id,
     });
   const {
     data: subcategory,
@@ -275,45 +295,91 @@ const DetailItemInfo = ({ shortTerm, detailItem }: DetailItemInfoProps) => {
     id: subcategory ? subcategory[0].category_id : undefined,
   });
 
+  const { data: subtasks } = useFetchSubtasksFromTaskQuery({
+    taskId: task.id,
+  });
+
   const [updateTimeSpent] = useUpdateTimeSpentMutation();
   const [updateFinishedDate] = useUpdateFinishedDateMutation();
-  const [timeSpent, setTimeSpent] = useState(detailItem.time_spent);
+  const [timeSpent, setTimeSpent] = useState(task.time_spent);
   const [finished, setFinished] = useState<boolean>(false);
 
+  // Subtask creation state
+  const [isCreatingSubtask, setIsCreatingSubtask] = useState(false);
+  const [newSubtaskName, setNewSubtaskName] = useState("");
+  const [newSubtaskDescription, setNewSubtaskDescription] = useState("");
+  const [createSubtask] = useCreateSubtaskMutation();
+
+  const calculatedTimeFromSubtasks =
+    subtasks?.reduce(
+      (total: number, subtask: Subtask) => total + (subtask.time_spent || 0),
+      0
+    ) || 0;
+  const hasSubtasks = subtasks && subtasks.length > 0;
+
   useEffect(() => {
-    setTimeSpent(detailItem.time_spent);
-    setFinished(detailItem.finished_date != null);
-  }, [detailItem]);
+    const effectiveTimeSpent = hasSubtasks
+      ? calculatedTimeFromSubtasks
+      : task.time_spent;
+    setTimeSpent(effectiveTimeSpent);
+    setFinished(task.finished_date != null);
+
+    if (hasSubtasks) {
+      updateTimeSpent({
+        id: String(task.id),
+        timeSpent: calculatedTimeFromSubtasks,
+      });
+    }
+  }, [task, calculatedTimeFromSubtasks, hasSubtasks]);
 
   const [isEditing, setIsEditing] = useState(false);
 
   const handleTimeSpentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (hasSubtasks) return;
+
     const newTimeSpent = parseInt(e.target.value) || 0;
     setTimeSpent(newTimeSpent);
     setIsEditing(true);
   };
 
   const handleConfirmTimeSpent = () => {
-    updateTimeSpent({ id: String(detailItem.id), timeSpent });
+    updateTimeSpent({ id: String(task.id), timeSpent });
     setIsEditing(false);
   };
 
   const handleCancelTimeSpent = () => {
-    setTimeSpent(detailItem.time_spent || 0);
+    setTimeSpent(task.time_spent || 0);
     setIsEditing(false);
   };
 
   const handleFinish = () => {
     updateFinishedDate({
-      id: String(detailItem.id),
+      id: String(task.id),
       finishedDate: new Date().toISOString(),
     });
     setFinished(true);
   };
 
   const handleUnfinish = () => {
-    updateFinishedDate({ id: String(detailItem.id), finishedDate: null });
+    updateFinishedDate({ id: String(task.id), finishedDate: null });
     setFinished(false);
+  };
+
+  const handleCreateSubtask = async () => {
+    if (!newSubtaskName.trim()) return;
+
+    try {
+      await createSubtask({
+        taskId: String(task.id),
+        name: newSubtaskName,
+        description: newSubtaskDescription || undefined,
+      });
+      setNewSubtaskName("");
+      setNewSubtaskDescription("");
+      setIsCreatingSubtask(false);
+    } catch (error) {
+      console.error("Error creating subtask:", error);
+    }
   };
 
   return (
@@ -348,9 +414,12 @@ const DetailItemInfo = ({ shortTerm, detailItem }: DetailItemInfoProps) => {
             min="0"
             value={timeSpent}
             onChange={handleTimeSpentChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            disabled={hasSubtasks}
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${
+              hasSubtasks ? "bg-gray-100 cursor-not-allowed" : ""
+            }`}
           />
-          {isEditing && (
+          {isEditing && !hasSubtasks && (
             <div className="flex space-x-2 mt-1">
               <button
                 onClick={handleConfirmTimeSpent}
@@ -368,10 +437,69 @@ const DetailItemInfo = ({ shortTerm, detailItem }: DetailItemInfoProps) => {
           )}
         </div>
       </div>
-      <div
-        className="flex mt-4 justify-between
-      "
-      >
+
+      {/* Subtasks Section */}
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="font-semibold">Subtasks</h4>
+          <button
+            onClick={() => setIsCreatingSubtask(true)}
+            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+          >
+            Add Subtask
+          </button>
+        </div>
+
+        {/* Create subtask form */}
+        {isCreatingSubtask && (
+          <div className="mb-4 p-3 border rounded-lg bg-gray-50">
+            <input
+              type="text"
+              placeholder="Subtask name"
+              value={newSubtaskName}
+              onChange={(e) => setNewSubtaskName(e.target.value)}
+              className="w-full mb-2 px-3 py-2 border rounded-md"
+            />
+            <textarea
+              placeholder="Description (optional)"
+              value={newSubtaskDescription}
+              onChange={(e) => setNewSubtaskDescription(e.target.value)}
+              className="w-full mb-2 px-3 py-2 border rounded-md"
+              rows={2}
+            />
+            <div className="flex space-x-2">
+              <button
+                onClick={handleCreateSubtask}
+                className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+              >
+                Create
+              </button>
+              <button
+                onClick={() => {
+                  setIsCreatingSubtask(false);
+                  setNewSubtaskName("");
+                  setNewSubtaskDescription("");
+                }}
+                className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Subtasks list */}
+        <div className="space-y-2 max-h-60 overflow-y-auto">
+          {subtasks?.map((subtask: Subtask) => (
+            <SubtaskItem key={subtask.id} subtask={subtask} />
+          ))}
+          {!subtasks?.length && !isCreatingSubtask && (
+            <p className="text-gray-500 text-sm">No subtasks yet</p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex mt-4 justify-between">
         {finished ? (
           <button
             className="rounded bg-red-500 px-2 py-1 text-white hover:bg-red-600"
@@ -387,19 +515,139 @@ const DetailItemInfo = ({ shortTerm, detailItem }: DetailItemInfoProps) => {
             Finish
           </button>
         )}
-        <DeleteDetailItem shortTerm={shortTerm} detailItem={detailItem} />
+        <DeleteTaskItem shortTerm={shortTerm} task={task} />
       </div>
     </div>
   );
 };
 
-const DeleteDetailItem = ({ shortTerm, detailItem }: DeleteDetailItemProps) => {
-  const [removeShortTerm] = useDeleteShortTermDetailMutation();
+// SubtaskItem component for displaying and managing individual subtasks
+const SubtaskItem = ({ subtask }: { subtask: Subtask }) => {
+  const [updateSubtaskTimeSpent] = useUpdateSubtaskTimeSpentMutation();
+  const [updateSubtaskFinishedDate] = useUpdateSubtaskFinishedDateMutation();
+  const [deleteSubtask] = useDeleteSubtaskMutation();
+
+  const [timeSpent, setTimeSpent] = useState(subtask.time_spent);
+  const [isEditing, setIsEditing] = useState(false);
+  const [finished, setFinished] = useState(subtask.finished_date != null);
+
+  useEffect(() => {
+    setTimeSpent(subtask.time_spent);
+    setFinished(subtask.finished_date != null);
+  }, [subtask]);
+
+  const handleTimeSpentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTimeSpent = parseInt(e.target.value) || 0;
+    setTimeSpent(newTimeSpent);
+    setIsEditing(true);
+  };
+
+  const handleConfirmTimeSpent = () => {
+    updateSubtaskTimeSpent({
+      id: String(subtask.id),
+      timeSpent,
+    });
+    setIsEditing(false);
+  };
+
+  const handleCancelTimeSpent = () => {
+    setTimeSpent(subtask.time_spent);
+    setIsEditing(false);
+  };
+
+  const handleToggleFinished = () => {
+    const finishedDate = finished ? null : new Date().toISOString();
+    updateSubtaskFinishedDate({
+      id: String(subtask.id),
+      finishedDate,
+    });
+    setFinished(!finished);
+  };
+
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this subtask?")) {
+      deleteSubtask({ id: String(subtask.id) });
+    }
+  };
+
+  return (
+    <div
+      className={`p-3 border rounded-lg ${
+        finished ? "bg-green-50 border-green-200" : "bg-white border-gray-200"
+      }`}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="flex items-center space-x-2 mb-2">
+            <input
+              type="checkbox"
+              checked={finished}
+              onChange={handleToggleFinished}
+              className="rounded"
+            />
+            <h5
+              className={`font-medium ${
+                finished ? "line-through text-gray-500" : ""
+              }`}
+            >
+              {subtask.name}
+            </h5>
+          </div>
+          {subtask.description && (
+            <p
+              className={`text-sm text-gray-600 mb-2 ${
+                finished ? "line-through" : ""
+              }`}
+            >
+              {subtask.description}
+            </p>
+          )}
+          <div className="flex items-center space-x-2">
+            <input
+              type="number"
+              min="0"
+              value={timeSpent}
+              onChange={handleTimeSpentChange}
+              className="w-20 px-2 py-1 text-sm border rounded"
+              placeholder="mins"
+            />
+            <span className="text-sm text-gray-500">minutes</span>
+            {isEditing && (
+              <div className="flex space-x-1">
+                <button
+                  onClick={handleConfirmTimeSpent}
+                  className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
+                >
+                  ✓
+                </button>
+                <button
+                  onClick={handleCancelTimeSpent}
+                  className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+        <button
+          onClick={handleDelete}
+          className="ml-2 text-red-500 hover:text-red-700"
+        >
+          <MdDelete />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const DeleteTaskItem = ({ shortTerm, task }: DeleteTaskItemProps) => {
+  const [removeShortTerm] = useDeleteShortTermTaskMutation();
 
   const handleClick = () => {
     removeShortTerm({
       id: String(shortTerm.id),
-      detailId: String(detailItem.id),
+      taskId: String(task.id),
     });
   };
 
@@ -410,24 +658,18 @@ const DeleteDetailItem = ({ shortTerm, detailItem }: DeleteDetailItemProps) => {
   );
 };
 
-const DetailCreationOverlay = ({
+const TaskCreationOverlay = ({
   shortTerm,
   selectedLongTerm,
   toggleOverlay,
-  detailItems,
-}: DetailCreationOverlayProps) => {
+  tasks,
+}: TaskCreationOverlayProps) => {
   const [selectedCycle, setSelectedCycle] = useState<CycleItem | null>(null);
 
   const { data: cycleData } = useFetchCyclesOfLongTermQuery(selectedLongTerm);
   const { data: contentData } = useFetchContentsFromCycleQuery(selectedCycle);
-  const [addDetail] = useCreateDetailMutation();
-  const [removeDetail] = useDeleteShortTermDetailMutation();
-  // maintain a local list of existing details for immediate UI update
-  const [localDetails, setLocalDetails] = useState<DetailItem[]>(detailItems);
-
-  useEffect(() => {
-    setLocalDetails(detailItems);
-  }, [detailItems]);
+  const [addTask] = useCreateTaskMutation();
+  const [removeTask] = useDeleteShortTermTaskMutation();
 
   const handleCycleSelect = (cycle: CycleItem) => {
     setSelectedCycle(cycle);
@@ -435,26 +677,24 @@ const DetailCreationOverlay = ({
 
   const handleContentSelect = async (content: CycleContentItem) => {
     try {
-      await addDetail({
+      await addTask({
         contentId: String(content.id),
         shortTermId: String(shortTerm.id),
-        name: content.name,
       });
-      // don't close, allow multiple additions and update detailItems
+      // don't close, allow multiple additions and update tasks
     } catch (error) {
-      console.error("Error creating detail:", error);
+      console.error("Error creating task:", error);
     }
   };
 
-  const handleRemoveDetail = async (detail: DetailItem) => {
+  const handleRemoveTask = async (task: Task) => {
     try {
-      await removeDetail({
+      await removeTask({
         id: String(shortTerm.id),
-        detailId: String(detail.id),
+        taskId: String(task.id),
       });
-      setLocalDetails(localDetails.filter((d) => d.id !== detail.id));
     } catch (error) {
-      console.error("Error removing detail:", error);
+      console.error("Error removing task:", error);
     }
   };
 
@@ -483,9 +723,7 @@ const DetailCreationOverlay = ({
               {contentData
                 ?.filter(
                   (content: CycleContentItem) =>
-                    !localDetails?.some(
-                      (detail: DetailItem) => detail.content_id === content.id
-                    )
+                    !tasks?.some((task: Task) => task.content_id === content.id)
                 )
                 .map((content: CycleContentItem) => (
                   <li key={content.id}>
@@ -503,20 +741,41 @@ const DetailCreationOverlay = ({
           <div className="w-1/2 pl-2 overflow-y-auto">
             <h3 className="font-semibold mb-2">Existing Tasks</h3>
             <ul className="space-y-2">
-              {localDetails.map((detail) => (
-                <li key={detail.id}>
-                  <button
-                    onClick={() => handleRemoveDetail(detail)}
-                    className="w-full text-left px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded"
-                  >
-                    {detail.name}
-                  </button>
-                </li>
+              {tasks.map((task) => (
+                <TaskListItemForOverlay
+                  key={task.id}
+                  task={task}
+                  onRemove={() => handleRemoveTask(task)}
+                />
               ))}
             </ul>
           </div>
         </div>
       </div>
     </div>
+  );
+};
+
+// Add this new component to display task items in the overlay with content names
+const TaskListItemForOverlay = ({
+  task,
+  onRemove,
+}: {
+  task: Task;
+  onRemove: () => void;
+}) => {
+  const { data: content, isLoading } = useFetchContentFromCycleByIdQuery({
+    id: task.content_id,
+  });
+
+  return (
+    <li>
+      <button
+        onClick={onRemove}
+        className="w-full text-left px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded"
+      >
+        {isLoading ? "Loading..." : content?.[0]?.name || "Unknown content"}
+      </button>
+    </li>
   );
 };

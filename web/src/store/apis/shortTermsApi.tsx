@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { Detail, ShortTermItem } from "../../types";
+import { Task, ShortTermItem } from "../../types";
 import { API_URL } from "../constants";
 
 interface CreateShortTermInput {
@@ -9,11 +9,9 @@ interface CreateShortTermInput {
 interface DeleteShortTermInput {
   id: string;
 }
-
-interface CreateDetailInput {
+interface CreateTaskInput {
   contentId: string;
   shortTermId: string;
-  name: string;
 }
 
 interface UpdateTimeSpentInput {
@@ -26,9 +24,9 @@ interface UpdateFinishedDateInput {
   finishedDate: string | null;
 }
 
-interface DeleteDetailInput {
+interface DeleteTaskInput {
   id: string;
-  detailId: string;
+  taskId: string;
 }
 
 const shortTermsApi = createApi({
@@ -37,7 +35,7 @@ const shortTermsApi = createApi({
     baseUrl: `${API_URL}/shortTerms`,
     credentials: "include",
   }),
-  tagTypes: ["All", "ShortTerm", "Detail"],
+  tagTypes: ["All", "ShortTerm", "Task"],
   endpoints(builder) {
     return {
       fetchShortTerms: builder.query({
@@ -56,12 +54,12 @@ const shortTermsApi = createApi({
           };
         },
       }),
-      fetchDetailsFromShortTerm: builder.query({
+      fetchTasksFromShortTerm: builder.query({
         providesTags: (result, error, args) => {
           if (error) return [];
           const { shortTermId } = args;
-          const tags = result.map((detail: Detail) => {
-            return { type: "Detail", id: detail.id };
+          const tags = result.map((task: Task) => {
+            return { type: "Task", id: task.id };
           });
           tags.push({ type: "ShortTerm", id: shortTermId });
           return tags;
@@ -69,7 +67,7 @@ const shortTermsApi = createApi({
         query: ({ shortTermId }) => {
           return {
             method: "GET",
-            url: `/${shortTermId}/details`,
+            url: `/${shortTermId}/tasks`,
           };
         },
       }),
@@ -87,44 +85,43 @@ const shortTermsApi = createApi({
           };
         },
       }),
-      createDetail: builder.mutation<Detail, CreateDetailInput>({
+      createTask: builder.mutation<Task, CreateTaskInput>({
         invalidatesTags: (result, error, args) => {
           const { shortTermId } = args;
           return [{ type: "ShortTerm", id: shortTermId }];
         },
-        query: ({ contentId, shortTermId, name }) => {
+        query: ({ contentId, shortTermId }) => {
           return {
             method: "POST",
-            url: `/${shortTermId}/details`,
+            url: `/${shortTermId}/tasks`,
             body: {
               contentId,
-              name,
             },
           };
         },
       }),
-      updateTimeSpent: builder.mutation<Detail, UpdateTimeSpentInput>({
+      updateTimeSpent: builder.mutation<Task, UpdateTimeSpentInput>({
         invalidatesTags: (result, error, args) => {
-          return [{ type: "Detail", id: args.id }];
+          return [{ type: "Task", id: args.id }];
         },
         query: ({ id, timeSpent }) => {
           return {
             method: "PUT",
-            url: `/details/${id}/time-spent`,
+            url: `/tasks/${id}/time-spent`,
             body: {
               timeSpent,
             },
           };
         },
       }),
-      updateFinishedDate: builder.mutation<Detail, UpdateFinishedDateInput>({
+      updateFinishedDate: builder.mutation<Task, UpdateFinishedDateInput>({
         invalidatesTags: (result, error, args) => {
-          return [{ type: "Detail", id: args.id }];
+          return [{ type: "Task", id: args.id }];
         },
         query: ({ id, finishedDate }) => {
           return {
             method: "PUT",
-            url: `/details/${id}/finished-date`,
+            url: `/tasks/${id}/finished-date`,
             body: {
               finishedDate,
             },
@@ -142,14 +139,14 @@ const shortTermsApi = createApi({
           };
         },
       }),
-      deleteShortTermDetail: builder.mutation<Detail, DeleteDetailInput>({
+      deleteShortTermTask: builder.mutation<Task, DeleteTaskInput>({
         invalidatesTags: (result, error, args) => {
           return [{ type: "ShortTerm", id: args.id }];
         },
-        query: ({ id, detailId }) => {
+        query: ({ id, taskId }) => {
           return {
             method: "DELETE",
-            url: `/details/${detailId}`,
+            url: `/tasks/${taskId}`,
           };
         },
       }),
@@ -159,12 +156,12 @@ const shortTermsApi = createApi({
 
 export const {
   useCreateShortTermMutation,
-  useCreateDetailMutation,
+  useCreateTaskMutation,
   useFetchShortTermsQuery,
-  useFetchDetailsFromShortTermQuery,
+  useFetchTasksFromShortTermQuery,
   useUpdateTimeSpentMutation,
   useUpdateFinishedDateMutation,
   useDeleteShortTermMutation,
-  useDeleteShortTermDetailMutation,
+  useDeleteShortTermTaskMutation,
 } = shortTermsApi;
 export { shortTermsApi };

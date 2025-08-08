@@ -5,7 +5,8 @@ import {
   CycleSubcategoryItem,
   CycleContentItem,
   ShortTermItem,
-  Detail,
+  Task,
+  Subtask,
   User,
 } from "./db";
 
@@ -16,6 +17,7 @@ export type {
   CycleSubcategoryItem,
   CycleContentItem,
   ShortTermItem,
-  Detail,
+  Task,
+  Subtask,
   User,
 };

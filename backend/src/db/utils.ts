@@ -5,7 +5,7 @@ const mustHasRelations: Record<
   { parentTable: string; parentKey: string }
 > = {
   long_terms: { parentTable: "users", parentKey: "user_id" },
-  short_terms: { parentTable: "users", parentKey: "user_id " },
+  short_terms: { parentTable: "users", parentKey: "user_id" },
   cycles: { parentTable: "long_terms", parentKey: "long_term_id" },
   cycle_categories: { parentTable: "cycles", parentKey: "cycle_id" },
   cycle_subcategories: { parentTable: "cycles", parentKey: "cycle_id" },

@@ -12,7 +12,7 @@ import shortTermRoutes from "./routes/shortTerm";
 import categoryRoutes from "./routes/category";
 import subcategoryRoutes from "./routes/subcategory";
 import contentRoutes from "./routes/content";
-import detailRoutes from "./routes/detail";
+import taskRoutes from "./routes/task";
 import cycleRoutes from "./routes/cycle";
 import { checkAuthentication } from "./middleware/auth";
 import { init as dbInit, pg } from "./db/postgre";
@@ -67,7 +67,7 @@ async function start() {
   app.use("/categories", categoryRoutes);
   app.use("/subcategories", subcategoryRoutes);
   app.use("/contents", contentRoutes);
-  app.use("/details", detailRoutes);
+  app.use("/tasks", taskRoutes);
   app.use("/cycles", cycleRoutes);
 
   app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
