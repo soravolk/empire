@@ -182,9 +182,9 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
   const [topSubcategories, setTopSubcategories] = useState<
     { id: number; name: string }[]
   >([]);
-  const [selectedTopSubcategoryId, setSelectedTopSubcategoryId] = useState<
-    number | null
-  >(null);
+  const [selectedTopSubcategoryIds, setSelectedTopSubcategoryIds] = useState<
+    number[]
+  >([]);
 
   // Creation form toggles
   const [showNewCategoryForm, setShowNewCategoryForm] = useState(false);
@@ -235,7 +235,7 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
       ) {
         if (isMounted) {
           setTopSubcategories([]);
-          setSelectedTopSubcategoryId(null);
+          setSelectedTopSubcategoryIds([]);
         }
         return;
       }
@@ -262,7 +262,7 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
         setTopSubcategories(
           Array.from(map.entries()).map(([id, name]) => ({ id, name }))
         );
-        setSelectedTopSubcategoryId(null);
+        setSelectedTopSubcategoryIds([]);
       }
     };
     loadSubcategories();
@@ -292,12 +292,10 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
     selectedTopCategoryId != null
       ? topCategories.find((tc) => tc.id === selectedTopCategoryId)
       : undefined;
-  const selectedTopSubcategory =
-    selectedTopSubcategoryId != null
-      ? topSubcategories.find((ts) => ts.id === selectedTopSubcategoryId)
-      : undefined;
+  const selectedTopSubcategories = topSubcategories.filter((ts) =>
+    selectedTopSubcategoryIds.includes(ts.id)
+  );
   const selectedTopCategoryName = selectedTopCategory?.name ?? null;
-  const selectedTopSubcategoryName = selectedTopSubcategory?.name ?? null;
 
   // Mutations for creating Category/Subcategory
   const [addCategory] = useAddCategoryMutation();
@@ -322,7 +320,7 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
           : [...prev, { id: newCat.id, name: newCat.name }]
       );
       setSelectedTopCategoryId(newCat.id);
-      setSelectedTopSubcategoryId(null);
+      setSelectedTopSubcategoryIds([]);
       setShowNewCategoryForm(false);
     }
   };
@@ -347,7 +345,7 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
           ? prev
           : [...prev, { id: newSub.id, name: newSub.name }]
       );
-      setSelectedTopSubcategoryId(newSub.id);
+      setSelectedTopSubcategoryIds((prev) => [...prev, newSub.id]);
       setShowNewSubcategoryForm(false);
     }
   };
@@ -424,7 +422,7 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
             Subcategories
           </span>
           {topSubcategories.map((ts) => {
-            const active = selectedTopSubcategoryId === ts.id;
+            const active = selectedTopSubcategoryIds.includes(ts.id);
             return (
               <button
                 key={ts.id}
@@ -435,8 +433,10 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
                     : "border-gray-300 text-gray-700 hover:bg-gray-50"
                 }`}
                 onClick={() =>
-                  setSelectedTopSubcategoryId((prev) =>
-                    prev === ts.id ? null : ts.id
+                  setSelectedTopSubcategoryIds((prev) =>
+                    prev.includes(ts.id)
+                      ? prev.filter((id) => id !== ts.id)
+                      : [...prev, ts.id]
                   )
                 }
                 title={ts.name}
@@ -484,15 +484,23 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
             <span className="text-gray-400">Pick a category</span>
           )}
           {selectedTopCategoryName &&
-            (selectedTopSubcategoryName ? (
+            (selectedTopSubcategories.length > 0 ? (
               <>
                 <span className="text-gray-400">›</span>
-                <span className="px-2 py-0.5 rounded-full border border-violet-200 bg-violet-50 text-violet-700">
-                  {selectedTopSubcategoryName}
-                </span>
+
+                <div className="flex items-center gap-1 flex-wrap">
+                  {selectedTopSubcategories.map((s) => (
+                    <span
+                      key={s.id}
+                      className="px-2 py-0.5 rounded-full border border-violet-200 bg-violet-50 text-violet-700"
+                    >
+                      {s.name}
+                    </span>
+                  ))}
+                </div>
               </>
             ) : (
-              <span className="text-gray-400">Select a subcategory</span>
+              <span className="text-gray-400">Select subcategories</span>
             ))}
         </div>
       </div>
@@ -506,7 +514,8 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
             index={index}
             onDelete={deleteCycle}
             selectedTopCategoryId={selectedTopCategoryId}
-            selectedTopSubcategoryId={selectedTopSubcategoryId}
+            selectedTopSubcategoryIds={selectedTopSubcategoryIds}
+            selectedTopSubcategories={selectedTopSubcategories}
           />
         ))}
       </div>
@@ -519,7 +528,8 @@ interface CycleCardProps {
   index: number;
   onDelete: (c: CycleItem) => void;
   selectedTopCategoryId?: number | null;
-  selectedTopSubcategoryId?: number | null;
+  selectedTopSubcategoryIds?: number[];
+  selectedTopSubcategories?: { id: number; name: string }[];
 }
 
 const CycleCard: React.FC<CycleCardProps> = ({
@@ -527,21 +537,25 @@ const CycleCard: React.FC<CycleCardProps> = ({
   index,
   onDelete,
   selectedTopCategoryId,
-  selectedTopSubcategoryId,
+  selectedTopSubcategoryIds,
+  selectedTopSubcategories,
 }) => {
   const [expanded, setExpanded] = useState(false);
 
-  // Auto-expand rows only when both category and subcategory are selected; collapse when both cleared
+  // Auto-expand rows when category selected and at least one subcategory selected; collapse when both cleared
   useEffect(() => {
-    if (selectedTopCategoryId != null && selectedTopSubcategoryId != null) {
+    if (
+      selectedTopCategoryId != null &&
+      (selectedTopSubcategoryIds?.length ?? 0) > 0
+    ) {
       setExpanded(true);
     } else if (
       selectedTopCategoryId == null &&
-      selectedTopSubcategoryId == null
+      (selectedTopSubcategoryIds?.length ?? 0) === 0
     ) {
       setExpanded(false);
     }
-  }, [selectedTopCategoryId, selectedTopSubcategoryId]);
+  }, [selectedTopCategoryId, selectedTopSubcategoryIds]);
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
@@ -574,7 +588,8 @@ const CycleCard: React.FC<CycleCardProps> = ({
             <Items
               cycle={cycle}
               selectedTopCategoryId={selectedTopCategoryId}
-              selectedTopSubcategoryId={selectedTopSubcategoryId}
+              selectedTopSubcategoryIds={selectedTopSubcategoryIds}
+              selectedTopSubcategories={selectedTopSubcategories}
             />
           </div>
         </CycleItemContext.Provider>
@@ -590,22 +605,20 @@ const CycleCard: React.FC<CycleCardProps> = ({
 interface ItemProps {
   cycle: CycleItem;
   selectedTopCategoryId?: number | null;
-  selectedTopSubcategoryId?: number | null;
+  selectedTopSubcategoryIds?: number[];
+  selectedTopSubcategories?: { id: number; name: string }[];
 }
 
 export const Items: React.FC<ItemProps> = ({
   cycle,
   selectedTopCategoryId,
-  selectedTopSubcategoryId,
+  selectedTopSubcategoryIds,
+  selectedTopSubcategories,
 }) => {
   const [category, setCategory] = useState<CycleCategoryItem | null>(null);
-  const [subcategory, setSubcategory] = useState<CycleSubcategoryItem | null>(
-    null
-  );
 
   useEffect(() => {
     setCategory(null);
-    setSubcategory(null);
   }, [cycle]);
 
   const {
@@ -641,22 +654,7 @@ export const Items: React.FC<ItemProps> = ({
         (c: CycleCategoryItem) => c.category_id === selectedTopCategoryId
       ) || null;
     setCategory(match);
-    setSubcategory(null);
   }, [selectedTopCategoryId, categoryData]);
-
-  useEffect(() => {
-    if (!subcategoryData) return;
-    if (selectedTopSubcategoryId == null) {
-      setSubcategory(null);
-      return;
-    }
-    const match =
-      subcategoryData.find(
-        (s: CycleSubcategoryItem) =>
-          s.subcategory_id === selectedTopSubcategoryId
-      ) || null;
-    setSubcategory(match);
-  }, [selectedTopSubcategoryId, subcategoryData]);
 
   const categoryMissing =
     selectedTopCategoryId != null &&
@@ -665,89 +663,148 @@ export const Items: React.FC<ItemProps> = ({
       (c: CycleCategoryItem) => c.category_id === selectedTopCategoryId
     );
 
-  const subcategoryMissing =
-    selectedTopSubcategoryId != null &&
-    subcategoryData &&
-    !subcategoryData.some(
-      (s: CycleSubcategoryItem) => s.subcategory_id === selectedTopSubcategoryId
+  // Helper: list of selected subcategories present in this cycle
+  const selectedSubsInCycle: CycleSubcategoryItem[] =
+    (subcategoryData && selectedTopSubcategoryIds
+      ? subcategoryData.filter((s: CycleSubcategoryItem) =>
+          selectedTopSubcategoryIds.includes(s.subcategory_id)
+        )
+      : []) ?? [];
+
+  // Helper: list of selected subcategory ids missing in this cycle
+  const missingSelectedSubIds: number[] = (
+    selectedTopSubcategoryIds || []
+  ).filter(
+    (id) =>
+      !subcategoryData?.some(
+        (s: CycleSubcategoryItem) => s.subcategory_id === id
+      )
+  );
+
+  // Quick content creation per missing subcategory (supports multi-select)
+  const [showQuickContentForms, setShowQuickContentForms] = useState<number[]>(
+    []
+  );
+  const toggleQuickForm = (id: number) =>
+    setShowQuickContentForms((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
 
-  // Quick content creation: attach selected category/subcategory only when creating content
-  const [showQuickContentForm, setShowQuickContentForm] = useState(false);
-  const handleQuickCreateContent: React.FormEventHandler<
-    HTMLFormElement
-  > = async (e) => {
-    e.preventDefault();
-    if (selectedTopCategoryId == null || selectedTopSubcategoryId == null)
-      return;
-    const name = (
-      e.currentTarget.elements.namedItem("name") as HTMLInputElement
-    )?.value?.trim();
-    if (!name) return;
+  const handleQuickCreateContent =
+    (
+      selectedTopSubcategoryId: number
+    ): React.FormEventHandler<HTMLFormElement> =>
+    async (e) => {
+      e.preventDefault();
+      if (selectedTopCategoryId == null || selectedTopSubcategoryId == null)
+        return;
+      const name = (
+        e.currentTarget.elements.namedItem("name") as HTMLInputElement
+      )?.value?.trim();
+      if (!name) return;
 
-    // Attach missing relations first
-    if (categoryMissing) {
-      await addCategoryToCycle({
-        cycleId: cycle.id,
-        categoryId: selectedTopCategoryId,
+      // Attach missing relations first
+      if (categoryMissing) {
+        await addCategoryToCycle({
+          cycleId: cycle.id,
+          categoryId: selectedTopCategoryId,
+        });
+      }
+      const subcategoryMissing = !subcategoryData?.some(
+        (s: CycleSubcategoryItem) =>
+          s.subcategory_id === selectedTopSubcategoryId
+      );
+      if (subcategoryMissing) {
+        await addSubcategoryToCycle({
+          cycleId: cycle.id,
+          subcategoryId: selectedTopSubcategoryId,
+        });
+      }
+
+      // Create and attach content
+      const result: any = await addContent({
+        subcategoryId: String(selectedTopSubcategoryId),
+        name,
       });
-    }
-    if (subcategoryMissing) {
-      await addSubcategoryToCycle({
-        cycleId: cycle.id,
-        subcategoryId: selectedTopSubcategoryId,
-      });
-    }
+      if (result && result.data) {
+        await addContentToCycle({
+          cycleId: cycle.id,
+          contentId: result.data.id,
+        });
+      }
 
-    // Create and attach content
-    const result: any = await addContent({
-      subcategoryId: String(selectedTopSubcategoryId),
-      name,
-    });
-    if (result && result.data) {
-      await addContentToCycle({ cycleId: cycle.id, contentId: result.data.id });
-    }
+      setShowQuickContentForms((prev) =>
+        prev.filter((x) => x !== selectedTopSubcategoryId)
+      );
+    };
 
-    setShowQuickContentForm(false);
-  };
+  const getSubName = (id: number) =>
+    selectedTopSubcategories?.find((s) => s.id === id)?.name ||
+    `Subcategory ${id}`;
 
   return (
     <div className="flex-1 min-w-0">
-      {/* When selections are made but this cycle is missing them, allow content creation to auto-attach under the hood */}
+      {/* When selections are made but this cycle is missing some of them, show Add content per missing subcategory */}
       {selectedTopCategoryId != null &&
-        selectedTopSubcategoryId != null &&
-        (categoryMissing || subcategoryMissing) && (
-          <div className="mb-2">
-            <button
-              type="button"
-              className="text-xs px-2 py-1 rounded border border-emerald-600 text-emerald-700 hover:bg-emerald-50"
-              onClick={() => setShowQuickContentForm((v) => !v)}
-            >
-              Add content
-            </button>
-            {showQuickContentForm && (
-              <div className="mt-2">
-                <CreationForm handleAddFunc={handleQuickCreateContent} />
+        (selectedTopSubcategoryIds?.length ?? 0) > 0 &&
+        missingSelectedSubIds.length > 0 && (
+          <div className="mb-3 space-y-2">
+            {missingSelectedSubIds.map((id) => (
+              <div key={id} className="">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-600">
+                    {getSubName(id)}
+                  </span>
+                  <button
+                    type="button"
+                    className="text-xs px-2 py-1 rounded border border-emerald-600 text-emerald-700 hover:bg-emerald-50"
+                    onClick={() => toggleQuickForm(id)}
+                  >
+                    Add content
+                  </button>
+                </div>
+                {showQuickContentForms.includes(id) && (
+                  <div className="mt-2">
+                    <CreationForm
+                      handleAddFunc={handleQuickCreateContent(id)}
+                    />
+                  </div>
+                )}
               </div>
-            )}
+            ))}
           </div>
         )}
 
-      {/* If both category and subcategory are set and present, show that specific content */}
-      {category && subcategory && contentData && (
-        <Content subcategory={subcategory} contents={contentData} />
+      {/* If category is set and content data available, render content for each selected subcategory present in this cycle */}
+      {category && contentData && selectedSubsInCycle.length > 0 && (
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {selectedSubsInCycle.map((sub) => (
+            <Content
+              key={sub.subcategory_id}
+              subcategory={sub}
+              contents={contentData}
+            />
+          ))}
+        </div>
       )}
 
-      {/* Removed category-only rendering to enforce both category and subcategory selection */}
-
+      {/* Guidance and missing states */}
       {!category && selectedTopCategoryId != null && (
         <div className="text-xs text-gray-500">
           This cycle does not include the selected category.
         </div>
       )}
-      {category && selectedTopSubcategoryId != null && !subcategory && (
-        <div className="text-xs text-gray-500">
-          This cycle does not include the selected subcategory.
+      {category &&
+        (selectedTopSubcategoryIds?.length ?? 0) > 0 &&
+        selectedSubsInCycle.length === 0 && (
+          <div className="text-xs text-gray-500">
+            This cycle does not include any of the selected subcategories.
+          </div>
+        )}
+      {category && missingSelectedSubIds.length > 0 && (
+        <div className="text-[11px] text-gray-500 mt-1">
+          Missing in this cycle: {missingSelectedSubIds.length} selected
+          subcategor{missingSelectedSubIds.length > 1 ? "ies" : "y"}.
         </div>
       )}
     </div>
