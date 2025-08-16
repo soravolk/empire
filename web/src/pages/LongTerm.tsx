@@ -36,6 +36,7 @@ import { CycleItemContext, useCycleListContext } from "../context/cycle";
 import { useLongTermContext } from "../context/longTerm";
 import { BsPencilSquare } from "react-icons/bs";
 import { MdDelete } from "react-icons/md";
+import { MdContentCopy } from "react-icons/md";
 
 interface CreateLongTermProps {
   user: User;
@@ -275,6 +276,63 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
   const [addCycle] = useAddCycleMutation();
   const [showAddCalendar, setShowAddCalendar] = useState(false);
 
+  // Mutations needed for copy
+  const [addCategoryToCycle] = useAddCategoryToCycleMutation();
+  const [addSubcategoryToCycle] = useAddSubcategoryToCycleMutation();
+  const [addContentToCycle] = useAddContentToCycleMutation();
+
+  // Copy logic reused by per-row calendar
+  const copyCycleContents = async (
+    fromCycle: CycleItem,
+    toCycle: CycleItem
+  ) => {
+    const categoriesPromise = store.dispatch(
+      cyclesApi.endpoints.fetchCategoriesFromCycle.initiate(fromCycle)
+    );
+    const subcategoriesPromise = store.dispatch(
+      cyclesApi.endpoints.fetchSubcategoriesFromCycle.initiate(fromCycle)
+    );
+    const contentsPromise = store.dispatch(
+      cyclesApi.endpoints.fetchContentsFromCycle.initiate(fromCycle)
+    );
+
+    const [categoriesRes, subcategoriesRes, contentsRes] = await Promise.all([
+      categoriesPromise,
+      subcategoriesPromise,
+      contentsPromise,
+    ]);
+
+    const categories: CycleCategoryItem[] = categoriesRes.data ?? [];
+    const subcategories: CycleSubcategoryItem[] = subcategoriesRes.data ?? [];
+    const contents: any[] = contentsRes.data ?? [];
+
+    for (const category of categories) {
+      await addCategoryToCycle({
+        cycleId: toCycle.id,
+        categoryId: category.category_id,
+      });
+      const categorySubs = subcategories.filter(
+        (s) => s.category_id === category.category_id
+      );
+      for (const sub of categorySubs) {
+        await addSubcategoryToCycle({
+          cycleId: toCycle.id,
+          subcategoryId: sub.subcategory_id,
+        });
+        const subContents = contents.filter(
+          (c) => c.subcategory_id === sub.subcategory_id
+        );
+        for (const content of subContents) {
+          await addContentToCycle({
+            cycleId: toCycle.id,
+            contentId: content.content_id,
+          });
+        }
+      }
+    }
+  };
+
+  // New Cycle (top) calendar create only
   const handleSelectCycleRange = async (date: CycleRange) => {
     setShowAddCalendar(false);
     if (!Array.isArray(date)) return;
@@ -283,6 +341,23 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
       startTime: date[0],
       endTime: date[1],
     });
+  };
+
+  // Copy from a source row with provided date range
+  const handleCopyWithRange = async (
+    sourceCycle: CycleItem,
+    date: CycleRange
+  ) => {
+    if (!Array.isArray(date)) return;
+    const result: any = await addCycle({
+      longTermId: longTerm?.id,
+      startTime: date[0],
+      endTime: date[1],
+    });
+    const newCycle: CycleItem | undefined = result?.data;
+    if (newCycle) {
+      await copyCycleContents(sourceCycle, newCycle);
+    }
   };
 
   const [deleteCycle] = useDeleteCycleMutation();
@@ -513,6 +588,7 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
             cycle={c}
             index={index}
             onDelete={deleteCycle}
+            onCopyWithRange={handleCopyWithRange}
             selectedTopCategoryId={selectedTopCategoryId}
             selectedTopSubcategoryIds={selectedTopSubcategoryIds}
             selectedTopSubcategories={selectedTopSubcategories}
@@ -527,6 +603,7 @@ interface CycleCardProps {
   cycle: CycleItem;
   index: number;
   onDelete: (c: CycleItem) => void;
+  onCopyWithRange: (source: CycleItem, range: CycleRange) => void;
   selectedTopCategoryId?: number | null;
   selectedTopSubcategoryIds?: number[];
   selectedTopSubcategories?: { id: number; name: string }[];
@@ -536,11 +613,13 @@ const CycleCard: React.FC<CycleCardProps> = ({
   cycle,
   index,
   onDelete,
+  onCopyWithRange,
   selectedTopCategoryId,
   selectedTopSubcategoryIds,
   selectedTopSubcategories,
 }) => {
   const [expanded, setExpanded] = useState(false);
+  const [showCopyCalendar, setShowCopyCalendar] = useState(false);
 
   // Auto-expand rows when category selected and at least one subcategory selected; collapse when both cleared
   useEffect(() => {
@@ -557,12 +636,17 @@ const CycleCard: React.FC<CycleCardProps> = ({
     }
   }, [selectedTopCategoryId, selectedTopSubcategoryIds]);
 
+  const handleCopySelectRange = async (date: CycleRange) => {
+    setShowCopyCalendar(false);
+    await onCopyWithRange(cycle, date);
+  };
+
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
       <div className="flex items-center justify-between mb-2">
-        <div className="text-sm font-medium text-gray-700">
-          {`Cycle ${index + 1}`}
-        </div>
+        <div className="text-sm font-medium text-gray-700">{`Cycle ${
+          index + 1
+        }`}</div>
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -571,6 +655,22 @@ const CycleCard: React.FC<CycleCardProps> = ({
           >
             {expanded ? "Collapse" : "Expand"}
           </button>
+          <div className="relative">
+            <button
+              type="button"
+              aria-label="Copy cycle"
+              className="text-gray-600 hover:text-gray-800"
+              onClick={() => setShowCopyCalendar((v) => !v)}
+              title="Copy cycle to new date range"
+            >
+              <MdContentCopy />
+            </button>
+            {showCopyCalendar && (
+              <div className="absolute right-0 z-10 mt-2 shadow-lg">
+                <Calendar selectRange onChange={handleCopySelectRange} />
+              </div>
+            )}
+          </div>
           <button
             type="button"
             aria-label="Delete cycle"
@@ -581,7 +681,6 @@ const CycleCard: React.FC<CycleCardProps> = ({
           </button>
         </div>
       </div>
-
       {expanded ? (
         <CycleItemContext.Provider value={cycle}>
           <div className="flex gap-4">
