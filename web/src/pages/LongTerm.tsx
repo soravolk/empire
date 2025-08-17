@@ -23,6 +23,7 @@ import {
 import { cyclesApi } from "../store/apis/cyclesApi";
 import CreationForm from "../components/CreationForm";
 import Category from "../components/Category";
+import SubCategory from "../components/Subcategory";
 import Dropdown from "../components/Dropdown";
 import { getLongTermHistoryOptions } from "../utils/utils";
 import {
@@ -187,9 +188,6 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
   const [selectedTopSubcategoryIds, setSelectedTopSubcategoryIds] = useState<
     number[]
   >([]);
-
-  // Creation form toggles
-  const [showNewSubcategoryForm, setShowNewSubcategoryForm] = useState(false);
 
   // Current user for creating categories
   const { data: currentUser } = useFetchCurrentUserQuery(null);
@@ -395,15 +393,8 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
     }
   };
 
-  const handleCreateSubcategory: React.FormEventHandler<
-    HTMLFormElement
-  > = async (e) => {
-    e.preventDefault();
+  const handleCreateSubcategory = async (name: string) => {
     if (selectedTopCategoryId == null) return;
-    const name = (
-      e.currentTarget.elements.namedItem("name") as HTMLInputElement
-    )?.value?.trim();
-    if (!name) return;
     const result: any = await addSubcategory({
       categoryId: String(selectedTopCategoryId),
       name,
@@ -416,7 +407,7 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
           : [...prev, { id: newSub.id, name: newSub.name }]
       );
       setSelectedTopSubcategoryIds((prev) => [...prev, newSub.id]);
-      setShowNewSubcategoryForm(false);
+      return newSub;
     }
   };
 
@@ -451,63 +442,13 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
         onChangeSelected={setSelectedTopCategoryId}
         onCreate={handleCreateCategory}
       />
-      {/* Top subcategory bar */}
-      {
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-2">
-          <span className="text-[11px] text-gray-500 shrink-0">
-            Subcategories
-          </span>
-          {topSubcategories.map((ts) => {
-            const active = selectedTopSubcategoryIds.includes(ts.id);
-            return (
-              <button
-                key={ts.id}
-                type="button"
-                className={`whitespace-nowrap text-xs px-2 py-1 rounded-full border ${
-                  active
-                    ? "bg-violet-600 text-white border-violet-600"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
-                onClick={() =>
-                  setSelectedTopSubcategoryIds((prev) =>
-                    prev.includes(ts.id)
-                      ? prev.filter((id) => id !== ts.id)
-                      : [...prev, ts.id]
-                  )
-                }
-                title={ts.name}
-              >
-                {ts.name}
-              </button>
-            );
-          })}
-          <button
-            type="button"
-            disabled={selectedTopCategoryId == null}
-            className={`text-xs px-2 py-1 rounded-full border ${
-              selectedTopCategoryId == null
-                ? "border-gray-200 text-gray-300"
-                : "border-dashed border-gray-300 text-gray-600 hover:bg-gray-50"
-            }`}
-            onClick={() =>
-              selectedTopCategoryId != null &&
-              setShowNewSubcategoryForm((v) => !v)
-            }
-            title={
-              selectedTopCategoryId == null
-                ? "Select a category first"
-                : "Create subcategory"
-            }
-          >
-            + New
-          </button>
-        </div>
-      }
-      {showNewSubcategoryForm && selectedTopCategoryId != null && (
-        <div className="mb-2">
-          <CreationForm handleAddFunc={handleCreateSubcategory} />
-        </div>
-      )}
+      {/* Top subcategory bar (reusable component) */}
+      <SubCategory
+        subcategories={topSubcategories}
+        selectedIds={selectedTopSubcategoryIds}
+        onChangeSelected={setSelectedTopSubcategoryIds}
+        onCreate={handleCreateSubcategory}
+      />
 
       {/* Selection breadcrumb */}
       <div className="flex items-center justify-between mb-3">

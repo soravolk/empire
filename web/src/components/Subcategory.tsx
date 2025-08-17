@@ -1,90 +1,87 @@
-import { useState, useContext } from "react";
-import { CycleCategoryItem, CycleSubcategoryItem, User } from "../types";
+import { useState } from "react";
 import CreationForm from "./CreationForm";
-import {
-  useAddSubcategoryMutation,
-  useAddSubcategoryToCycleMutation,
-  useDeleteSubcategoryFromCycleMutation,
-} from "../store";
-import TodoItem from "./TodoItem";
-import ItemCreationButton from "./ItemCreationButton";
-import { CycleItemContext } from "../context/cycle";
 
-interface SubcategoryProps {
-  category: CycleCategoryItem;
-  subcategories: CycleSubcategoryItem[];
-  selectedSubcategory: CycleSubcategoryItem | null;
-  handleClickSubcategory: (subcategory: CycleSubcategoryItem) => void;
+type TopSubcategory = { id: number; name: string };
+
+interface SubcategoryBarProps {
+  subcategories: TopSubcategory[];
+  selectedIds: number[];
+  onChangeSelected: (next: number[]) => void;
+  onCreate?: (
+    name: string
+  ) => Promise<TopSubcategory | void> | TopSubcategory | void;
 }
 
-interface FormControlProps {
-  setExpandForm: (expandForm: boolean) => void;
-  category: CycleCategoryItem;
-}
-
-const SubcategoryForm: React.FC<FormControlProps> = ({
-  setExpandForm,
-  category,
+// Reusable Top Subcategory Bar matching LongTerm's UI with multi-select
+const SubCategory: React.FC<SubcategoryBarProps> = ({
+  subcategories,
+  selectedIds,
+  onChangeSelected,
+  onCreate,
 }) => {
-  const cycle = useContext(CycleItemContext);
-  const [addSubcategory, addSubcategoryResults] = useAddSubcategoryMutation();
-  const [addSubcategoryToCycle, addSubcategoryToCycleResults] =
-    useAddSubcategoryToCycleMutation();
-  const handleAddSubcategory = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const result = await addSubcategory({
-      categoryId: String(category.category_id),
-      name: (e.currentTarget.elements.namedItem("name") as HTMLInputElement)
-        .value,
-    });
-    // TODO: add error handling and remove cycle check
-    if (cycle && "data" in result) {
-      addSubcategoryToCycle({
-        cycleId: cycle.id,
-        subcategoryId: result.data.id,
-      });
-    }
-    setExpandForm(false);
+  const [showNewForm, setShowNewForm] = useState(false);
+
+  const toggle = (id: number) => {
+    const next = selectedIds.includes(id)
+      ? selectedIds.filter((x) => x !== id)
+      : [...selectedIds, id];
+    onChangeSelected(next);
   };
 
-  return <CreationForm handleAddFunc={handleAddSubcategory} />;
-};
-
-const SubCategory: React.FC<SubcategoryProps> = ({
-  category,
-  subcategories,
-  selectedSubcategory,
-  handleClickSubcategory,
-}) => {
-  const displayItems = subcategories.filter(
-    (item) => item.category_id === category?.category_id
-  );
-  const [expandForm, setExpandForm] = useState<boolean>(false);
-
-  const [deleteSubcategoryFromCycle, deleteSubcategoryFromCycleResults] =
-    useDeleteSubcategoryFromCycleMutation();
-  const handleAddSubcategory = () => {
-    setExpandForm(!expandForm);
+  const handleSubmitNew: React.FormEventHandler<HTMLFormElement> = async (
+    e
+  ) => {
+    e.preventDefault();
+    if (!onCreate) return;
+    const name = (
+      e.currentTarget.elements.namedItem("name") as HTMLInputElement
+    )?.value?.trim();
+    if (!name) return;
+    onCreate(name);
+    setShowNewForm(false);
   };
 
   return (
-    <div className="flex flex-col items-center space-y-4 mx-5 p-4">
-      {displayItems.map((item: CycleSubcategoryItem, id: number) => (
-        <div key={id}>
-          <TodoItem
-            item={item}
-            selectedItem={selectedSubcategory}
-            handleClick={handleClickSubcategory}
-            handleDelete={deleteSubcategoryFromCycle}
-          />
+    <>
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-2">
+        <span className="text-[11px] text-gray-500 shrink-0">
+          Subcategories
+        </span>
+        {subcategories.map((ts) => {
+          const active = selectedIds.includes(ts.id);
+          return (
+            <button
+              key={ts.id}
+              type="button"
+              className={`whitespace-nowrap text-xs px-2 py-1 rounded-full border ${
+                active
+                  ? "bg-violet-600 text-white border-violet-600"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
+              }`}
+              onClick={() => toggle(ts.id)}
+              title={ts.name}
+            >
+              {ts.name}
+            </button>
+          );
+        })}
+        {onCreate && (
+          <button
+            type="button"
+            className={`text-xs px-2 py-1 rounded-full border border-dashed border-gray-300 text-gray-600 hover:bg-gray-50`}
+            onClick={() => setShowNewForm((v) => !v)}
+            title="Create subcategory"
+          >
+            + New
+          </button>
+        )}
+      </div>
+      {onCreate && showNewForm && (
+        <div className="mb-2">
+          <CreationForm handleAddFunc={handleSubmitNew} />
         </div>
-      ))}
-      <ItemCreationButton handleClick={handleAddSubcategory} />
-      {/* TODO: tidy up category and cycle check logic */}
-      {expandForm && category && (
-        <SubcategoryForm setExpandForm={setExpandForm} category={category} />
       )}
-    </div>
+    </>
   );
 };
 
