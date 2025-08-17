@@ -22,6 +22,7 @@ import {
 } from "../store";
 import { cyclesApi } from "../store/apis/cyclesApi";
 import CreationForm from "../components/CreationForm";
+import Category from "../components/Category";
 import Dropdown from "../components/Dropdown";
 import { getLongTermHistoryOptions } from "../utils/utils";
 import {
@@ -188,7 +189,6 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
   >([]);
 
   // Creation form toggles
-  const [showNewCategoryForm, setShowNewCategoryForm] = useState(false);
   const [showNewSubcategoryForm, setShowNewSubcategoryForm] = useState(false);
 
   // Current user for creating categories
@@ -377,15 +377,9 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
   const [addSubcategory] = useAddSubcategoryMutation();
 
   // Handlers to create new Category and Subcategory (reusing existing flows)
-  const handleCreateCategory: React.FormEventHandler<HTMLFormElement> = async (
-    e
-  ) => {
-    e.preventDefault();
+  // Creation callback passed to Category component
+  const handleCreateCategory = async (name: string) => {
     if (!currentUser) return;
-    const name = (
-      e.currentTarget.elements.namedItem("name") as HTMLInputElement
-    )?.value?.trim();
-    if (!name) return;
     const result: any = await addCategory({ userId: currentUser.id, name });
     if (result && result.data) {
       const newCat = result.data as { id: number; name: string };
@@ -395,8 +389,9 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
           : [...prev, { id: newCat.id, name: newCat.name }]
       );
       setSelectedTopCategoryId(newCat.id);
+      // Clear selected subcategories when switching to a new category
       setSelectedTopSubcategoryIds([]);
-      setShowNewCategoryForm(false);
+      return newCat;
     }
   };
 
@@ -450,46 +445,12 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
           )}
         </div>
       </div>
-
-      {/* Top category bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-2">
-        <span className="text-[11px] text-gray-500 shrink-0">Categories</span>
-        {topCategories.map((tc) => {
-          const active = selectedTopCategoryId === tc.id;
-          return (
-            <button
-              key={tc.id}
-              type="button"
-              className={`whitespace-nowrap text-xs px-2 py-1 rounded-full border ${
-                active
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
-              }`}
-              onClick={() => {
-                setSelectedTopCategoryId((prev) =>
-                  prev === tc.id ? null : tc.id
-                );
-              }}
-              title={tc.name}
-            >
-              {tc.name}
-            </button>
-          );
-        })}
-        <button
-          type="button"
-          className="text-xs px-2 py-1 rounded-full border border-dashed border-gray-300 text-gray-600 hover:bg-gray-50"
-          onClick={() => setShowNewCategoryForm((v) => !v)}
-        >
-          + New
-        </button>
-      </div>
-      {showNewCategoryForm && (
-        <div className="mb-2">
-          <CreationForm handleAddFunc={handleCreateCategory} />
-        </div>
-      )}
-
+      <Category
+        categories={topCategories}
+        selectedCategoryId={selectedTopCategoryId}
+        onChangeSelected={setSelectedTopCategoryId}
+        onCreate={handleCreateCategory}
+      />
       {/* Top subcategory bar */}
       {
         <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-2">
