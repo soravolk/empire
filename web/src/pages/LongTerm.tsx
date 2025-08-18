@@ -4,6 +4,7 @@ import "react-calendar/dist/Calendar.css";
 import {
   useFetchLongTermsQuery,
   useFetchCategoriesFromLongTermQuery,
+  useFetchSubcategoriesFromLongTermQuery,
   useFetchCyclesOfLongTermQuery,
   useFetchCurrentUserQuery,
   useCreateLongTermMutation,
@@ -201,51 +202,26 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
     );
   }, [longTermCategories]);
 
-  // When category changes, compute subcategories across cycles and reset selected subcategory
+  // When category changes, compute subcategories across the entire long term using the new endpoint
+  const { data: longTermSubcategories } =
+    useFetchSubcategoriesFromLongTermQuery(longTerm);
   useEffect(() => {
-    let isMounted = true;
-    const loadSubcategories = async () => {
-      if (
-        !cycleList ||
-        cycleList.length === 0 ||
-        selectedTopCategoryId == null
-      ) {
-        if (isMounted) {
-          setTopSubcategories([]);
-          setSelectedTopSubcategoryIds([]);
-        }
-        return;
-      }
-      const promises = cycleList.map((c) =>
-        store.dispatch(
-          cyclesApi.endpoints.fetchSubcategoriesFromCycle.initiate(c)
-        )
-      );
-      const results = await Promise.all(promises);
-      const map = new Map<number, string>();
-      results.forEach((res: any) => {
-        const data: CycleSubcategoryItem[] = res?.data ?? [];
-        data.forEach((sub) => {
-          if (
-            sub.category_id === selectedTopCategoryId &&
-            !map.has(sub.subcategory_id)
-          ) {
-            map.set(sub.subcategory_id, sub.name);
-          }
-        });
+    if (selectedTopCategoryId == null || !longTermSubcategories) {
+      setTopSubcategories([]);
+      setSelectedTopSubcategoryIds([]);
+      return;
+    }
+    const map = new Map<number, string>();
+    (longTermSubcategories as CycleSubcategoryItem[])
+      .filter((s) => s.category_id === selectedTopCategoryId)
+      .forEach((s) => {
+        if (!map.has(s.subcategory_id)) map.set(s.subcategory_id, s.name);
       });
-      if (isMounted) {
-        setTopSubcategories(
-          Array.from(map.entries()).map(([id, name]) => ({ id, name }))
-        );
-        setSelectedTopSubcategoryIds([]);
-      }
-    };
-    loadSubcategories();
-    return () => {
-      isMounted = false;
-    };
-  }, [cycleList, selectedTopCategoryId]);
+    setTopSubcategories(
+      Array.from(map.entries()).map(([id, name]) => ({ id, name }))
+    );
+    setSelectedTopSubcategoryIds([]);
+  }, [longTermSubcategories, selectedTopCategoryId]);
 
   // Quick add cycle in All Cycles view
   const [addCycle] = useAddCycleMutation();

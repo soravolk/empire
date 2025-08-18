@@ -50,4 +50,25 @@ const getCategoriesFromLongTerm: RequestHandler = async (req, res) => {
   }
 };
 
-export default { createLongTerm, getLongTerms, deleteLongTerm, getCategoriesFromLongTerm };
+const getSubcategoriesFromLongTerm: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { rows } = await db.getFromInnerJoin(
+      "cycle_subcategories",
+      { long_term_id: id },
+      "subcategories",
+      [["subcategory_id", "id"]]
+    );
+    res.status(200).json(rows);
+  } catch (error) {
+    res.status(500).json({ error: "internal server error" });
+  }
+};
+
+export default {
+  createLongTerm,
+  getLongTerms,
+  deleteLongTerm,
+  getCategoriesFromLongTerm,
+  getSubcategoriesFromLongTerm,
+};

@@ -42,6 +42,7 @@ export {
   useCreateLongTermMutation,
   useFetchLongTermsQuery,
   useFetchCategoriesFromLongTermQuery,
+  useFetchSubcategoriesFromLongTermQuery,
   useDeleteLongTermMutation,
 } from "./apis/longTermsApi";
 export {
