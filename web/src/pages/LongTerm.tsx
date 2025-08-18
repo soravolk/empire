@@ -3,19 +3,20 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import {
   useFetchLongTermsQuery,
+  useFetchCategoriesFromLongTermQuery,
   useFetchCyclesOfLongTermQuery,
   useFetchCurrentUserQuery,
   useCreateLongTermMutation,
   useDeleteLongTermMutation,
   useAddCycleMutation,
   useDeleteCycleMutation,
-  useAddCategoryToCycleMutation,
   useAddSubcategoryToCycleMutation,
   useAddCategoryMutation,
   useAddSubcategoryMutation,
   useAddContentToCycleMutation,
   store,
 } from "../store";
+import { longTermsApi } from "../store/apis/longTermsApi";
 import { cyclesApi } from "../store/apis/cyclesApi";
 import Category from "../components/Category";
 import SubCategory from "../components/Subcategory";
@@ -182,36 +183,23 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
   // Current user for creating categories
   const { data: currentUser } = useFetchCurrentUserQuery(null);
 
+  // Fetch categories across the entire long term once, then derive unique list
+  const { data: longTermCategories } =
+    useFetchCategoriesFromLongTermQuery(longTerm);
   useEffect(() => {
-    let isMounted = true;
-    const loadCategories = async () => {
-      if (!cycleList || cycleList.length === 0) {
-        if (isMounted) setTopCategories([]);
-        return;
-      }
-
-      const promises = cycleList.map((c) =>
-        store.dispatch(cyclesApi.endpoints.fetchCategoriesFromCycle.initiate(c))
-      );
-      const results = await Promise.all(promises);
-      const map = new Map<number, string>();
-      results.forEach((res: any) => {
-        const data: CycleCategoryItem[] = res?.data ?? [];
-        data.forEach((cat) => {
-          if (!map.has(cat.category_id)) map.set(cat.category_id, cat.name);
-        });
-      });
-      if (isMounted) {
-        setTopCategories(
-          Array.from(map.entries()).map(([id, name]) => ({ id, name }))
-        );
-      }
-    };
-    loadCategories();
-    return () => {
-      isMounted = false;
-    };
-  }, [cycleList]);
+    if (!longTermCategories) {
+      setTopCategories([]);
+      return;
+    }
+    // category_id can repeat across cycles; build a unique list by category_id
+    const map = new Map<number, string>();
+    (longTermCategories as CycleCategoryItem[]).forEach((c) => {
+      if (!map.has(c.category_id)) map.set(c.category_id, c.name);
+    });
+    setTopCategories(
+      Array.from(map.entries()).map(([id, name]) => ({ id, name }))
+    );
+  }, [longTermCategories]);
 
   // When category changes, compute subcategories across cycles and reset selected subcategory
   useEffect(() => {
@@ -228,7 +216,6 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
         }
         return;
       }
-
       const promises = cycleList.map((c) =>
         store.dispatch(
           cyclesApi.endpoints.fetchSubcategoriesFromCycle.initiate(c)
@@ -265,7 +252,6 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
   const [showAddCalendar, setShowAddCalendar] = useState(false);
 
   // Mutations needed for copy
-  const [addCategoryToCycle] = useAddCategoryToCycleMutation();
   const [addSubcategoryToCycle] = useAddSubcategoryToCycleMutation();
   const [addContentToCycle] = useAddContentToCycleMutation();
 
@@ -275,7 +261,9 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
     toCycle: CycleItem
   ) => {
     const categoriesPromise = store.dispatch(
-      cyclesApi.endpoints.fetchCategoriesFromCycle.initiate(fromCycle)
+      longTermsApi.endpoints.fetchCategoriesFromLongTerm.initiate({
+        id: fromCycle.long_term_id,
+      })
     );
     const subcategoriesPromise = store.dispatch(
       cyclesApi.endpoints.fetchSubcategoriesFromCycle.initiate(fromCycle)
@@ -290,15 +278,13 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
       contentsPromise,
     ]);
 
-    const categories: CycleCategoryItem[] = categoriesRes.data ?? [];
+    const categories: CycleCategoryItem[] = (categoriesRes.data ?? []).filter(
+      (c: CycleCategoryItem) => c.cycle_id === fromCycle.id
+    );
     const subcategories: CycleSubcategoryItem[] = subcategoriesRes.data ?? [];
     const contents: any[] = contentsRes.data ?? [];
 
     for (const category of categories) {
-      await addCategoryToCycle({
-        cycleId: toCycle.id,
-        categoryId: category.category_id,
-      });
       const categorySubs = subcategories.filter(
         (s) => s.category_id === category.category_id
       );

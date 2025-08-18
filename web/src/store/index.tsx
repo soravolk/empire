@@ -41,11 +41,11 @@ setupListeners(store.dispatch);
 export {
   useCreateLongTermMutation,
   useFetchLongTermsQuery,
+  useFetchCategoriesFromLongTermQuery,
   useDeleteLongTermMutation,
 } from "./apis/longTermsApi";
 export {
   useFetchCyclesOfLongTermQuery,
-  useFetchCategoriesFromCycleQuery,
   useFetchSubcategoriesFromCycleQuery,
   useFetchContentsFromCycleQuery,
   useFetchContentFromCycleByIdQuery,

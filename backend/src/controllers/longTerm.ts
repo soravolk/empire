@@ -35,4 +35,19 @@ const deleteLongTerm: RequestHandler = async (req, res) => {
   }
 };
 
-export default { createLongTerm, getLongTerms, deleteLongTerm };
+const getCategoriesFromLongTerm: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { rows } = await db.getFromInnerJoin(
+      "cycle_categories",
+      { long_term_id: id },
+      "categories",
+      [["category_id", "id"]]
+    );
+    res.status(200).json(rows);
+  } catch (error) {
+    res.status(500).json({ error: "internal server error" });
+  }
+};
+
+export default { createLongTerm, getLongTerms, deleteLongTerm, getCategoriesFromLongTerm };

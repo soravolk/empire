@@ -6,13 +6,13 @@ import { MdContentCopy } from "react-icons/md";
 import CreationForm from "./CreationForm";
 import Content from "./Content";
 import {
-  useFetchCategoriesFromCycleQuery,
   useFetchSubcategoriesFromCycleQuery,
   useFetchContentsFromCycleQuery,
   useAddCategoryToCycleMutation,
   useAddSubcategoryToCycleMutation,
   useAddContentMutation,
   useAddContentToCycleMutation,
+  useFetchCategoriesFromLongTermQuery,
 } from "../store";
 import { CycleItem, CycleCategoryItem, CycleSubcategoryItem } from "../types";
 import { CycleItemContext } from "../context/cycle";
@@ -141,11 +141,13 @@ const Items: React.FC<ItemProps> = ({
     setCategory(null);
   }, [cycle]);
 
-  const {
-    data: categoryData,
-    error: categoryFetchError,
-    isLoading: isCategoryLoading,
-  } = useFetchCategoriesFromCycleQuery(cycle);
+  // Fetch long-term categories and filter to this cycle
+  const { data: longTermCategories } = useFetchCategoriesFromLongTermQuery({
+    id: cycle.long_term_id,
+  } as any);
+  const categoryData: CycleCategoryItem[] = (longTermCategories || []).filter(
+    (c: CycleCategoryItem) => c.cycle_id === cycle.id
+  );
   const {
     data: subcategoryData,
     error: subcategoryFetchError,

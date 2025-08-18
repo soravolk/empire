@@ -7,7 +7,7 @@ const longTermsApi = createApi({
     baseUrl: `${API_URL}/longTerms`,
     credentials: "include",
   }),
-  tagTypes: ["LongTerm"],
+  tagTypes: ["LongTerm", "Category"],
   endpoints(builder) {
     return {
       createLongTerm: builder.mutation({
@@ -33,6 +33,21 @@ const longTermsApi = createApi({
           };
         },
       }),
+      fetchCategoriesFromLongTerm: builder.query({
+        providesTags: (result, error, longTerm) => {
+          const tags = (result ?? []).map((category: any) => {
+            return { type: "Category" as const, id: category.id };
+          });
+          tags.push({ type: "LongTerm" as const, id: longTerm.id });
+          return tags;
+        },
+        query: (longTerm) => {
+          return {
+            url: `/${longTerm.id}/categories`,
+            method: "GET",
+          };
+        },
+      }),
       deleteLongTerm: builder.mutation({
         invalidatesTags: (result, error, args) => {
           return [{ type: "LongTerm" }];
@@ -52,5 +67,6 @@ export const {
   useCreateLongTermMutation,
   useFetchLongTermsQuery,
   useDeleteLongTermMutation,
+  useFetchCategoriesFromLongTermQuery,
 } = longTermsApi;
 export { longTermsApi };

@@ -7,6 +7,8 @@ router.post("/", longTerm.createLongTerm);
 
 router.get("/", longTerm.getLongTerms);
 
+router.get("/:id/categories", longTerm.getCategoriesFromLongTerm);
+
 router.delete("/:id", longTerm.deleteLongTerm);
 
 export default router;

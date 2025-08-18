@@ -34,21 +34,6 @@ const cyclesApi = createApi({
           };
         },
       }),
-      fetchCategoriesFromCycle: builder.query({
-        providesTags: (result, error, cycle) => {
-          const tags = result.map((category: CycleCategoryItem) => {
-            return { type: "Category", id: category.id };
-          });
-          tags.push({ type: "Cycle", id: cycle.id });
-          return tags;
-        },
-        query: (cycle) => {
-          return {
-            url: `/${cycle.id}/categories`,
-            method: "GET",
-          };
-        },
-      }),
       fetchSubcategoriesFromCycle: builder.query({
         providesTags: (result, error, cycle) => {
           const tags = result.map((subcategory: CycleSubcategoryItem) => {
@@ -195,7 +180,6 @@ const cyclesApi = createApi({
 
 export const {
   useFetchCyclesOfLongTermQuery,
-  useFetchCategoriesFromCycleQuery,
   useFetchSubcategoriesFromCycleQuery,
   useFetchContentsFromCycleQuery,
   useFetchContentFromCycleByIdQuery,
