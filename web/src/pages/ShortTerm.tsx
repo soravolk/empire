@@ -226,11 +226,11 @@ const DetailItemInfo = ({ shortTerm, detailItem }: DetailItemInfoProps) => {
 
   const [updateTimeSpent] = useUpdateTimeSpentMutation();
   const [updateFinishedDate] = useUpdateFinishedDateMutation();
-  const [timeSpent, setTimeSpent] = useState(detailItem.time_spent || 0);
+  const [timeSpent, setTimeSpent] = useState(detailItem.time_spent ?? 0);
   const [finished, setFinished] = useState<boolean>(false);
 
   useEffect(() => {
-    setTimeSpent(detailItem.time_spent || 0);
+    setTimeSpent(detailItem.time_spent);
     setFinished(detailItem.finished_date != null);
   }, [detailItem]);
 
