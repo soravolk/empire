@@ -8,11 +8,11 @@ import Content from "./Content";
 import {
   useFetchSubcategoriesFromCycleQuery,
   useFetchContentsFromCycleQuery,
-  useAddCategoryToCycleMutation,
   useAddSubcategoryToCycleMutation,
   useAddContentMutation,
   useAddContentToCycleMutation,
   useFetchCategoriesFromLongTermQuery,
+  useAddCategoryToLongTermMutation,
 } from "../store";
 import { CycleItem, CycleCategoryItem, CycleSubcategoryItem } from "../types";
 import { CycleItemContext } from "../context/cycle";
@@ -159,7 +159,7 @@ const Items: React.FC<ItemProps> = ({
     isLoading: isContentLoading,
   } = useFetchContentsFromCycleQuery(cycle);
 
-  const [addCategoryToCycle] = useAddCategoryToCycleMutation();
+  const [addCategoryToLongTerm] = useAddCategoryToLongTermMutation();
   const [addSubcategoryToCycle] = useAddSubcategoryToCycleMutation();
   const [addContent] = useAddContentMutation();
   const [addContentToCycle] = useAddContentToCycleMutation();
@@ -227,8 +227,8 @@ const Items: React.FC<ItemProps> = ({
 
       // Attach missing relations first
       if (categoryMissing) {
-        await addCategoryToCycle({
-          cycleId: cycle.id,
+        await addCategoryToLongTerm({
+          longTermId: cycle.long_term_id,
           categoryId: selectedTopCategoryId,
         });
       }

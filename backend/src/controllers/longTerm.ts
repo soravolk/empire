@@ -65,10 +65,22 @@ const getSubcategoriesFromLongTerm: RequestHandler = async (req, res) => {
   }
 };
 
+const addCategoryToLongTerm: RequestHandler = async (req, res) => {
+  const { id: long_term_id } = req.params;
+  const { categoryId: category_id } = req.body;
+  try {
+    await db.insert("cycle_categories", { long_term_id, category_id });
+    res.status(201).send();
+  } catch (error) {
+    res.status(500).json({ error: "internal server error" });
+  }
+};
+
 export default {
   createLongTerm,
   getLongTerms,
   deleteLongTerm,
   getCategoriesFromLongTerm,
   getSubcategoriesFromLongTerm,
+  addCategoryToLongTerm,
 };

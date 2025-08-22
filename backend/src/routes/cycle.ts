@@ -5,9 +5,6 @@ const router = Router();
 
 router.post("/", cycle.createCycle);
 
-// TODO: modify URL to match format of /cycles/categories
-router.post("/:id/categories", cycle.addCategoryToCycle);
-
 router.post("/:id/subcategories", cycle.addSubcategoryToCycle);
 
 router.post("/:id/contents", cycle.addContentToCycle);

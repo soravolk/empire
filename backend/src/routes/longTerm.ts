@@ -8,6 +8,7 @@ router.post("/", longTerm.createLongTerm);
 router.get("/", longTerm.getLongTerms);
 
 router.get("/:id/categories", longTerm.getCategoriesFromLongTerm);
+router.post("/:id/categories", longTerm.addCategoryToLongTerm);
 router.get("/:id/subcategories", longTerm.getSubcategoriesFromLongTerm);
 
 router.delete("/:id", longTerm.deleteLongTerm);

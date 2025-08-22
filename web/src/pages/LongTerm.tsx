@@ -15,6 +15,7 @@ import {
   useAddCategoryMutation,
   useAddSubcategoryMutation,
   useAddContentToCycleMutation,
+  useAddCategoryToLongTermMutation,
   store,
 } from "../store";
 import { longTermsApi } from "../store/apis/longTermsApi";
@@ -325,6 +326,7 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
   // Mutations for creating Category/Subcategory
   const [addCategory] = useAddCategoryMutation();
   const [addSubcategory] = useAddSubcategoryMutation();
+  const [addCategoryToLongTerm] = useAddCategoryToLongTermMutation();
 
   // Handlers to create new Category and Subcategory (reusing existing flows)
   // Creation callback passed to Category component
@@ -333,6 +335,12 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
     const result: any = await addCategory({ userId: currentUser.id, name });
     if (result && result.data) {
       const newCat = result.data as { id: number; name: string };
+      if (longTerm?.id) {
+        await addCategoryToLongTerm({
+          longTermId: longTerm.id,
+          categoryId: newCat.id,
+        });
+      }
       setTopCategories((prev) =>
         prev.some((c) => c.id === newCat.id)
           ? prev

@@ -99,20 +99,6 @@ const cyclesApi = createApi({
           };
         },
       }),
-      addCategoryToCycle: builder.mutation({
-        invalidatesTags: (result, error, arg) => {
-          return [{ type: "Cycle", id: arg.cycleId }];
-        },
-        query: ({ cycleId, categoryId }) => {
-          return {
-            method: "POST",
-            url: `/${cycleId}/categories`,
-            body: {
-              categoryId,
-            },
-          };
-        },
-      }),
       deleteCategoryFromCycle: builder.mutation({
         invalidatesTags: (result, error, cycleCategoryId) => {
           return [{ type: "Category", id: cycleCategoryId }];
@@ -185,7 +171,6 @@ export const {
   useFetchContentFromCycleByIdQuery,
   useAddCycleMutation,
   useDeleteCycleMutation,
-  useAddCategoryToCycleMutation,
   useDeleteCategoryFromCycleMutation,
   useAddSubcategoryToCycleMutation,
   useDeleteSubcategoryFromCycleMutation,

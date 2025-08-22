@@ -40,6 +40,7 @@ setupListeners(store.dispatch);
 
 export {
   useCreateLongTermMutation,
+  useAddCategoryToLongTermMutation,
   useFetchLongTermsQuery,
   useFetchCategoriesFromLongTermQuery,
   useFetchSubcategoriesFromLongTermQuery,
@@ -52,7 +53,6 @@ export {
   useFetchContentFromCycleByIdQuery,
   useAddCycleMutation,
   useDeleteCycleMutation,
-  useAddCategoryToCycleMutation,
   useDeleteCategoryFromCycleMutation,
   useAddSubcategoryToCycleMutation,
   useDeleteSubcategoryFromCycleMutation,
