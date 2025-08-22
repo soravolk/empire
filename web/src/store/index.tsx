@@ -41,6 +41,7 @@ setupListeners(store.dispatch);
 export {
   useCreateLongTermMutation,
   useAddCategoryToLongTermMutation,
+  useAddSubcategoryToLongTermMutation,
   useFetchLongTermsQuery,
   useFetchCategoriesFromLongTermQuery,
   useFetchSubcategoriesFromLongTermQuery,

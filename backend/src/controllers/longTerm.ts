@@ -76,6 +76,17 @@ const addCategoryToLongTerm: RequestHandler = async (req, res) => {
   }
 };
 
+const addSubcategoryToLongTerm: RequestHandler = async (req, res) => {
+  const { id: long_term_id } = req.params;
+  const { subcategoryId: subcategory_id } = req.body;
+  try {
+    await db.insert("cycle_subcategories", { long_term_id, subcategory_id });
+    res.status(201).send();
+  } catch (error) {
+    res.status(500).json({ error: "internal server error" });
+  }
+};
+
 export default {
   createLongTerm,
   getLongTerms,
@@ -83,4 +94,5 @@ export default {
   getCategoriesFromLongTerm,
   getSubcategoriesFromLongTerm,
   addCategoryToLongTerm,
+  addSubcategoryToLongTerm,
 };

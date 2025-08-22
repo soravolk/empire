@@ -13,6 +13,7 @@ import {
   useAddContentToCycleMutation,
   useFetchCategoriesFromLongTermQuery,
   useAddCategoryToLongTermMutation,
+  useAddSubcategoryToLongTermMutation,
 } from "../store";
 import { CycleItem, CycleCategoryItem, CycleSubcategoryItem } from "../types";
 import { CycleItemContext } from "../context/cycle";
@@ -160,7 +161,7 @@ const Items: React.FC<ItemProps> = ({
   } = useFetchContentsFromCycleQuery(cycle);
 
   const [addCategoryToLongTerm] = useAddCategoryToLongTermMutation();
-  const [addSubcategoryToCycle] = useAddSubcategoryToCycleMutation();
+  const [addSubcategoryToLongTerm] = useAddSubcategoryToLongTermMutation();
   const [addContent] = useAddContentMutation();
   const [addContentToCycle] = useAddContentToCycleMutation();
 
@@ -237,8 +238,8 @@ const Items: React.FC<ItemProps> = ({
           s.subcategory_id === selectedTopSubcategoryId
       );
       if (subcategoryMissing) {
-        await addSubcategoryToCycle({
-          cycleId: cycle.id,
+        await addSubcategoryToLongTerm({
+          longTermId: cycle.long_term_id,
           subcategoryId: selectedTopSubcategoryId,
         });
       }

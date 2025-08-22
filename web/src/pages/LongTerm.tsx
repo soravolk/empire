@@ -11,11 +11,11 @@ import {
   useDeleteLongTermMutation,
   useAddCycleMutation,
   useDeleteCycleMutation,
-  useAddSubcategoryToCycleMutation,
   useAddCategoryMutation,
   useAddSubcategoryMutation,
   useAddContentToCycleMutation,
   useAddCategoryToLongTermMutation,
+  useAddSubcategoryToLongTermMutation,
   store,
 } from "../store";
 import { longTermsApi } from "../store/apis/longTermsApi";
@@ -229,7 +229,7 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
   const [showAddCalendar, setShowAddCalendar] = useState(false);
 
   // Mutations needed for copy
-  const [addSubcategoryToCycle] = useAddSubcategoryToCycleMutation();
+  const [addSubcategoryToLongTerm] = useAddSubcategoryToLongTermMutation();
   const [addContentToCycle] = useAddContentToCycleMutation();
 
   // Copy logic reused by per-row calendar
@@ -266,8 +266,8 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
         (s) => s.category_id === category.category_id
       );
       for (const sub of categorySubs) {
-        await addSubcategoryToCycle({
-          cycleId: toCycle.id,
+        await addSubcategoryToLongTerm({
+          longTermId: toCycle.long_term_id,
           subcategoryId: sub.subcategory_id,
         });
         const subContents = contents.filter(
@@ -361,6 +361,12 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
     });
     if (result && result.data) {
       const newSub = result.data as { id: number; name: string };
+      if (longTerm?.id) {
+        await addSubcategoryToLongTerm({
+          longTermId: longTerm.id,
+          subcategoryId: newSub.id,
+        });
+      }
       setTopSubcategories((prev) =>
         prev.some((s) => s.id === newSub.id)
           ? prev

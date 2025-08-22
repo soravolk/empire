@@ -75,6 +75,24 @@ const longTermsApi = createApi({
           };
         },
       }),
+      addSubcategoryToLongTerm: builder.mutation({
+        invalidatesTags: (result, error, { longTermId }) => {
+          return [{ type: "LongTerm" as const, id: longTermId }];
+        },
+        query: ({
+          longTermId,
+          subcategoryId,
+        }: {
+          longTermId: number;
+          subcategoryId: number;
+        }) => {
+          return {
+            method: "POST",
+            url: `/${longTermId}/subcategories`,
+            body: { subcategoryId },
+          };
+        },
+      }),
       deleteLongTerm: builder.mutation({
         invalidatesTags: (result, error, args) => {
           return [{ type: "LongTerm" }];
@@ -97,5 +115,6 @@ export const {
   useFetchCategoriesFromLongTermQuery,
   useFetchSubcategoriesFromLongTermQuery,
   useAddCategoryToLongTermMutation,
+  useAddSubcategoryToLongTermMutation,
 } = longTermsApi;
 export { longTermsApi };

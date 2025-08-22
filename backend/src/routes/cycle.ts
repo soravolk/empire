@@ -5,8 +5,6 @@ const router = Router();
 
 router.post("/", cycle.createCycle);
 
-router.post("/:id/subcategories", cycle.addSubcategoryToCycle);
-
 router.post("/:id/contents", cycle.addContentToCycle);
 
 router.post("/", cycle.createCycle);
