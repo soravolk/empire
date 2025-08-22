@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { MdDelete } from "react-icons/md";
 import CreationForm from "./CreationForm";
 
 type TopCategory = { id: number; name: string };
@@ -9,6 +10,7 @@ interface CategoryBarProps {
   onChangeSelected: (id: number | null) => void;
   onCreate?: (name: string) => Promise<TopCategory | void> | TopCategory | void;
   label?: string;
+  onDeleteSelected?: () => void;
 }
 
 // Reusable Top Category Bar matching LongTerm's UI
@@ -17,6 +19,7 @@ const Category: React.FC<CategoryBarProps> = ({
   selectedCategoryId,
   onChangeSelected,
   onCreate,
+  onDeleteSelected,
 }) => {
   const [showNewCategoryForm, setShowNewCategoryForm] = useState(false);
 
@@ -62,6 +65,16 @@ const Category: React.FC<CategoryBarProps> = ({
         >
           + New
         </button>
+        {selectedCategoryId != null && onDeleteSelected && (
+          <button
+            type="button"
+            className="ml-2 text-xs px-2 py-1 rounded-full border border-red-300 text-red-600 hover:bg-red-50"
+            onClick={onDeleteSelected}
+            title="Remove selected category from long term"
+          >
+            <MdDelete />
+          </button>
+        )}
       </div>
       {onCreate && showNewCategoryForm && (
         <div className="mb-2">

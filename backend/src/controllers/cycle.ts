@@ -93,15 +93,6 @@ const deleteCycle: RequestHandler = async (req, res) => {
 };
 
 
-const deleteCategoryFromCycle: RequestHandler = async (req, res) => {
-  const { id } = req.params;
-  try {
-    await db.deleteById("cycle_categories", id);
-    res.status(204).send();
-  } catch (error) {
-    res.status(500).json({ error: "internal server error" });
-  }
-};
 
 
 const deleteSubcategoryFromCycle: RequestHandler = async (req, res) => {
@@ -143,7 +134,6 @@ export default {
   getCycles,
   deleteCycle,
   addContentToCycle,
-  deleteCategoryFromCycle,
   deleteSubcategoryFromCycle,
   deleteContentFromCycle,
 };

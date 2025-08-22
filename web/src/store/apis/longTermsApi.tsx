@@ -52,7 +52,13 @@ const longTermsApi = createApi({
         invalidatesTags: (result, error, { longTermId }) => {
           return [{ type: "LongTerm" as const, id: longTermId }];
         },
-        query: ({ longTermId, categoryId }: { longTermId: number; categoryId: number }) => {
+        query: ({
+          longTermId,
+          categoryId,
+        }: {
+          longTermId: number;
+          categoryId: number;
+        }) => {
           return {
             method: "POST",
             url: `/${longTermId}/categories`,
@@ -104,6 +110,16 @@ const longTermsApi = createApi({
           };
         },
       }),
+      deleteCategoryFromLongTerm: builder.mutation({
+        // We can't easily know which LongTerm to invalidate with only a row id; broadly invalidate LongTerm list
+        invalidatesTags: () => [{ type: "LongTerm" as const }],
+        query: (id: number) => {
+          return {
+            method: "DELETE",
+            url: `/categories/${id}`,
+          };
+        },
+      }),
     };
   },
 });
@@ -116,5 +132,6 @@ export const {
   useFetchSubcategoriesFromLongTermQuery,
   useAddCategoryToLongTermMutation,
   useAddSubcategoryToLongTermMutation,
+  useDeleteCategoryFromLongTermMutation,
 } = longTermsApi;
 export { longTermsApi };

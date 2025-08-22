@@ -16,6 +16,7 @@ import {
   useAddContentToCycleMutation,
   useAddCategoryToLongTermMutation,
   useAddSubcategoryToLongTermMutation,
+  useDeleteCategoryFromLongTermMutation,
   store,
 } from "../store";
 import { longTermsApi } from "../store/apis/longTermsApi";
@@ -327,6 +328,7 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
   const [addCategory] = useAddCategoryMutation();
   const [addSubcategory] = useAddSubcategoryMutation();
   const [addCategoryToLongTerm] = useAddCategoryToLongTermMutation();
+  const [deleteCategoryFromLongTerm] = useDeleteCategoryFromLongTermMutation();
 
   // Handlers to create new Category and Subcategory (reusing existing flows)
   // Creation callback passed to Category component
@@ -407,6 +409,23 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
         selectedCategoryId={selectedTopCategoryId}
         onChangeSelected={setSelectedTopCategoryId}
         onCreate={handleCreateCategory}
+        onDeleteSelected={async () => {
+          if (selectedTopCategoryId == null || !longTerm?.id) return;
+          // Find a cycle_categories row id representing this top category association
+          const categoriesData = (
+            await store.dispatch(
+              longTermsApi.endpoints.fetchCategoriesFromLongTerm.initiate(
+                longTerm
+              )
+            )
+          ).data as CycleCategoryItem[] | undefined;
+          const row = categoriesData?.find(
+            (c) => c.category_id === selectedTopCategoryId
+          );
+          if (!row) return;
+          await deleteCategoryFromLongTerm(row.id);
+          setSelectedTopCategoryId(null);
+        }}
       />
       {/* Top subcategory bar (reusable component) */}
       <SubCategory
