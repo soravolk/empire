@@ -438,8 +438,6 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
         onCreate={handleCreateSubcategory}
         onDeleteSelected={async () => {
           if (!longTerm?.id || selectedTopSubcategoryIds.length === 0) return;
-          // Delete only the first selected for now (extend to multi later if needed)
-          const firstSelected = selectedTopSubcategoryIds[0];
           const subcategoriesData = (
             await store.dispatch(
               longTermsApi.endpoints.fetchSubcategoriesFromLongTerm.initiate(
@@ -447,14 +445,19 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
               )
             )
           ).data as CycleSubcategoryItem[] | undefined;
-          const row = subcategoriesData?.find(
-            (s) => s.subcategory_id === firstSelected
+          if (!subcategoriesData) return;
+          // For each selected subcategory id, find one association row and delete it
+          const rowsToDelete = selectedTopSubcategoryIds
+            .map(
+              (sid) =>
+                subcategoriesData.find((s) => s.subcategory_id === sid)?.id
+            )
+            .filter((id): id is number => typeof id === "number");
+          await Promise.all(
+            rowsToDelete.map((id) => deleteSubcategoryFromLongTerm(id))
           );
-          if (!row) return;
-          await deleteSubcategoryFromLongTerm(row.id);
-          setSelectedTopSubcategoryIds((prev) =>
-            prev.filter((id) => id !== firstSelected)
-          );
+          // Clear selection after deletion
+          setSelectedTopSubcategoryIds([]);
         }}
       />
 
