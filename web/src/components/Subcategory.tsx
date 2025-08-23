@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { MdDelete } from "react-icons/md";
 import CreationForm from "./CreationForm";
 
 type TopSubcategory = { id: number; name: string };
@@ -10,6 +11,7 @@ interface SubcategoryBarProps {
   onCreate?: (
     name: string
   ) => Promise<TopSubcategory | void> | TopSubcategory | void;
+  onDeleteSelected?: () => void;
 }
 
 // Reusable Top Subcategory Bar matching LongTerm's UI with multi-select
@@ -18,6 +20,7 @@ const SubCategory: React.FC<SubcategoryBarProps> = ({
   selectedIds,
   onChangeSelected,
   onCreate,
+  onDeleteSelected,
 }) => {
   const [showNewForm, setShowNewForm] = useState(false);
 
@@ -73,6 +76,16 @@ const SubCategory: React.FC<SubcategoryBarProps> = ({
             title="Create subcategory"
           >
             + New
+          </button>
+        )}
+        {selectedIds.length > 0 && onDeleteSelected && (
+          <button
+            type="button"
+            className="ml-2 text-xs px-2 py-1 rounded-full border border-red-300 text-red-600 hover:bg-red-50"
+            onClick={onDeleteSelected}
+            title="Remove selected subcategory from long term"
+          >
+            <MdDelete />
           </button>
         )}
       </div>

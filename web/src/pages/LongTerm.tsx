@@ -17,6 +17,7 @@ import {
   useAddCategoryToLongTermMutation,
   useAddSubcategoryToLongTermMutation,
   useDeleteCategoryFromLongTermMutation,
+  useDeleteSubcategoryFromLongTermMutation,
   store,
 } from "../store";
 import { longTermsApi } from "../store/apis/longTermsApi";
@@ -231,6 +232,8 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
 
   // Mutations needed for copy
   const [addSubcategoryToLongTerm] = useAddSubcategoryToLongTermMutation();
+  const [deleteSubcategoryFromLongTerm] =
+    useDeleteSubcategoryFromLongTermMutation();
   const [addContentToCycle] = useAddContentToCycleMutation();
 
   // Copy logic reused by per-row calendar
@@ -433,6 +436,26 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
         selectedIds={selectedTopSubcategoryIds}
         onChangeSelected={setSelectedTopSubcategoryIds}
         onCreate={handleCreateSubcategory}
+        onDeleteSelected={async () => {
+          if (!longTerm?.id || selectedTopSubcategoryIds.length === 0) return;
+          // Delete only the first selected for now (extend to multi later if needed)
+          const firstSelected = selectedTopSubcategoryIds[0];
+          const subcategoriesData = (
+            await store.dispatch(
+              longTermsApi.endpoints.fetchSubcategoriesFromLongTerm.initiate(
+                longTerm
+              )
+            )
+          ).data as CycleSubcategoryItem[] | undefined;
+          const row = subcategoriesData?.find(
+            (s) => s.subcategory_id === firstSelected
+          );
+          if (!row) return;
+          await deleteSubcategoryFromLongTerm(row.id);
+          setSelectedTopSubcategoryIds((prev) =>
+            prev.filter((id) => id !== firstSelected)
+          );
+        }}
       />
 
       {/* Selection breadcrumb */}

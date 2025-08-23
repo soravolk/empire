@@ -47,6 +47,7 @@ export {
   useFetchCategoriesFromLongTermQuery,
   useFetchSubcategoriesFromLongTermQuery,
   useDeleteLongTermMutation,
+  useDeleteSubcategoryFromLongTermMutation,
 } from "./apis/longTermsApi";
 export {
   useFetchCyclesOfLongTermQuery,
@@ -56,7 +57,6 @@ export {
   useAddCycleMutation,
   useDeleteCycleMutation,
   useAddSubcategoryToCycleMutation,
-  useDeleteSubcategoryFromCycleMutation,
   useAddContentToCycleMutation,
   useDeleteContentFromCycleMutation,
 } from "./apis/cyclesApi";

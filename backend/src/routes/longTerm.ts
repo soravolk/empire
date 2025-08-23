@@ -12,6 +12,7 @@ router.post("/:id/categories", longTerm.addCategoryToLongTerm);
 router.get("/:id/subcategories", longTerm.getSubcategoriesFromLongTerm);
 router.post("/:id/subcategories", longTerm.addSubcategoryToLongTerm);
 router.delete("/categories/:id", longTerm.deleteCategoryFromLongTerm);
+router.delete("/subcategories/:id", longTerm.deleteSubcategoryFromLongTerm);
 
 router.delete("/:id", longTerm.deleteLongTerm);
 

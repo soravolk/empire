@@ -97,6 +97,16 @@ const deleteCategoryFromLongTerm: RequestHandler = async (req, res) => {
   }
 };
 
+const deleteSubcategoryFromLongTerm: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.deleteById("cycle_subcategories", id);
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: "internal server error" });
+  }
+};
+
 export default {
   createLongTerm,
   getLongTerms,
@@ -106,4 +116,5 @@ export default {
   addCategoryToLongTerm,
   addSubcategoryToLongTerm,
   deleteCategoryFromLongTerm,
+  deleteSubcategoryFromLongTerm,
 };

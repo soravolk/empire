@@ -120,6 +120,15 @@ const longTermsApi = createApi({
           };
         },
       }),
+      deleteSubcategoryFromLongTerm: builder.mutation({
+        invalidatesTags: () => [{ type: "LongTerm" as const }],
+        query: (id: number) => {
+          return {
+            method: "DELETE",
+            url: `/subcategories/${id}`,
+          };
+        },
+      }),
     };
   },
 });
@@ -133,5 +142,6 @@ export const {
   useAddCategoryToLongTermMutation,
   useAddSubcategoryToLongTermMutation,
   useDeleteCategoryFromLongTermMutation,
+  useDeleteSubcategoryFromLongTermMutation,
 } = longTermsApi;
 export { longTermsApi };
