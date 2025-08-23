@@ -167,11 +167,6 @@ interface CycleOptionsProps {
 
 const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
   const { cycleList } = useCycleListContext();
-
-  // Aggregate unique categories across all cycles
-  const [topCategories, setTopCategories] = useState<
-    { id: number; name: string }[]
-  >([]);
   const [selectedTopCategoryId, setSelectedTopCategoryId] = useState<
     number | null
   >(null);
@@ -187,23 +182,9 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
   // Current user for creating categories
   const { data: currentUser } = useFetchCurrentUserQuery(null);
 
-  // Fetch categories across the entire long term once, then derive unique list
+  // Fetch categories across the entire long term for the Category bar
   const { data: longTermCategories } =
     useFetchCategoriesFromLongTermQuery(longTerm);
-  useEffect(() => {
-    if (!longTermCategories) {
-      setTopCategories([]);
-      return;
-    }
-    // category_id can repeat across cycles; build a unique list by category_id
-    const map = new Map<number, string>();
-    (longTermCategories as CycleCategoryItem[]).forEach((c) => {
-      if (!map.has(c.category_id)) map.set(c.category_id, c.name);
-    });
-    setTopCategories(
-      Array.from(map.entries()).map(([id, name]) => ({ id, name }))
-    );
-  }, [longTermCategories]);
 
   // When category changes, compute subcategories across the entire long term using the new endpoint
   const { data: longTermSubcategories } =
@@ -214,14 +195,13 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
       setSelectedTopSubcategoryIds([]);
       return;
     }
-    const map = new Map<number, string>();
-    (longTermSubcategories as CycleSubcategoryItem[])
-      .filter((s) => s.category_id === selectedTopCategoryId)
-      .forEach((s) => {
-        if (!map.has(s.subcategory_id)) map.set(s.subcategory_id, s.name);
-      });
     setTopSubcategories(
-      Array.from(map.entries()).map(([id, name]) => ({ id, name }))
+      (longTermSubcategories as CycleSubcategoryItem[])
+        .filter((s) => s.category_id === selectedTopCategoryId)
+        .map((c) => ({
+          id: c.subcategory_id,
+          name: c.name,
+        }))
     );
     setSelectedTopSubcategoryIds([]);
   }, [longTermSubcategories, selectedTopCategoryId]);
@@ -318,14 +298,15 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
   const [deleteCycle] = useDeleteCycleMutation();
 
   // Derive selected names for summary and row badges
-  const selectedTopCategory =
-    selectedTopCategoryId != null
-      ? topCategories.find((tc) => tc.id === selectedTopCategoryId)
-      : undefined;
   const selectedTopSubcategories = topSubcategories.filter((ts) =>
     selectedTopSubcategoryIds.includes(ts.id)
   );
-  const selectedTopCategoryName = selectedTopCategory?.name ?? null;
+  const selectedTopCategoryName =
+    selectedTopCategoryId != null
+      ? (longTermCategories as CycleCategoryItem[] | undefined)?.find(
+          (c) => c.category_id === selectedTopCategoryId
+        )?.name ?? null
+      : null;
 
   // Mutations for creating Category/Subcategory
   const [addCategory] = useAddCategoryMutation();
@@ -346,11 +327,6 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
           categoryId: newCat.id,
         });
       }
-      setTopCategories((prev) =>
-        prev.some((c) => c.id === newCat.id)
-          ? prev
-          : [...prev, { id: newCat.id, name: newCat.name }]
-      );
       setSelectedTopCategoryId(newCat.id);
       // Clear selected subcategories when switching to a new category
       setSelectedTopSubcategoryIds([]);
@@ -408,7 +384,9 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
         </div>
       </div>
       <Category
-        categories={topCategories}
+        categories={(
+          (longTermCategories as CycleCategoryItem[] | undefined) ?? []
+        ).map((c) => ({ id: c.category_id, name: c.name }))}
         selectedCategoryId={selectedTopCategoryId}
         onChangeSelected={setSelectedTopCategoryId}
         onCreate={handleCreateCategory}
