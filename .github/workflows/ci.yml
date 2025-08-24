@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   backend:
-    name: Backend build
+    name: Backend build and test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -31,6 +31,9 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Run tests
+        run: npm test --silent
 
       - name: Build (ignore TS errors)
         run: npm run build
