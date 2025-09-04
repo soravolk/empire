@@ -237,10 +237,27 @@ const DetailItemInfo = ({ shortTerm, detailItem }: DetailItemInfoProps) => {
   const [isEditing, setIsEditing] = useState(false);
 
   const handleTimeSpentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTimeSpent = parseInt(e.target.value) || 0;
-    setTimeSpent(newTimeSpent);
+  // Convert to number and remove leading zeros
+  const inputValue = e.target.value;
+  
+  // Return early if empty input
+  if (inputValue === '') {
+    setTimeSpent(0);
     setIsEditing(true);
-  };
+    return;
+  }
+
+  // Only allow numeric input
+  if (!/^\d+$/.test(inputValue)) {
+    return;
+  }
+
+  // Convert to number while preventing leading zeros
+  const newTimeSpent = Number(inputValue);
+  
+  setTimeSpent(newTimeSpent);
+  setIsEditing(true);
+};
 
   const handleConfirmTimeSpent = () => {
     updateTimeSpent({ id: String(detailItem.id), timeSpent });
@@ -295,9 +312,9 @@ const DetailItemInfo = ({ shortTerm, detailItem }: DetailItemInfoProps) => {
           <input
             type="number"
             min="0"
-            value={timeSpent}
+            value={timeSpent === 0 ? '0' : timeSpent}
             onChange={handleTimeSpentChange}
-            onFocus={(e) => e.target.select()}
+            
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
           {isEditing && (
