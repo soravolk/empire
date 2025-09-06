@@ -12,8 +12,6 @@ import {
   useAddContentMutation,
   useAddContentToCycleMutation,
   useFetchCategoriesFromLongTermQuery,
-  useAddCategoryToLongTermMutation,
-  useAddSubcategoryToLongTermMutation,
 } from "../store";
 import { CycleItem, CycleCategoryItem, CycleSubcategoryItem } from "../types";
 import { CycleItemContext } from "../context/cycle";
@@ -160,8 +158,6 @@ const Items: React.FC<ItemProps> = ({
     isLoading: isContentLoading,
   } = useFetchContentsFromCycleQuery(cycle);
 
-  const [addCategoryToLongTerm] = useAddCategoryToLongTermMutation();
-  const [addSubcategoryToLongTerm] = useAddSubcategoryToLongTermMutation();
   const [addContent] = useAddContentMutation();
   const [addContentToCycle] = useAddContentToCycleMutation();
 
@@ -178,13 +174,6 @@ const Items: React.FC<ItemProps> = ({
       ) || null;
     setCategory(match);
   }, [selectedTopCategoryId, categoryData]);
-
-  const categoryMissing =
-    selectedTopCategoryId != null &&
-    categoryData &&
-    !categoryData.some(
-      (c: CycleCategoryItem) => c.category_id === selectedTopCategoryId
-    );
 
   // Helper: list of selected subcategories present in this cycle
   const selectedSubsInCycle: CycleSubcategoryItem[] =
@@ -225,24 +214,6 @@ const Items: React.FC<ItemProps> = ({
         e.currentTarget.elements.namedItem("name") as HTMLInputElement
       )?.value?.trim();
       if (!name) return;
-
-      // Attach missing relations first
-      if (categoryMissing) {
-        await addCategoryToLongTerm({
-          longTermId: cycle.long_term_id,
-          categoryId: selectedTopCategoryId,
-        });
-      }
-      const subcategoryMissing = !subcategoryData?.some(
-        (s: CycleSubcategoryItem) =>
-          s.subcategory_id === selectedTopSubcategoryId
-      );
-      if (subcategoryMissing) {
-        await addSubcategoryToLongTerm({
-          longTermId: cycle.long_term_id,
-          subcategoryId: selectedTopSubcategoryId,
-        });
-      }
 
       // Create and attach content
       const result: any = await addContent({
