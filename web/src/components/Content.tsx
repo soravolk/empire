@@ -58,7 +58,9 @@ const Content: React.FC<ContentProps> = ({ subcategory, contents }) => {
   };
   return (
     <div className="flex flex-col items-center space-y-4 shadow mx-5 p-4">
-      <h3 className="font-bold mb-2">Cycle 1</h3>
+      <h3 className="font-bold mb-2">
+        {subcategory?.name || "Untitled subcategory"}
+      </h3>
       <ul className="list-inside list-disc space-y-3">
         {displayItems.map((item, idx) => (
           <div key={idx} className="flex items-center space-x-2">

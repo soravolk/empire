@@ -1,166 +1,301 @@
 import { useState, useEffect } from "react";
-import { CycleItem } from "../types";
-import {
-  useAddCycleMutation,
-  useDeleteCycleMutation,
-  useAddCategoryToCycleMutation,
-  useAddSubcategoryToCycleMutation,
-  useAddContentToCycleMutation,
-  store,
-} from "../store";
-import { cyclesApi } from "../store/apis/cyclesApi";
 import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
 import { MdDelete } from "react-icons/md";
 import { MdContentCopy } from "react-icons/md";
-import "react-calendar/dist/Calendar.css";
-import ItemCreationButton from "./ItemCreationButton";
-import { useLongTermContext } from "../context/longTerm";
-
-interface CycleProps {
-  cycles: CycleItem[];
-  selectedCycle: CycleItem | null;
-  setSelectedCycle: (cycle: CycleItem | null) => void;
-}
+import CreationForm from "./CreationForm";
+import Content from "./Content";
+import {
+  useFetchContentsFromCycleQuery,
+  useAddSubcategoryToCycleMutation,
+  useAddContentMutation,
+  useAddContentToCycleMutation,
+  useFetchCategoriesFromLongTermQuery,
+  useFetchSubcategoriesFromLongTermQuery,
+} from "../store";
+import { CycleItem, CycleCategoryItem, CycleSubcategoryItem } from "../types";
+import { CycleItemContext } from "../context/cycle";
 
 type DateValue = Date | null;
-
 type CycleRange = DateValue | [DateValue, DateValue];
 
+interface CycleProps {
+  cycle: CycleItem;
+  index: number;
+  onDelete: (c: CycleItem) => void;
+  onCopyWithRange: (source: CycleItem, range: CycleRange) => void;
+  selectedTopCategoryId?: number | null;
+  selectedTopSubcategoryIds?: number[];
+  selectedTopSubcategories?: { id: number; name: string }[];
+}
+
 const Cycle: React.FC<CycleProps> = ({
-  cycles,
-  selectedCycle,
-  setSelectedCycle,
+  cycle,
+  index,
+  onDelete,
+  onCopyWithRange,
+  selectedTopCategoryId,
+  selectedTopSubcategoryIds,
+  selectedTopSubcategories,
 }) => {
-  const { selectedLongTerm: longTerm } = useLongTermContext();
+  const [expanded, setExpanded] = useState(false);
+  const [showCopyCalendar, setShowCopyCalendar] = useState(false);
 
-  const [addCycle, addCycleResults] = useAddCycleMutation();
-  const [deleteCycle, deleteCycleResults] = useDeleteCycleMutation();
-  const [addCategoryToCycle] = useAddCategoryToCycleMutation();
-  const [addSubcategoryToCycle] = useAddSubcategoryToCycleMutation();
-  const [addContentToCycle] = useAddContentToCycleMutation();
-  const [expandCalendar, setExpandCalendar] = useState(false);
-  const [cycleToCopy, setCycleToCopy] = useState<CycleItem | null>(null);
-
-  const handleClick = (cycle: CycleItem) => {
-    setSelectedCycle(cycle);
-  };
-
-  const handleAddCycle = () => {
-    setExpandCalendar(!expandCalendar);
-  };
-
-  const handleCopyCycle = async (cycle: CycleItem) => {
-    setCycleToCopy(cycle);
-    setExpandCalendar(true);
-  };
-
-  const handleSelectCycleRange = async (date: CycleRange) => {
-    setExpandCalendar(!expandCalendar);
-    if (!Array.isArray(date)) return;
-
-    const newCycleResult = await addCycle({
-      longTermId: longTerm?.id,
-      startTime: date[0],
-      endTime: date[1],
-    });
-    if (!("data" in newCycleResult) || !newCycleResult.data) {
-      throw new Error("Failed to create new cycle");
-    }
-    const newCycle = newCycleResult.data;
-
-    if (cycleToCopy) {
-      copyCycleContents(cycleToCopy, newCycle);
-      setCycleToCopy(null);
-    }
-  };
-
-  const copyCycleContents = async (
-    cycleToCopy: CycleItem,
-    newCycle: CycleItem
-  ) => {
-    // Fetch all data from the original cycle using RTK Query
-    const categoriesPromise = store.dispatch(
-      cyclesApi.endpoints.fetchCategoriesFromCycle.initiate(cycleToCopy)
-    );
-    const subcategoriesPromise = store.dispatch(
-      cyclesApi.endpoints.fetchSubcategoriesFromCycle.initiate(cycleToCopy)
-    );
-    const contentsPromise = store.dispatch(
-      cyclesApi.endpoints.fetchContentsFromCycle.initiate(cycleToCopy)
-    );
-    const [categoriesResult, subcategoriesResult, contentsResult] =
-      await Promise.all([
-        categoriesPromise,
-        subcategoriesPromise,
-        contentsPromise,
-      ]);
-    const categories = categoriesResult.data;
-    const subcategories = subcategoriesResult.data;
-    const contents = contentsResult.data;
+  // Auto-expand rows when category selected and at least one subcategory selected; collapse when both cleared
+  useEffect(() => {
     if (
-      !categoriesResult.data.length ||
-      !subcategoriesResult.data.length ||
-      !contentsResult.data.length
+      selectedTopCategoryId != null &&
+      (selectedTopSubcategoryIds?.length ?? 0) > 0
     ) {
-      throw new Error("Failed to create new cycle");
+      setExpanded(true);
+    } else if (
+      selectedTopCategoryId == null &&
+      (selectedTopSubcategoryIds?.length ?? 0) === 0
+    ) {
+      setExpanded(false);
     }
+  }, [selectedTopCategoryId, selectedTopSubcategoryIds]);
 
-    // Recreate category/subcategory/contnet and their relationships
-    for (const category of categories) {
-      await addCategoryToCycle({
-        cycleId: newCycle.id,
-        categoryId: category.category_id,
-      });
-
-      const categorySubcategories = subcategories.filter(
-        (sub: any) => sub.category_id === category.category_id
-      );
-
-      for (const subcategory of categorySubcategories) {
-        await addSubcategoryToCycle({
-          cycleId: newCycle.id,
-          subcategoryId: subcategory.subcategory_id,
-        });
-
-        const subcategoryContents = contents.filter(
-          (content: any) =>
-            content.subcategory_id === subcategory.subcategory_id
-        );
-
-        for (const content of subcategoryContents) {
-          await addContentToCycle({
-            cycleId: newCycle.id,
-            contentId: content.content_id,
-          });
-        }
-      }
-    }
+  const handleCopySelectRange = async (date: CycleRange) => {
+    setShowCopyCalendar(false);
+    await onCopyWithRange(cycle, date);
   };
 
   return (
-    <div className="flex flex-col items-center space-y-2">
-      {cycles &&
-        cycles.map((item: CycleItem, id: number) => (
-          <div key={id} className="flex items-center space-x-2">
+    <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-sm font-medium text-gray-700">{`Cycle ${
+          index + 1
+        }`}</div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-50"
+            onClick={() => setExpanded((e) => !e)}
+          >
+            {expanded ? "Collapse" : "Expand"}
+          </button>
+          <div className="relative">
             <button
-              className={`items-center justify-center bg-gray-200 rounded-full w-20 h-20 ${
-                item.id === selectedCycle?.id && "bg-gray-300"
-              }`}
-              onClick={() => handleClick(item)}
+              type="button"
+              aria-label="Copy cycle"
+              className="text-gray-600 hover:text-gray-800"
+              onClick={() => setShowCopyCalendar((v) => !v)}
+              title="Copy cycle to new date range"
             >
-              {`Cycle ${id + 1}`}
-            </button>
-            <button onClick={() => handleCopyCycle(item)}>
               <MdContentCopy />
             </button>
-            <button>
-              <MdDelete onClick={() => deleteCycle(item)} />
-            </button>
+            {showCopyCalendar && (
+              <div className="absolute right-0 z-10 mt-2 shadow-lg">
+                <Calendar selectRange onChange={handleCopySelectRange} />
+              </div>
+            )}
           </div>
-        ))}
-      <ItemCreationButton handleClick={handleAddCycle} />
-      {expandCalendar && (
-        <Calendar selectRange onChange={handleSelectCycleRange} />
+          <button
+            type="button"
+            aria-label="Delete cycle"
+            className="text-red-600 hover:text-red-700"
+            onClick={() => onDelete(cycle)}
+          >
+            <MdDelete />
+          </button>
+        </div>
+      </div>
+      {expanded ? (
+        <CycleItemContext.Provider value={cycle}>
+          <div className="flex gap-4">
+            <Items
+              cycle={cycle}
+              selectedTopCategoryId={selectedTopCategoryId}
+              selectedTopSubcategoryIds={selectedTopSubcategoryIds}
+              selectedTopSubcategories={selectedTopSubcategories}
+            />
+          </div>
+        </CycleItemContext.Provider>
+      ) : (
+        <div className="text-xs text-gray-500">
+          Click Expand to view categories and tasks
+        </div>
+      )}
+    </div>
+  );
+};
+
+interface ItemProps {
+  cycle: CycleItem;
+  selectedTopCategoryId?: number | null;
+  selectedTopSubcategoryIds?: number[];
+  selectedTopSubcategories?: { id: number; name: string }[];
+}
+
+const Items: React.FC<ItemProps> = ({
+  cycle,
+  selectedTopCategoryId,
+  selectedTopSubcategoryIds,
+  selectedTopSubcategories,
+}) => {
+  const [category, setCategory] = useState<CycleCategoryItem | null>(null);
+
+  useEffect(() => {
+    setCategory(null);
+  }, [cycle]);
+
+  // Fetch long-term categories and filter to this cycle
+  const { data: categoryData } = useFetchCategoriesFromLongTermQuery({
+    id: cycle.long_term_id,
+  } as any);
+  const {
+    data: subcategoryData,
+    error: subcategoryFetchError,
+    isLoading: isSubCategoryLoading,
+  } = useFetchSubcategoriesFromLongTermQuery({ id: cycle.long_term_id });
+  const {
+    data: contentData,
+    error: contentFetchError,
+    isLoading: isContentLoading,
+  } = useFetchContentsFromCycleQuery(cycle);
+
+  const [addContent] = useAddContentMutation();
+  const [addContentToCycle] = useAddContentToCycleMutation();
+
+  // Sync from top selections
+  useEffect(() => {
+    if (!categoryData) return;
+    if (selectedTopCategoryId == null) {
+      setCategory(null);
+      return;
+    }
+    const match =
+      categoryData.find(
+        (c: CycleCategoryItem) => c.category_id === selectedTopCategoryId
+      ) || null;
+    setCategory(match);
+  }, [selectedTopCategoryId, categoryData]);
+
+  // Helper: list of selected subcategories present in this cycle
+  const selectedSubcategories: CycleSubcategoryItem[] =
+    (subcategoryData && selectedTopSubcategoryIds
+      ? subcategoryData.filter((s: CycleSubcategoryItem) =>
+          selectedTopSubcategoryIds.includes(s.subcategory_id)
+        )
+      : []) ?? [];
+  // Helper: list of selected subcategory ids missing in this cycle
+  const missingSelectedSubIds: number[] = (
+    selectedTopSubcategoryIds || []
+  ).filter(
+    (id) =>
+      !subcategoryData?.some(
+        (s: CycleSubcategoryItem) => s.subcategory_id === id
+      )
+  );
+
+  // Quick content creation per missing subcategory (supports multi-select)
+  const [showQuickContentForms, setShowQuickContentForms] = useState<number[]>(
+    []
+  );
+  const toggleQuickForm = (id: number) =>
+    setShowQuickContentForms((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+
+  const handleQuickCreateContent =
+    (
+      selectedTopSubcategoryId: number
+    ): React.FormEventHandler<HTMLFormElement> =>
+    async (e) => {
+      e.preventDefault();
+      if (selectedTopCategoryId == null || selectedTopSubcategoryId == null)
+        return;
+      const name = (
+        e.currentTarget.elements.namedItem("name") as HTMLInputElement
+      )?.value?.trim();
+      if (!name) return;
+
+      // Create and attach content
+      const result: any = await addContent({
+        subcategoryId: String(selectedTopSubcategoryId),
+        name,
+      });
+      if (result && result.data) {
+        await addContentToCycle({
+          cycleId: cycle.id,
+          contentId: result.data.id,
+        });
+      }
+
+      setShowQuickContentForms((prev) =>
+        prev.filter((x) => x !== selectedTopSubcategoryId)
+      );
+    };
+
+  const getSubName = (id: number) =>
+    selectedTopSubcategories?.find((s) => s.id === id)?.name ||
+    `Subcategory ${id}`;
+
+  return (
+    <div className="flex-1 min-w-0">
+      {/* When selections are made but this cycle is missing some of them, show Add content per missing subcategory */}
+      {selectedTopCategoryId != null &&
+        (selectedTopSubcategoryIds?.length ?? 0) > 0 &&
+        missingSelectedSubIds.length > 0 && (
+          <div className="mb-3 space-y-2">
+            {missingSelectedSubIds.map((id) => (
+              <div key={id} className="">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-600">
+                    {getSubName(id)}
+                  </span>
+                  <button
+                    type="button"
+                    className="text-xs px-2 py-1 rounded border border-emerald-600 text-emerald-700 hover:bg-emerald-50"
+                    onClick={() => toggleQuickForm(id)}
+                  >
+                    Add content
+                  </button>
+                </div>
+                {showQuickContentForms.includes(id) && (
+                  <div className="mt-2">
+                    <CreationForm
+                      handleAddFunc={handleQuickCreateContent(id)}
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+      {/* If category is set and content data available, render content for each selected subcategory present in this cycle */}
+      {category && contentData && selectedSubcategories.length > 0 && (
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {selectedSubcategories.map((sub) => (
+            <Content
+              key={sub.subcategory_id}
+              subcategory={sub}
+              contents={contentData}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Guidance and missing states */}
+      {!category && selectedTopCategoryId != null && (
+        <div className="text-xs text-gray-500">
+          This cycle does not include the selected category.
+        </div>
+      )}
+      {category &&
+        (selectedTopSubcategoryIds?.length ?? 0) > 0 &&
+        selectedSubcategories.length === 0 && (
+          <div className="text-xs text-gray-500">
+            This cycle does not include any of the selected subcategories.
+          </div>
+        )}
+      {category && missingSelectedSubIds.length > 0 && (
+        <div className="text-[11px] text-gray-500 mt-1">
+          Missing in this cycle: {missingSelectedSubIds.length} selected
+          subcategor{missingSelectedSubIds.length > 1 ? "ies" : "y"}.
+        </div>
       )}
     </div>
   );

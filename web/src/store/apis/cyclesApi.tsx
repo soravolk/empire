@@ -34,21 +34,6 @@ const cyclesApi = createApi({
           };
         },
       }),
-      fetchCategoriesFromCycle: builder.query({
-        providesTags: (result, error, cycle) => {
-          const tags = result.map((category: CycleCategoryItem) => {
-            return { type: "Category", id: category.id };
-          });
-          tags.push({ type: "Cycle", id: cycle.id });
-          return tags;
-        },
-        query: (cycle) => {
-          return {
-            url: `/${cycle.id}/categories`,
-            method: "GET",
-          };
-        },
-      }),
       fetchSubcategoriesFromCycle: builder.query({
         providesTags: (result, error, cycle) => {
           const tags = result.map((subcategory: CycleSubcategoryItem) => {
@@ -114,31 +99,6 @@ const cyclesApi = createApi({
           };
         },
       }),
-      addCategoryToCycle: builder.mutation({
-        invalidatesTags: (result, error, arg) => {
-          return [{ type: "Cycle", id: arg.cycleId }];
-        },
-        query: ({ cycleId, categoryId }) => {
-          return {
-            method: "POST",
-            url: `/${cycleId}/categories`,
-            body: {
-              categoryId,
-            },
-          };
-        },
-      }),
-      deleteCategoryFromCycle: builder.mutation({
-        invalidatesTags: (result, error, cycleCategoryId) => {
-          return [{ type: "Category", id: cycleCategoryId }];
-        },
-        query: (cycleCategoryId) => {
-          return {
-            method: "DELETE",
-            url: `/categories/${cycleCategoryId}`,
-          };
-        },
-      }),
       addSubcategoryToCycle: builder.mutation({
         invalidatesTags: (result, error, arg) => {
           return [{ type: "Cycle", id: arg.cycleId }];
@@ -150,17 +110,6 @@ const cyclesApi = createApi({
             body: {
               subcategoryId,
             },
-          };
-        },
-      }),
-      deleteSubcategoryFromCycle: builder.mutation({
-        invalidatesTags: (result, error, arg) => {
-          return [{ type: "Subcategory", id: arg.cycleSubcategoryId }];
-        },
-        query: (cycleSubcategoryId) => {
-          return {
-            method: "DELETE",
-            url: `/subcategories/${cycleSubcategoryId}`,
           };
         },
       }),
@@ -195,16 +144,12 @@ const cyclesApi = createApi({
 
 export const {
   useFetchCyclesOfLongTermQuery,
-  useFetchCategoriesFromCycleQuery,
   useFetchSubcategoriesFromCycleQuery,
   useFetchContentsFromCycleQuery,
   useFetchContentFromCycleByIdQuery,
   useAddCycleMutation,
   useDeleteCycleMutation,
-  useAddCategoryToCycleMutation,
-  useDeleteCategoryFromCycleMutation,
   useAddSubcategoryToCycleMutation,
-  useDeleteSubcategoryFromCycleMutation,
   useAddContentToCycleMutation,
   useDeleteContentFromCycleMutation,
 } = cyclesApi;

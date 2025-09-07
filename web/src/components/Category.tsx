@@ -1,77 +1,87 @@
-import { useState, useContext } from "react";
-import { CycleCategoryItem, User } from "../types";
-import {
-  useDeleteCategoryFromCycleMutation,
-  useAddCategoryMutation,
-  useAddCategoryToCycleMutation,
-} from "../store";
+import { useState } from "react";
+import { MdDelete } from "react-icons/md";
 import CreationForm from "./CreationForm";
-import TodoItem from "./TodoItem";
-import ItemCreationButton from "./ItemCreationButton";
-import { CycleItemContext } from "../context/cycle";
 
-interface CategoryProps {
-  categories: CycleCategoryItem[];
-  selectedCategory: CycleCategoryItem | null;
-  handleClickCategory: (category: CycleCategoryItem) => void;
-  user: User;
+type TopCategory = { id: number; name: string };
+
+interface CategoryBarProps {
+  categories: TopCategory[];
+  selectedCategoryId: number | null;
+  onChangeSelected: (id: number | null) => void;
+  onCreate?: (name: string) => Promise<TopCategory | void> | TopCategory | void;
+  label?: string;
+  onDeleteSelected?: () => void;
 }
 
-interface FormControlProps {
-  setExpandForm: (expandForm: boolean) => void;
-  user: User;
-}
-
-const CategoryForm: React.FC<FormControlProps> = ({ setExpandForm, user }) => {
-  const [addCategory, addCategoryResults] = useAddCategoryMutation();
-  const [addCategoryToCycle, addCategoryToCycleResults] =
-    useAddCategoryToCycleMutation();
-  const cycle = useContext(CycleItemContext);
-  const handleAddCategory = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const result = await addCategory({
-      userId: user.id,
-      name: (e.currentTarget.elements.namedItem("name") as HTMLInputElement)
-        .value,
-    });
-    // TODO: add error handling and remove cycle check
-    if (cycle && "data" in result) {
-      addCategoryToCycle({ cycleId: cycle.id, categoryId: result.data.id });
-    }
-    setExpandForm(false);
-  };
-
-  return <CreationForm handleAddFunc={handleAddCategory} />;
-};
-
-const Category: React.FC<CategoryProps> = ({
+// Reusable Top Category Bar matching LongTerm's UI
+const Category: React.FC<CategoryBarProps> = ({
   categories,
-  selectedCategory,
-  handleClickCategory,
-  user,
+  selectedCategoryId,
+  onChangeSelected,
+  onCreate,
+  onDeleteSelected,
 }) => {
-  const [expandForm, setExpandForm] = useState<boolean>(false);
-  const [deleteCategoryFromCycle, deleteCategoryFromCycleResults] =
-    useDeleteCategoryFromCycleMutation();
-  const handleAddCategory = () => {
-    setExpandForm(!expandForm);
+  const [showNewCategoryForm, setShowNewCategoryForm] = useState(false);
+
+  const handleSubmitNewCategory: React.FormEventHandler<
+    HTMLFormElement
+  > = async (e) => {
+    e.preventDefault();
+    if (!onCreate) return;
+    const name = (
+      e.currentTarget.elements.namedItem("name") as HTMLInputElement
+    )?.value?.trim();
+    if (!name) return;
+    await onCreate(name);
+    setShowNewCategoryForm(false);
   };
+
   return (
-    <div className="flex flex-col items-center space-y-4 mx-5 p-4">
-      {categories.map((item: CycleCategoryItem, id: number) => (
-        <div key={id}>
-          <TodoItem
-            item={item}
-            selectedItem={selectedCategory}
-            handleClick={handleClickCategory}
-            handleDelete={deleteCategoryFromCycle}
-          />
+    <>
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-2">
+        <span className="text-[11px] text-gray-500 shrink-0">Categories</span>
+        {categories.map((tc) => {
+          const active = selectedCategoryId === tc.id;
+          return (
+            <button
+              key={tc.id}
+              type="button"
+              className={`whitespace-nowrap text-xs px-2 py-1 rounded-full border ${
+                active
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
+              }`}
+              onClick={() => onChangeSelected(active ? null : tc.id)}
+              title={tc.name}
+            >
+              {tc.name}
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          className="text-xs px-2 py-1 rounded-full border border-dashed border-gray-300 text-gray-600 hover:bg-gray-50"
+          onClick={() => setShowNewCategoryForm((v) => !v)}
+        >
+          + New
+        </button>
+        {selectedCategoryId != null && onDeleteSelected && (
+          <button
+            type="button"
+            className="ml-2 text-xs px-2 py-1 rounded-full border border-red-300 text-red-600 hover:bg-red-50"
+            onClick={onDeleteSelected}
+            title="Remove selected category from long term"
+          >
+            <MdDelete />
+          </button>
+        )}
+      </div>
+      {onCreate && showNewCategoryForm && (
+        <div className="mb-2">
+          <CreationForm handleAddFunc={handleSubmitNewCategory} />
         </div>
-      ))}
-      <ItemCreationButton handleClick={handleAddCategory} />
-      {/* TODO: tidy up cycle check logic */}
-      {expandForm && <CategoryForm setExpandForm={setExpandForm} user={user} />}
-    </div>
+      )}
+    </>
   );
 };
 

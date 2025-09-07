@@ -40,21 +40,23 @@ setupListeners(store.dispatch);
 
 export {
   useCreateLongTermMutation,
+  useAddCategoryToLongTermMutation,
+  useAddSubcategoryToLongTermMutation,
+  useDeleteCategoryFromLongTermMutation,
   useFetchLongTermsQuery,
+  useFetchCategoriesFromLongTermQuery,
+  useFetchSubcategoriesFromLongTermQuery,
   useDeleteLongTermMutation,
+  useDeleteSubcategoryFromLongTermMutation,
 } from "./apis/longTermsApi";
 export {
   useFetchCyclesOfLongTermQuery,
-  useFetchCategoriesFromCycleQuery,
   useFetchSubcategoriesFromCycleQuery,
   useFetchContentsFromCycleQuery,
   useFetchContentFromCycleByIdQuery,
   useAddCycleMutation,
   useDeleteCycleMutation,
-  useAddCategoryToCycleMutation,
-  useDeleteCategoryFromCycleMutation,
   useAddSubcategoryToCycleMutation,
-  useDeleteSubcategoryFromCycleMutation,
   useAddContentToCycleMutation,
   useDeleteContentFromCycleMutation,
 } from "./apis/cyclesApi";

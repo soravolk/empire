@@ -16,23 +16,6 @@ const createCycle: RequestHandler = async (req, res) => {
   }
 };
 
-const getCategoriesFromCycle: RequestHandler = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const { rows } = await db.getFromInnerJoin(
-      "cycle_categories",
-      {
-        cycle_id: id,
-      },
-      "categories",
-      [["category_id", "id"]]
-    );
-    res.status(200).json(rows);
-  } catch (error) {
-    res.status(500).json({ error });
-  }
-};
-
 const getSubcategoriesFromCycle: RequestHandler = async (req, res) => {
   const { id } = req.params;
   try {
@@ -109,47 +92,6 @@ const deleteCycle: RequestHandler = async (req, res) => {
   }
 };
 
-const addCategoryToCycle: RequestHandler = async (req, res) => {
-  const { id: cycle_id } = req.params;
-  const { categoryId: category_id } = req.body;
-  try {
-    await db.insert("cycle_categories", { cycle_id, category_id });
-    res.status(201).send();
-  } catch (error) {
-    res.status(500).json({ error: "internal server error" });
-  }
-};
-
-const deleteCategoryFromCycle: RequestHandler = async (req, res) => {
-  const { id } = req.params;
-  try {
-    await db.deleteById("cycle_categories", id);
-    res.status(204).send();
-  } catch (error) {
-    res.status(500).json({ error: "internal server error" });
-  }
-};
-
-const addSubcategoryToCycle: RequestHandler = async (req, res) => {
-  const { id: cycle_id } = req.params;
-  const { subcategoryId: subcategory_id } = req.body;
-  try {
-    await db.insert("cycle_subcategories", { cycle_id, subcategory_id });
-    res.status(201).send();
-  } catch (error) {
-    res.status(500).json({ error: "internal server error" });
-  }
-};
-
-const deleteSubcategoryFromCycle: RequestHandler = async (req, res) => {
-  const { id } = req.params;
-  try {
-    await db.deleteById("cycle_subcategories", id);
-    res.status(204).send();
-  } catch (error) {
-    res.status(500).json({ error: "internal server error" });
-  }
-};
 
 const addContentToCycle: RequestHandler = async (req, res) => {
   const { id: cycle_id } = req.params;
@@ -174,16 +116,11 @@ const deleteContentFromCycle: RequestHandler = async (req, res) => {
 
 export default {
   createCycle,
-  getCategoriesFromCycle,
   getSubcategoriesFromCycle,
   getContentsFromCycle,
   getContentFromCycleById,
   getCycles,
   deleteCycle,
-  addCategoryToCycle,
-  addSubcategoryToCycle,
   addContentToCycle,
-  deleteCategoryFromCycle,
-  deleteSubcategoryFromCycle,
   deleteContentFromCycle,
 };
