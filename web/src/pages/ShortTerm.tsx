@@ -39,6 +39,8 @@ import {
 } from "../store";
 import { useLongTermContext } from "../context/longTerm";
 import { useShortTermContext } from "../context/shortTerm";
+import { store } from "../store";
+import { subtasksApi } from "../store/apis/subtasksApi";
 
 interface CreateShortTermProps {
   user: User;
@@ -111,6 +113,9 @@ const CopyShortTerm: React.FC<CopyShortTermProps> = ({
 }) => {
   const [createShortTerm] = useCreateShortTermMutation();
   const [createTask] = useCreateTaskMutation();
+  const [createSubtask] = useCreateSubtaskMutation();
+  const [updateSubtaskTimeSpent] = useUpdateSubtaskTimeSpentMutation();
+  const [updateSubtaskFinishedDate] = useUpdateSubtaskFinishedDateMutation();
   const { data: tasks } = useFetchTasksFromShortTermQuery({
     shortTermId: selectedShortTerm.id,
   });
@@ -126,12 +131,33 @@ const CopyShortTerm: React.FC<CopyShortTermProps> = ({
     }
     const newShortTerm = newShortTermResult.data;
 
-    // Copy tasks for the new short term
+    // Copy tasks and their subtasks for the new short term
     for (const task of tasks) {
-      await createTask({
+      const newTaskResult: any = await createTask({
         contentId: String(task.content_id),
         shortTermId: String(newShortTerm.id),
       });
+      const newTask = newTaskResult?.data;
+
+      // Fetch subtasks for the original task imperatively
+      const subtasksResult: any = await store.dispatch(
+        subtasksApi.endpoints.fetchSubtasksFromTask.initiate({
+          taskId: task.id,
+        })
+      );
+      const originalSubtasks: Subtask[] = subtasksResult?.data ?? [];
+
+      for (const s of originalSubtasks) {
+        try {
+          await createSubtask({
+            taskId: String(newTask.id),
+            name: s.name,
+            description: s.description || undefined,
+          });
+        } catch (e) {
+          console.error("Failed to copy subtask", e);
+        }
+      }
     }
   };
 
