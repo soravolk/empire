@@ -6,12 +6,12 @@ import { MdContentCopy } from "react-icons/md";
 import CreationForm from "./CreationForm";
 import Content from "./Content";
 import {
-  useFetchSubcategoriesFromCycleQuery,
   useFetchContentsFromCycleQuery,
   useAddSubcategoryToCycleMutation,
   useAddContentMutation,
   useAddContentToCycleMutation,
   useFetchCategoriesFromLongTermQuery,
+  useFetchSubcategoriesFromLongTermQuery,
 } from "../store";
 import { CycleItem, CycleCategoryItem, CycleSubcategoryItem } from "../types";
 import { CycleItemContext } from "../context/cycle";
@@ -141,17 +141,14 @@ const Items: React.FC<ItemProps> = ({
   }, [cycle]);
 
   // Fetch long-term categories and filter to this cycle
-  const { data: longTermCategories } = useFetchCategoriesFromLongTermQuery({
+  const { data: categoryData } = useFetchCategoriesFromLongTermQuery({
     id: cycle.long_term_id,
   } as any);
-  const categoryData: CycleCategoryItem[] = (longTermCategories || []).filter(
-    (c: CycleCategoryItem) => c.cycle_id === cycle.id
-  );
   const {
     data: subcategoryData,
     error: subcategoryFetchError,
     isLoading: isSubCategoryLoading,
-  } = useFetchSubcategoriesFromCycleQuery(cycle);
+  } = useFetchSubcategoriesFromLongTermQuery({ id: cycle.long_term_id });
   const {
     data: contentData,
     error: contentFetchError,
@@ -176,13 +173,12 @@ const Items: React.FC<ItemProps> = ({
   }, [selectedTopCategoryId, categoryData]);
 
   // Helper: list of selected subcategories present in this cycle
-  const selectedSubsInCycle: CycleSubcategoryItem[] =
+  const selectedSubcategories: CycleSubcategoryItem[] =
     (subcategoryData && selectedTopSubcategoryIds
       ? subcategoryData.filter((s: CycleSubcategoryItem) =>
           selectedTopSubcategoryIds.includes(s.subcategory_id)
         )
       : []) ?? [];
-
   // Helper: list of selected subcategory ids missing in this cycle
   const missingSelectedSubIds: number[] = (
     selectedTopSubcategoryIds || []
@@ -270,9 +266,9 @@ const Items: React.FC<ItemProps> = ({
         )}
 
       {/* If category is set and content data available, render content for each selected subcategory present in this cycle */}
-      {category && contentData && selectedSubsInCycle.length > 0 && (
+      {category && contentData && selectedSubcategories.length > 0 && (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {selectedSubsInCycle.map((sub) => (
+          {selectedSubcategories.map((sub) => (
             <Content
               key={sub.subcategory_id}
               subcategory={sub}
@@ -290,7 +286,7 @@ const Items: React.FC<ItemProps> = ({
       )}
       {category &&
         (selectedTopSubcategoryIds?.length ?? 0) > 0 &&
-        selectedSubsInCycle.length === 0 && (
+        selectedSubcategories.length === 0 && (
           <div className="text-xs text-gray-500">
             This cycle does not include any of the selected subcategories.
           </div>
