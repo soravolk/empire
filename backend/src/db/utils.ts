@@ -12,6 +12,30 @@ const mustHasRelations: Record<
   cycle_contents: { parentTable: "cycles", parentKey: "cycle_id" },
 };
 
+const TABLE_WHITELIST = new Set([
+  "users", "long_terms", "short_terms", "cycles",
+  "cycle_categories", "cycle_subcategories", "cycle_contents"
+]);
+
+const COLUMN_WHITELIST: Record<string, Set<string>> = {
+  users: new Set(["id","email","..."]),
+  long_terms: new Set(["id","user_id","..."]),
+  short_terms: new Set(["id","user_id","..."]),
+  cycles: new Set(["id","long_term_id","..."]),
+  cycle_categories: new Set(["id","cycle_id","..."]),
+  cycle_subcategories: new Set(["id","cycle_id","..."]),
+  cycle_contents: new Set(["id","cycle_id","..."]),
+};
+
+function assertTable(t: string) {
+  if (!TABLE_WHITELIST.has(t)) throw new Error(`Invalid table: ${t}`);
+  return t;
+}
+function assertColumn(t: string, c: string) {
+  if (!COLUMN_WHITELIST[t]?.has(c)) throw new Error(`Invalid column: ${t}.${c}`);
+  return c;
+}
+
 const buildOwnershipQueries = (leafTable: string, uid: string) => {
   const joins: string[] = [];
   const params = [];
@@ -127,7 +151,7 @@ const getFromInnerJoin = async (
   const query = `
     SELECT ${tableFrom}.*, ${tableToColumnNames.join(",")}
     FROM ${tableFrom}
-    INNER JOIN ${tableTo} 
+    INNER JOIN ${tableTo}
     ON (${joinCondition.join(" AND ")})
     WHERE (${whereCondition.join(" AND ")})`;
 
