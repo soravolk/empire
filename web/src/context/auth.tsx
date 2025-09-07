@@ -12,7 +12,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { error: userFetchError } = useFetchCurrentUserQuery(null);
-
+  console.log("isAuthenticated: ",isAuthenticated);
   useEffect(() => {
     if (!userFetchError) {
       setIsAuthenticated(true);
