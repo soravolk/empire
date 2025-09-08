@@ -1,0 +1,148 @@
+openapi: 3.0.3
+info:
+  title: Goals API
+  version: "1.0.0"
+  description: CRUD for goals and category links on Long Term page
+servers:
+  - url: http://localhost:5000
+paths:
+  /goals:
+    get:
+      summary: List goals for current user (optionally by long_term_id)
+      parameters:
+        - in: query
+          name: long_term_id
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Goal"
+    post:
+      summary: Create a goal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoalCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Goal"
+  /goals/{id}:
+    patch:
+      summary: Update goal statement
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoalUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Goal"
+    delete:
+      summary: Delete a goal
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: No Content
+  /goals/{id}/categories:
+    post:
+      summary: Link categories to a goal
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category_ids:
+                  type: array
+                  items:
+                    type: integer
+              required: [category_ids]
+      responses:
+        "200":
+          description: OK
+    delete:
+      summary: Unlink categories from a goal
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category_ids:
+                  type: array
+                  items:
+                    type: integer
+              required: [category_ids]
+      responses:
+        "204":
+          description: No Content
+components:
+  schemas:
+    Goal:
+      type: object
+      properties:
+        id: { type: integer }
+        user_id: { type: integer }
+        long_term_id: { type: integer }
+        statement: { type: string, maxLength: 280 }
+        category_ids:
+          type: array
+          items: { type: integer }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+      required: [id, user_id, long_term_id, statement]
+    GoalCreate:
+      type: object
+      properties:
+        long_term_id: { type: integer }
+        statement: { type: string, maxLength: 280 }
+        category_ids:
+          type: array
+          items: { type: integer }
+      required: [long_term_id, statement]
+    GoalUpdate:
+      type: object
+      properties:
+        statement: { type: string, maxLength: 280 }
