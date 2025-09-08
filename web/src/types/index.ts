@@ -8,6 +8,9 @@ import {
   Task,
   Subtask,
   User,
+  GoalItem,
+  GoalCreate,
+  GoalUpdate,
 } from "./db";
 
 export type {
@@ -20,4 +23,7 @@ export type {
   Task,
   Subtask,
   User,
+  GoalItem,
+  GoalCreate,
+  GoalUpdate,
 };
