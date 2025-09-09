@@ -15,10 +15,10 @@ const ensureOwnershipByLongTerm = async (long_term_id: string, uid: string) => {
 const GOAL_CAP_PER_LONG_TERM = 10;
 
 export const listGoals: RequestHandler = async (req, res) => {
-  const { longTermId } = req.query as any;
+  const { long_term_id } = req.query as any;
   const uid = req.user!.id;
   try {
-    await ensureOwnershipByLongTerm(String(longTermId), uid);
+    await ensureOwnershipByLongTerm(String(long_term_id), uid);
     const { rows } = await pg!.query(
       `SELECT g.*, ARRAY_AGG(gl.category_id) FILTER (WHERE gl.category_id IS NOT NULL) AS category_ids
        FROM goals g
@@ -26,7 +26,7 @@ export const listGoals: RequestHandler = async (req, res) => {
        WHERE g.long_term_id = $1 AND g.user_id = $2
        GROUP BY g.id
        ORDER BY g.updated_at DESC`,
-      [longTermId, uid]
+      [long_term_id, uid] as any[]
     );
     res.status(200).json(rows);
   } catch (error: any) {
