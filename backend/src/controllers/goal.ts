@@ -57,15 +57,25 @@ export const createGoal: RequestHandler = async (req, res) => {
     if (existingCount >= GOAL_CAP_PER_LONG_TERM) {
       return res.status(400).json({ error: "goal cap reached" });
     }
+    // Validate optional categories belong to the same long term
+    let validCategoryIds: number[] | undefined = undefined;
+    if (Array.isArray(category_ids) && category_ids.length) {
+      const unique = Array.from(new Set(category_ids.map((n) => Number(n))));
+      const { rows: catRows } = await pg!.query(
+        `SELECT DISTINCT category_id FROM cycle_categories WHERE long_term_id = $1 AND category_id = ANY($2::int[])`,
+        [long_term_id, unique] as any[]
+      );
+      validCategoryIds = catRows.map((r: any) => r.category_id);
+    }
     const goal = await db.insert("goals", {
       user_id: uid,
       long_term_id,
       statement: trimmed,
     });
-    if (Array.isArray(category_ids) && category_ids.length) {
+    if (validCategoryIds && validCategoryIds.length) {
       const values: any[] = [];
       const placeholders: string[] = [];
-      category_ids.forEach((cid, i) => {
+      validCategoryIds.forEach((cid, i) => {
         values.push(goal.id, cid);
         placeholders.push(`($${2 * i + 1}, $${2 * i + 2})`);
       });
@@ -129,9 +139,21 @@ export const linkCategories: RequestHandler = async (req, res) => {
     const { rows } = await db.getById("goals", id, uid);
     if (!rows || rows.length === 0)
       return res.status(404).json({ error: "not found" });
+    const goal = rows[0] as { long_term_id: number };
+    // Validate categories belong to the same long term
+    const unique = Array.from(new Set(category_ids.map((n) => Number(n))));
+    const { rows: catRows } = await pg!.query(
+      `SELECT DISTINCT category_id FROM cycle_categories WHERE long_term_id = $1 AND category_id = ANY($2::int[])`,
+      [goal.long_term_id, unique] as any[]
+    );
+    const validCategoryIds = catRows.map((r: any) => r.category_id);
+    if (!validCategoryIds.length)
+      return res
+        .status(400)
+        .json({ error: "no valid category_ids for this long term" });
     const values: any[] = [];
     const placeholders: string[] = [];
-    category_ids.forEach((cid, i) => {
+    validCategoryIds.forEach((cid, i) => {
       values.push(id, cid);
       placeholders.push(`($${2 * i + 1}, $${2 * i + 2})`);
     });
