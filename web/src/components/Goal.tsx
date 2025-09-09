@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { MdDelete, MdLinkOff } from "react-icons/md";
 import { BsPencilSquare, BsCheck2 } from "react-icons/bs";
 import classNames from "classnames";
@@ -58,6 +58,12 @@ const Goal: React.FC<GoalProps> = ({
     setBusy(false);
   };
 
+  const catNameById = useMemo(() => {
+    const m = new Map<number, string>();
+    categories.forEach((c) => m.set(c.id, c.name));
+    return m;
+  }, [categories]);
+
   return (
     <div className="flex flex-col gap-2 p-3 border rounded-md bg-white">
       <div className="flex items-start gap-2">
@@ -68,6 +74,7 @@ const Goal: React.FC<GoalProps> = ({
             onChange={(e) => setText(e.target.value)}
             maxLength={280}
             disabled={busy}
+            aria-label="Edit goal text"
           />
         ) : (
           <div className="flex-1 text-sm text-gray-900 break-words">
@@ -85,6 +92,7 @@ const Goal: React.FC<GoalProps> = ({
               onClick={handleSave}
               disabled={busy}
               title="Save"
+              aria-label="Save goal"
             >
               <BsCheck2 />
             </button>
@@ -94,6 +102,7 @@ const Goal: React.FC<GoalProps> = ({
               className="text-sm px-2 py-1 rounded border hover:bg-gray-50"
               onClick={() => setEditing(true)}
               title="Edit"
+              aria-label="Edit goal"
             >
               <BsPencilSquare />
             </button>
@@ -109,6 +118,7 @@ const Goal: React.FC<GoalProps> = ({
             onClick={handleDelete}
             disabled={busy}
             title="Delete"
+            aria-label="Delete goal"
           >
             <MdDelete />
           </button>
@@ -124,13 +134,13 @@ const Goal: React.FC<GoalProps> = ({
               className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700"
               title="Unlink category"
             >
-              #{cid}
+              {catNameById.get(cid) || `#${cid}`}
               <button
                 type="button"
                 className="ml-1 text-blue-700 hover:text-blue-900"
                 onClick={() => handleUnlink(cid)}
                 disabled={busy}
-                aria-label={`Unlink category ${cid}`}
+                aria-label={`Unlink category ${catNameById.get(cid) || cid}`}
                 title="Unlink"
               >
                 <MdLinkOff />
@@ -142,8 +152,12 @@ const Goal: React.FC<GoalProps> = ({
 
       {/* Link selector */}
       <div className="flex items-center gap-2">
+        <label className="sr-only" htmlFor={`goal-link-select-${goal.id}`}>
+          Link category
+        </label>
         <select
           className="text-sm border rounded px-2 py-1"
+          id={`goal-link-select-${goal.id}`}
           value={selectedCatId}
           onChange={(e) =>
             setSelectedCatId(e.target.value ? Number(e.target.value) : "")
@@ -167,6 +181,7 @@ const Goal: React.FC<GoalProps> = ({
           )}
           onClick={handleLink}
           disabled={selectedCatId === "" || busy}
+          aria-label="Link selected category"
         >
           Link
         </button>
