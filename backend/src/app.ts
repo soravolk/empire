@@ -16,6 +16,7 @@ import taskRoutes from "./routes/task";
 import cycleRoutes from "./routes/cycle";
 import { checkAuthentication } from "./middleware/auth";
 import { init as dbInit, pg } from "./db/postgre";
+import { ensureGoalSchema } from "./db/schema.goals";
 
 import "./services/auth";
 
@@ -81,6 +82,7 @@ async function start() {
   if (pg === undefined) {
     throw new Error("db undefined");
   }
+  await ensureGoalSchema();
 }
 
 start().catch((err) => {
