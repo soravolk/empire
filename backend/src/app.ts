@@ -14,8 +14,10 @@ import subcategoryRoutes from "./routes/subcategory";
 import contentRoutes from "./routes/content";
 import taskRoutes from "./routes/task";
 import cycleRoutes from "./routes/cycle";
+import goalRoutes from "./routes/goal";
 import { checkAuthentication } from "./middleware/auth";
 import { init as dbInit, pg } from "./db/postgre";
+import { ensureGoalSchema } from "./db/schema.goals";
 
 import "./services/auth";
 
@@ -69,6 +71,7 @@ async function start() {
   app.use("/contents", contentRoutes);
   app.use("/tasks", taskRoutes);
   app.use("/cycles", cycleRoutes);
+  app.use("/goals", goalRoutes);
 
   app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     res.status(500).json({ message: err.message });
@@ -81,6 +84,7 @@ async function start() {
   if (pg === undefined) {
     throw new Error("db undefined");
   }
+  await ensureGoalSchema();
 }
 
 start().catch((err) => {

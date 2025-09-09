@@ -10,6 +10,8 @@ const mustHasRelations: Record<
   cycle_categories: { parentTable: "cycles", parentKey: "cycle_id" },
   cycle_subcategories: { parentTable: "cycles", parentKey: "cycle_id" },
   cycle_contents: { parentTable: "cycles", parentKey: "cycle_id" },
+  goals: { parentTable: "long_terms", parentKey: "long_term_id" },
+  goal_category_links: { parentTable: "goals", parentKey: "goal_id" },
 };
 
 const buildOwnershipQueries = (leafTable: string, uid: string) => {
@@ -42,7 +44,7 @@ const insert = async (table: string, data: { [key: string]: any }) => {
   const columns = Object.keys(data);
   const values = Object.values(data);
   const placeholders = columns.map((_, idx) => `$${idx + 1}`);
-  const res = await pg.query(
+  const res = await pg!.query(
     `INSERT INTO ${table}(${columns.join(",")}) VALUES (${placeholders.join(
       ","
     )}) RETURNING *`,
@@ -64,7 +66,7 @@ const getById = async (table: string, id: string, uid: string) => {
      WHERE ${wheres.join(" AND ")}
   `;
 
-  return await pg.query(sql, params);
+  return await pg!.query(sql, params);
 };
 
 const getWithCondition = async (
@@ -75,7 +77,7 @@ const getWithCondition = async (
   const values = Object.values(conditions);
   const placeholders = keys.map((key, idx) => `${key} = $${idx + 1}`);
 
-  return await pg.query(
+  return await pg!.query(
     `SELECT * FROM ${table} WHERE ${placeholders.join(" AND ")}`,
     values
   );
@@ -91,11 +93,11 @@ const getAll = async (table: string, uid: string) => {
      WHERE ${wheres.join(" AND ")}
   `;
 
-  return await pg.query(sql, params);
+  return await pg!.query(sql, params);
 };
 
 const getColumnNamesWithoutId = async (table: string) => {
-  const res = await pg.query(
+  const res = await pg!.query(
     `
     SELECT column_name
     FROM information_schema.columns
@@ -131,11 +133,11 @@ const getFromInnerJoin = async (
     ON (${joinCondition.join(" AND ")})
     WHERE (${whereCondition.join(" AND ")})`;
 
-  return await pg.query(query, whereValues);
+  return await pg!.query(query, whereValues);
 };
 
 const deleteById = async (table: string, id: string) => {
-  await pg.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
+  await pg!.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
 };
 
 const updateById = async (
@@ -154,7 +156,7 @@ const updateById = async (
   const query = `UPDATE ${table} SET ${setClause} WHERE id = $${
     lastIndexCount + 1
   } RETURNING *`;
-  const { rows } = await pg.query(query, values);
+  const { rows } = await pg!.query(query, values);
   return rows[0];
 };
 
