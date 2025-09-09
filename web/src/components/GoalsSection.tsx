@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   useFetchGoalsQuery,
   useCreateGoalMutation,
@@ -40,6 +40,8 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ longTerm }) => {
   const [newText, setNewText] = useState("");
   const [selectedCatIds, setSelectedCatIds] = useState<number[]>([]);
   const [busy, setBusy] = useState(false);
+  const [createError, setCreateError] = useState<string>("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const toggleCreateCategory = (cid: number) => {
     setSelectedCatIds((prev) =>
@@ -51,22 +53,41 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ longTerm }) => {
     e.preventDefault();
 
     setBusy(true);
-    await createGoal({
-      longTermId: longTerm.id,
-      statement: newText,
-      categoryIds: selectedCatIds.length ? selectedCatIds : undefined,
-    });
-    setBusy(false);
-    setNewText("");
-    setSelectedCatIds([]);
+    setCreateError("");
+    try {
+      await createGoal({
+        longTermId: longTerm.id,
+        statement: newText,
+        categoryIds: selectedCatIds.length ? selectedCatIds : undefined,
+      }).unwrap();
+      setNewText("");
+      setSelectedCatIds([]);
+      // return focus to the input for quick entry of another goal
+      inputRef.current?.focus();
+    } catch (err: any) {
+      const msg = err?.data?.message || err?.error || "Failed to add goal.";
+      setCreateError(String(msg));
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
     <section className="w-full mb-4">
       <h2 className="text-base font-semibold text-gray-800 mb-2">Goals</h2>
-      {isLoading && <div className="text-sm text-gray-500">Loading goals…</div>}
+      {isLoading && (
+        <div className="text-sm text-gray-500" role="status" aria-live="polite">
+          Loading goals…
+        </div>
+      )}
       {error && (
-        <div className="text-sm text-red-600">Failed to load goals.</div>
+        <div
+          className="text-sm text-red-600"
+          role="alert"
+          aria-live="assertive"
+        >
+          Failed to load goals.
+        </div>
       )}
 
       {/* Empty state + creation */}
@@ -77,26 +98,60 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ longTerm }) => {
         </div>
       )}
 
-      <form className="mb-3 flex flex-col gap-2" onSubmit={handleCreate}>
+      <form
+        className="mb-3 flex flex-col gap-2"
+        onSubmit={handleCreate}
+        aria-describedby="new-goal-help"
+      >
         <div className="flex gap-2 items-center">
+          <label htmlFor="new-goal-input" className="sr-only">
+            New goal
+          </label>
           <input
+            id="new-goal-input"
+            ref={inputRef}
             className="flex-1 border rounded px-2 py-1 text-sm"
             placeholder="Describe your goal (max 280 chars)"
             value={newText}
             onChange={(e) => setNewText(e.target.value)}
             maxLength={280}
             disabled={busy}
+            aria-invalid={!!createError}
+            aria-describedby="new-goal-help new-goal-count"
           />
           <button
             type="submit"
             className="text-sm px-3 py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
             disabled={busy || !newText.trim()}
+            aria-busy={busy}
+            aria-label="Add goal"
           >
-            Add Goal
+            {busy ? "Adding…" : "Add Goal"}
           </button>
         </div>
+        <div className="flex items-center justify-between">
+          <p id="new-goal-help" className="text-xs text-gray-500">
+            Keep it concise. Max 280 characters.
+          </p>
+          <p id="new-goal-count" className="text-xs text-gray-500">
+            {newText.length}/280
+          </p>
+        </div>
+        {createError && (
+          <div
+            className="text-sm text-red-600"
+            role="alert"
+            aria-live="assertive"
+          >
+            {createError}
+          </div>
+        )}
         {uniqueCategories.length > 0 && (
-          <div className="flex items-center gap-2 flex-wrap">
+          <fieldset
+            className="flex items-center gap-2 flex-wrap"
+            aria-label="Link to categories (optional)"
+          >
+            <legend className="sr-only">Link to categories (optional)</legend>
             {uniqueCategories.map((c) => {
               const active = selectedCatIds.includes(c.id);
               return (
@@ -109,12 +164,16 @@ const GoalsSection: React.FC<GoalsSectionProps> = ({ longTerm }) => {
                       : "border-gray-300 text-gray-700 hover:bg-gray-50"
                   }`}
                   onClick={() => toggleCreateCategory(c.id)}
+                  aria-pressed={active}
+                  aria-label={`${active ? "Unselect" : "Select"} category ${
+                    c.name
+                  }`}
                 >
                   {c.name}
                 </button>
               );
             })}
-          </div>
+          </fieldset>
         )}
       </form>
 
