@@ -10,6 +10,8 @@ const mustHasRelations: Record<
   cycle_categories: { parentTable: "cycles", parentKey: "cycle_id" },
   cycle_subcategories: { parentTable: "cycles", parentKey: "cycle_id" },
   cycle_contents: { parentTable: "cycles", parentKey: "cycle_id" },
+  goals: { parentTable: "long_terms", parentKey: "long_term_id" },
+  goal_category_links: { parentTable: "goals", parentKey: "goal_id" },
 };
 
 const buildOwnershipQueries = (leafTable: string, uid: string) => {
@@ -71,14 +73,32 @@ const getWithCondition = async (
   table: string,
   conditions: { [key: string]: any }
 ) => {
-  const keys = Object.keys(conditions);
-  const values = Object.values(conditions);
-  const placeholders = keys.map((key, idx) => `${key} = $${idx + 1}`);
+  const where: string[] = [];
+  const params: any[] = [];
 
-  return await pg.query(
-    `SELECT * FROM ${table} WHERE ${placeholders.join(" AND ")}`,
-    values
-  );
+  for (const [col, val] of Object.entries(conditions)) {
+    if (Array.isArray(val)) {
+      if (val.length === 0) {
+        // No matches possible when IN list is empty
+        return { rows: [] as any[] };
+      }
+      params.push(val);
+      const elemType = typeof val[0] === "number" ? "int" : "text";
+      where.push(`${col} = ANY($${params.length}::${elemType}[])`);
+    } else if (val === null) {
+      where.push(`${col} IS NULL`);
+    } else {
+      params.push(val);
+      where.push(`${col} = $${params.length}`);
+    }
+  }
+
+  const sql =
+    where.length > 0
+      ? `SELECT * FROM ${table} WHERE ${where.join(" AND ")}`
+      : `SELECT * FROM ${table}`;
+
+  return await pg.query(sql, params);
 };
 
 const getAll = async (table: string, uid: string) => {
@@ -138,6 +158,35 @@ const deleteById = async (table: string, id: string) => {
   await pg.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
 };
 
+const deleteWithCondition = async (
+  table: string,
+  conditions: { [key: string]: any }
+) => {
+  const where: string[] = [];
+  const params: any[] = [];
+
+  for (const [col, val] of Object.entries(conditions)) {
+    if (Array.isArray(val)) {
+      if (val.length === 0) {
+        // nothing to delete
+        return 0;
+      }
+      params.push(val);
+      const elemType = typeof val[0] === "number" ? "int" : "text";
+      where.push(`${col} = ANY($${params.length}::${elemType}[])`);
+    } else if (val === null) {
+      where.push(`${col} IS NULL`);
+    } else {
+      params.push(val);
+      where.push(`${col} = $${params.length}`);
+    }
+  }
+
+  const sql = `DELETE FROM ${table} WHERE ${where.join(" AND ")}`;
+  const res = await pg.query(sql, params);
+  return res.rowCount ?? 0;
+};
+
 const updateById = async (
   table: string,
   data: { [key: string]: any },
@@ -164,6 +213,7 @@ export default {
   getById,
   getWithCondition,
   getFromInnerJoin,
+  deleteWithCondition,
   deleteById,
   updateById,
 };
