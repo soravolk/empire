@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Dropdown from "../components/Dropdown";
 import {
   CycleContentItem,
+  CycleCategoryItem,
+  CycleSubcategoryItem,
   CycleItem,
   LongTermItem,
   ShortTermItem,
@@ -41,6 +43,12 @@ import { useLongTermContext } from "../context/longTerm";
 import { useShortTermContext } from "../context/shortTerm";
 import { store } from "../store";
 import { subtasksApi } from "../store/apis/subtasksApi";
+import { cyclesApi } from "../store/apis/cyclesApi";
+import { subcategoriesApi } from "../store/apis/subcategoriesApi";
+import { categoriesApi } from "../store/apis/categoriesApi";
+import CategoryCardsCarousel from "../components/shortTerm/CategoryCardsCarousel";
+import GroupedListByCategory from "../components/shortTerm/GroupedListByCategory";
+import RightEdgeDrawer from "../components/shortTerm/RightEdgeDrawer";
 
 interface CreateShortTermProps {
   user: User;
@@ -179,14 +187,279 @@ export default function ShortTerm() {
   });
 
   const [isOverlayVisible, setOverlayVisible] = useState(false);
+  const [viewMode, setViewMode] = useState<"cards" | "all">("cards");
+  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
+
+  // Prefetch lookup maps for content → subcategory → category to enable grouping
+  const [contentMap, setContentMap] = useState<
+    Record<number, CycleContentItem>
+  >({});
+  const [subcategoryMap, setSubcategoryMap] = useState<
+    Record<number, CycleSubcategoryItem>
+  >({});
+  const [categoryMap, setCategoryMap] = useState<
+    Record<number, CycleCategoryItem>
+  >({});
+
+  useEffect(() => {
+    const loadLookups = async () => {
+      if (!tasks || tasks.length === 0) return;
+      // 1) Prefetch contents by id
+      const contentIds: number[] = Array.from(
+        new Set<number>(tasks.map((t: Task) => t.content_id))
+      ).filter((id) => !(id in contentMap));
+      const fetchedContents: Record<number, CycleContentItem> = {} as any;
+      if (contentIds.length > 0) {
+        const results = await Promise.all(
+          contentIds.map((id) =>
+            store
+              .dispatch(
+                cyclesApi.endpoints.fetchContentFromCycleById.initiate({ id })
+              )
+              .unwrap()
+              .catch(() => undefined)
+          )
+        );
+        results.forEach((arr) => {
+          const c = Array.isArray(arr)
+            ? (arr[0] as CycleContentItem | undefined)
+            : undefined;
+          if (c) fetchedContents[c.id] = c;
+        });
+      }
+
+      const mergedContentMap = { ...contentMap, ...fetchedContents };
+
+      // 2) Prefetch subcategories referenced by the fetched contents
+      const subcategoryIds: number[] = Array.from(
+        new Set<number>(
+          Object.values(mergedContentMap).map((c) => c.subcategory_id)
+        )
+      ).filter((sid) => !(sid in subcategoryMap));
+      const fetchedSubcategories: Record<number, CycleSubcategoryItem> =
+        {} as any;
+      if (subcategoryIds.length > 0) {
+        const subResults = await Promise.all(
+          subcategoryIds.map((id) =>
+            store
+              .dispatch(
+                subcategoriesApi.endpoints.fetchSubcatetoryById.initiate({ id })
+              )
+              .unwrap()
+              .catch(() => undefined)
+          )
+        );
+        subResults.forEach((arr) => {
+          const s = Array.isArray(arr)
+            ? (arr[0] as CycleSubcategoryItem | undefined)
+            : undefined;
+          if (s) fetchedSubcategories[s.id] = s;
+        });
+      }
+      const mergedSubcategoryMap = {
+        ...subcategoryMap,
+        ...fetchedSubcategories,
+      };
+
+      // 3) Prefetch categories referenced by subcategories
+      const categoryIds: number[] = Array.from(
+        new Set<number>(
+          Object.values(mergedSubcategoryMap).map((s) => s.category_id)
+        )
+      ).filter((cid) => !(cid in categoryMap));
+      const fetchedCategories: Record<number, CycleCategoryItem> = {} as any;
+      if (categoryIds.length > 0) {
+        const catResults = await Promise.all(
+          categoryIds.map((id) =>
+            store
+              .dispatch(
+                categoriesApi.endpoints.fetchCatetoryById.initiate({ id })
+              )
+              .unwrap()
+              .catch(() => undefined)
+          )
+        );
+        catResults.forEach((arr) => {
+          const cat = Array.isArray(arr)
+            ? (arr[0] as CycleCategoryItem | undefined)
+            : undefined;
+          if (cat) fetchedCategories[cat.category_id || cat.id] = cat as any;
+        });
+      }
+
+      // Commit to state once per stage to reduce renders
+      if (Object.keys(fetchedContents).length)
+        setContentMap((m) => ({ ...m, ...fetchedContents }));
+      if (Object.keys(fetchedSubcategories).length)
+        setSubcategoryMap((m) => ({ ...m, ...fetchedSubcategories }));
+      if (Object.keys(fetchedCategories).length)
+        setCategoryMap((m) => ({ ...m, ...fetchedCategories }));
+    };
+
+    loadLookups();
+  }, [tasks]);
+
+  // Memoized grouping for Category Cards view (category → subcategory → tasks)
+  const categoryCardsData = useMemo(() => {
+    if (!tasks || tasks.length === 0)
+      return [] as Array<{
+        categoryId: number;
+        categoryName: string;
+        groups: Array<{
+          id: number;
+          name: string;
+          tasks: Array<{
+            id: number;
+            contentName: string;
+            subcategoryId: number;
+            categoryId: number;
+          }>;
+        }>;
+      }>;
+
+    const byCategory: Record<
+      string,
+      {
+        categoryId: number;
+        categoryName: string;
+        groups: Record<string, { id: number; name: string; tasks: any[] }>;
+      }
+    > = {};
+
+    for (const t of tasks) {
+      const content = contentMap[t.content_id];
+      if (!content) continue; // skip until lookup is ready
+      const subId = content.subcategory_id;
+      const sub = subcategoryMap[subId];
+      if (!sub) continue; // skip until lookup is ready
+      const catId = sub.category_id;
+      const cat = categoryMap[catId];
+      if (!cat) continue; // skip until lookup is ready
+
+      const categoryKey = String(catId);
+      if (!byCategory[categoryKey]) {
+        byCategory[categoryKey] = {
+          categoryId: catId,
+          categoryName:
+            cat?.name || (cat as any)?.category_name || `Category ${catId}`,
+          groups: {},
+        };
+      }
+
+      const groupKey = String(subId);
+      if (!byCategory[categoryKey].groups[groupKey]) {
+        byCategory[categoryKey].groups[groupKey] = {
+          id: subId,
+          name: sub?.name || "Unknown subcategory",
+          tasks: [],
+        };
+      }
+
+      byCategory[categoryKey].groups[groupKey].tasks.push({
+        id: t.id,
+        contentName: content?.name || t.name || "Unknown content",
+        subcategoryId: subId,
+        categoryId: catId,
+      });
+    }
+
+    // Convert nested records to sorted arrays
+    const result = Object.values(byCategory)
+      .sort((a, b) => a.categoryName.localeCompare(b.categoryName))
+      .map((c) => ({
+        categoryId: c.categoryId,
+        categoryName: c.categoryName,
+        groups: Object.values(c.groups)
+          .sort((g1, g2) => g1.name.localeCompare(g2.name))
+          .map((g) => ({
+            id: g.id,
+            name: g.name,
+            tasks: g.tasks.sort((t1, t2) =>
+              t1.contentName.localeCompare(t2.contentName)
+            ),
+          })),
+      }));
+
+    return result;
+  }, [tasks, contentMap, subcategoryMap, categoryMap]);
+
+  // Memoized grouping for All Tasks view (category → tasks)
+  const allTasksByCategory = useMemo(() => {
+    if (!tasks || tasks.length === 0)
+      return [] as Array<{
+        categoryId: number;
+        categoryName: string;
+        tasks: Array<{
+          id: number;
+          contentName: string;
+          subcategoryId: number;
+          categoryId: number;
+        }>;
+      }>;
+
+    const map: Record<
+      string,
+      {
+        categoryId: number;
+        categoryName: string;
+        tasks: any[];
+      }
+    > = {};
+    for (const t of tasks) {
+      const content = contentMap[t.content_id];
+      if (!content) continue;
+      const subId = content.subcategory_id;
+      const sub = subcategoryMap[subId];
+      if (!sub) continue;
+      const catId = sub.category_id;
+      const cat = categoryMap[catId];
+      if (!cat) continue;
+
+      const key = String(catId);
+      if (!map[key]) {
+        map[key] = {
+          categoryId: catId,
+          categoryName:
+            cat?.name || (cat as any)?.category_name || `Category ${catId}`,
+          tasks: [],
+        };
+      }
+      map[key].tasks.push({
+        id: t.id,
+        contentName: content?.name || t.name || "Unknown content",
+        subcategoryId: subId,
+        categoryId: catId,
+      });
+    }
+    return Object.values(map)
+      .sort((a, b) => a.categoryName.localeCompare(b.categoryName))
+      .map((c) => ({
+        ...c,
+        tasks: c.tasks.sort((t1, t2) =>
+          t1.contentName.localeCompare(t2.contentName)
+        ),
+      }));
+  }, [tasks, contentMap, subcategoryMap, categoryMap]);
 
   const toggleOverlay = () => {
     setOverlayVisible(!isOverlayVisible);
   };
 
+  const openDetails = (taskId: number) => {
+    setSelectedTaskId(taskId);
+    setDrawerOpen(true);
+  };
+
+  const closeDetails = () => setDrawerOpen(false);
+
+  const selectedTask = useMemo(() => {
+    return tasks?.find((t: Task) => t.id === selectedTaskId) || null;
+  }, [tasks, selectedTaskId]);
+
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 z-50">
         <div>
           {shortTermData && (
             <Dropdown
@@ -212,15 +485,71 @@ export default function ShortTerm() {
           )}
         </div>
       </div>
-      <div className="flex px-5 py-2">
-        {shortTerm && tasks && (
-          <TaskView
-            toggleOverlay={toggleOverlay}
-            shortTerm={shortTerm}
-            tasks={tasks}
-          />
-        )}
+      <div className="px-5 py-2 relative z-0">
+        <div className="flex items-center justify-between mb-3">
+          <div
+            className="inline-flex rounded-md shadow-sm"
+            role="group"
+            aria-label="View mode"
+          >
+            <button
+              type="button"
+              onClick={() => setViewMode("cards")}
+              className={`px-3 py-1 text-sm border rounded-l ${
+                viewMode === "cards"
+                  ? "bg-blue-500 text-white border-blue-500"
+                  : "bg-white text-gray-700 border-gray-300"
+              }`}
+            >
+              Cards
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("all")}
+              className={`px-3 py-1 text-sm border rounded-r -ml-px ${
+                viewMode === "all"
+                  ? "bg-blue-500 text-white border-blue-500"
+                  : "bg-white text-gray-700 border-gray-300"
+              }`}
+            >
+              All Tasks
+            </button>
+          </div>
+          <button
+            onClick={toggleOverlay}
+            className="ml-2 bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"
+          >
+            Add Tasks
+          </button>
+        </div>
+        {shortTerm &&
+          tasks &&
+          (viewMode === "cards" ? (
+            <CategoryCardsCarousel
+              categories={categoryCardsData}
+              onSelectTask={openDetails}
+            />
+          ) : (
+            <GroupedListByCategory
+              categories={allTasksByCategory}
+              onSelectTask={openDetails}
+            />
+          ))}
       </div>
+
+      <RightEdgeDrawer
+        isOpen={isDrawerOpen}
+        onClose={closeDetails}
+        title="Task Details"
+      >
+        {shortTerm && selectedTask ? (
+          <TaskItemInfo shortTerm={shortTerm} task={selectedTask} />
+        ) : (
+          <div className="text-gray-600 text-sm">
+            Select a task to view details.
+          </div>
+        )}
+      </RightEdgeDrawer>
       {isOverlayVisible && shortTerm && selectedLongTerm && (
         <TaskCreationOverlay
           shortTerm={shortTerm}
