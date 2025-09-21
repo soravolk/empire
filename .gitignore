@@ -6,3 +6,11 @@
 .env.development.local
 .env.test.local
 .env.production.local
+
+# ai specs
+.github/prompts
+.github/workflows
+templates
+scripts
+specs
+memory
