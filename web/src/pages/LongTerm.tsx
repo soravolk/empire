@@ -26,6 +26,7 @@ import Category from "../components/Category";
 import SubCategory from "../components/Subcategory";
 import Cycle from "../components/Cycle";
 import Dropdown from "../components/Dropdown";
+import GoalsSection from "../components/GoalsSection";
 import { getLongTermHistoryOptions } from "../utils/utils";
 import {
   LongTermItem,
@@ -136,6 +137,7 @@ export default function LongTerm() {
 
   return (
     <div className="flex flex-col">
+      {longTerm && <GoalsSection longTerm={longTerm} />}
       <div className="flex items-center justify-between mb-4">
         {longTermData && (
           <Dropdown
