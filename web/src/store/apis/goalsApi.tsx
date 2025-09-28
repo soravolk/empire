@@ -4,7 +4,7 @@ import { API_URL } from "../constants";
 export const goalsApi = createApi({
   reducerPath: "goals",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${API_URL}`,
+    baseUrl: `${API_URL}/goals`,
     credentials: "include",
   }),
   tagTypes: ["Goal"],
@@ -13,8 +13,10 @@ export const goalsApi = createApi({
       providesTags: (result) =>
         (result ?? []).map((g: any) => ({ type: "Goal" as const, id: g.id })),
       query: (args) => {
-        const params = args?.longTermId ? `?longTermId=${args.longTermId}` : "";
-        return { url: `/goals${params}`, method: "GET" };
+        const params = args?.longTermId
+          ? { longTermId: args.longTermId }
+          : undefined;
+        return { url: "/", method: "GET", params };
       },
     }),
     createGoal: builder.mutation<
@@ -23,7 +25,7 @@ export const goalsApi = createApi({
     >({
       invalidatesTags: ["Goal"],
       query: ({ longTermId, statement, categoryIds }) => ({
-        url: "/goals",
+        url: "/",
         method: "POST",
         body: {
           longTermId,
@@ -39,7 +41,7 @@ export const goalsApi = createApi({
         { type: "Goal" as const, id },
       ],
       query: ({ id, statement }) => ({
-        url: `/goals/${id}`,
+        url: `/${id}`,
         method: "PATCH",
         body: { statement },
       }),
@@ -48,7 +50,7 @@ export const goalsApi = createApi({
       invalidatesTags: (result, error, { id }) => [
         { type: "Goal" as const, id },
       ],
-      query: ({ id }) => ({ url: `/goals/${id}`, method: "DELETE" }),
+      query: ({ id }) => ({ url: `/${id}`, method: "DELETE" }),
     }),
     linkCategories: builder.mutation<
       any,
@@ -58,7 +60,7 @@ export const goalsApi = createApi({
         { type: "Goal" as const, id },
       ],
       query: ({ id, categoryIds }) => ({
-        url: `/goals/${id}/categories`,
+        url: `/${id}/categories`,
         method: "POST",
         body: { categoryIds },
       }),
@@ -71,7 +73,7 @@ export const goalsApi = createApi({
         { type: "Goal" as const, id },
       ],
       query: ({ id, categoryIds }) => ({
-        url: `/goals/${id}/categories`,
+        url: `/${id}/categories`,
         method: "DELETE",
         body: { categoryIds },
       }),
