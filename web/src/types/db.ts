@@ -66,3 +66,24 @@ export interface User {
   display_name: string;
   group_id: number;
 }
+
+// Goals
+export interface GoalItem {
+  id: number;
+  user_id: number | string; // backend may return numeric, while app User.id is string
+  long_term_id: number;
+  statement: string; // max 280 chars enforced server-side/UI
+  category_ids?: number[];
+  created_at?: string; // ISO date-time
+  updated_at?: string; // ISO date-time
+}
+
+export interface GoalCreate {
+  long_term_id: number;
+  statement: string;
+  category_ids?: number[];
+}
+
+export interface GoalUpdate {
+  statement: string;
+}
