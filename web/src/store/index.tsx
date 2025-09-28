@@ -9,6 +9,7 @@ import { contentsApi } from "./apis/contentsApi";
 import { shortTermsApi } from "./apis/shortTermsApi";
 import { detailsApi } from "./apis/detailsApi";
 import { subtasksApi } from "./apis/subtasksApi";
+import { goalsApi } from "./apis/goalsApi";
 
 export const store = configureStore({
   reducer: {
@@ -21,6 +22,7 @@ export const store = configureStore({
     [shortTermsApi.reducerPath]: shortTermsApi.reducer,
     [detailsApi.reducerPath]: detailsApi.reducer,
     [subtasksApi.reducerPath]: subtasksApi.reducer,
+    [goalsApi.reducerPath]: goalsApi.reducer,
   },
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware()
@@ -32,7 +34,8 @@ export const store = configureStore({
       .concat(contentsApi.middleware)
       .concat(shortTermsApi.middleware)
       .concat(detailsApi.middleware)
-      .concat(subtasksApi.middleware);
+      .concat(subtasksApi.middleware)
+      .concat(goalsApi.middleware);
   },
 });
 
@@ -71,6 +74,14 @@ export {
 } from "./apis/subcategoriesApi";
 export { useAddContentMutation } from "./apis/contentsApi";
 export { useFetchDetailsQuery } from "./apis/detailsApi";
+export {
+  useFetchGoalsQuery,
+  useCreateGoalMutation,
+  useUpdateGoalMutation,
+  useDeleteGoalMutation,
+  useLinkCategoriesMutation,
+  useUnlinkCategoriesMutation,
+} from "./apis/goalsApi";
 export {
   useCreateShortTermMutation,
   useCreateTaskMutation,
