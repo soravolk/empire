@@ -1,58 +1,94 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction } from "express";
 import controller from "../../controllers/category";
 import db from "../../db/utils";
 
 describe("category controller", () => {
-  const makeRes = () => {
-    const res = {
+  let res: any;
+  const categoryName = "Work";
+  const categoryId = "test_category_id";
+  const userId = "test_user_id";
+
+  beforeEach(() => {
+    res = {
       status: jest.fn().mockReturnThis(),
       send: jest.fn(),
       json: jest.fn(),
-    } as unknown as Response & {
-      status: jest.Mock;
-      send: jest.Mock;
-      json: jest.Mock;
     };
-    return res;
-  };
-
-  afterEach(() => {
-    jest.restoreAllMocks();
   });
 
-  it("createCategory returns 201 with created row", async () => {
-    const created = { id: "1", user_id: "u1", name: "Work" };
-    const spy = jest.spyOn(db as any, "insert").mockResolvedValue(created);
+  afterEach(() => jest.clearAllMocks());
 
-    const req = {
-      body: { userId: "u1", name: "Work" },
-    } as unknown as Request;
-    const res = makeRes();
+  describe("createCategory", () => {
+    it("returns 201 and the created category row", async () => {
+      const created = { id: categoryId, user_id: userId, name: categoryName };
+      const spy = jest.spyOn(db, "insert").mockResolvedValue(created);
 
-    await controller.createCategory(req, res, (() => {}) as NextFunction);
+      const req = {
+        body: { userId, name: categoryName },
+      } as any;
 
-    expect(spy).toHaveBeenCalledWith("categories", {
-      user_id: "u1",
-      name: "Work",
+      await controller.createCategory(req, res, (() => {}) as NextFunction);
+
+      expect(spy).toHaveBeenCalledWith("categories", {
+        user_id: userId,
+        name: categoryName,
+      });
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.send).toHaveBeenCalledWith(created);
     });
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.send).toHaveBeenCalledWith(created);
+
+    it("returns 500 when insert fails", async () => {
+      const spy = jest
+        .spyOn(db, "insert")
+        .mockRejectedValue(new Error("db fail"));
+
+      const req = {
+        body: { userId, name: categoryName },
+      } as any;
+
+      await controller.createCategory(req, res, (() => {}) as NextFunction);
+
+      expect(spy).toHaveBeenCalledWith("categories", {
+        user_id: userId,
+        name: categoryName,
+      });
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "internal server error" });
+    });
   });
 
-  it("getCategoryById returns 200 with rows for the user", async () => {
-    const rows = [{ id: "5", user_id: "u1", name: "Study" }];
-    const spy = jest.spyOn(db as any, "getById").mockResolvedValue({ rows });
+  describe("getCategoryById", () => {
+    it("returns 200 with user-owned category row", async () => {
+      const rows = [{ id: categoryId, user_id: userId, name: categoryName }];
+      const spy = jest.spyOn(db, "getById").mockResolvedValue({ rows });
 
-    const req = {
-      params: { id: "5" },
-      user: { id: "u1" },
-    } as unknown as Request & { user: { id: string } };
-    const res = makeRes();
+      const req = {
+        params: { id: categoryId },
+        user: { id: userId },
+      } as any;
 
-    await controller.getCategoryById(req, res, (() => {}) as NextFunction);
+      await controller.getCategoryById(req, res, (() => {}) as NextFunction);
 
-    expect(spy).toHaveBeenCalledWith("categories", "5", "u1");
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith(rows);
+      expect(spy).toHaveBeenCalledWith("categories", categoryId, userId);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(rows);
+    });
+
+    it("returns 500 when getById fails", async () => {
+      const spy = jest
+        .spyOn(db, "getById")
+        .mockRejectedValue(new Error("db fail"));
+
+      const req = {
+        params: { id: categoryId },
+        user: { id: userId },
+      } as any;
+
+      await controller.getCategoryById(req, res, (() => {}) as NextFunction);
+
+      expect(spy).toHaveBeenCalledWith("categories", categoryId, userId);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: "internal server error" });
+    });
   });
 });
