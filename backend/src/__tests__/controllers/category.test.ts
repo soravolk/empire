@@ -60,7 +60,7 @@ describe("category controller", () => {
   describe("getCategoryById", () => {
     it("returns 200 with user-owned category row", async () => {
       const rows = [{ id: categoryId, user_id: userId, name: categoryName }];
-      const spy = jest.spyOn(db, "getById").mockResolvedValue({ rows });
+      const spy = jest.spyOn(db, "getById").mockResolvedValue({ rows } as any);
 
       const req = {
         params: { id: categoryId },
