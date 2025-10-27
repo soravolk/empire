@@ -20,7 +20,8 @@ import { init as dbInit, pg } from "./db/postgre";
 
 import "./services/auth";
 
-async function start() {
+// Create and configure Express app
+export async function createApp(): Promise<Express> {
   const app: Express = express();
   const allowedOrigins = [process.env.FRONTEND_URL || ""];
 
@@ -76,16 +77,28 @@ async function start() {
     res.status(500).json({ message: err.message });
   });
 
-  const PORT = process.env.PORT;
-  app.listen(PORT);
-
+  // Initialize database
   await dbInit();
   if (pg === undefined) {
     throw new Error("db undefined");
   }
+
+  return app;
 }
 
-start().catch((err) => {
-  console.error("Failed to start app:", err);
-  process.exit(1);
-});
+// Traditional server startup (for local development)
+async function start() {
+  const app = await createApp();
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+// Only start the server if this file is run directly (not imported)
+if (require.main === module) {
+  start().catch((err) => {
+    console.error("Failed to start app:", err);
+    process.exit(1);
+  });
+}
