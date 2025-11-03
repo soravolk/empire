@@ -52,7 +52,8 @@ CREATE TABLE "contents" (
 
 CREATE TABLE "cycle_categories" (
   "id" SERIAL PRIMARY KEY,
-  "cycle_id" INT NOT NULL REFERENCES cycles(id) ON DELETE CASCADE,
+  "cycle_id" INT REFERENCES cycles(id) ON DELETE CASCADE,
+  "long_term_id" INT NOT NULL REFERENCES long_terms(id) ON DELETE CASCADE,
   "category_id" INT NOT NULL REFERENCES categories(id),
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT (CURRENT_TIMESTAMP),
   "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT (CURRENT_TIMESTAMP),
@@ -62,6 +63,7 @@ CREATE TABLE "cycle_categories" (
 CREATE TABLE "cycle_subcategories" (
   "id" SERIAL PRIMARY KEY,
   "cycle_id" INT NOT NULL REFERENCES cycles(id) ON DELETE CASCADE,      
+  "long_term_id" INT NOT NULL REFERENCES long_terms(id) ON DELETE CASCADE,
   "subcategory_id" INT NOT NULL REFERENCES subcategories(id),
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT (CURRENT_TIMESTAMP),
   "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT (CURRENT_TIMESTAMP),
@@ -85,12 +87,23 @@ CREATE TABLE "short_terms" (
   "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT (CURRENT_TIMESTAMP)
 );
 
-CREATE TABLE "details" (
+CREATE TABLE "tasks" (
   "id" SERIAL PRIMARY KEY,
   "short_term_id" INT NOT NULL REFERENCES short_terms(id) ON DELETE CASCADE, 
   "content_id" INT NOT NULL REFERENCES cycle_contents(id), 
-  "name" VARCHAR(256) NOT NULL,
+  "name" VARCHAR(256),
   "time_spent" INTEGER NOT NULL,
+  "finished_date" TIMESTAMP WITH TIME ZONE,
+  "created_at" TIMESTAMP WITH TIME ZONE DEFAULT (CURRENT_TIMESTAMP),
+  "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT (CURRENT_TIMESTAMP)
+);
+
+CREATE TABLE "subtasks" (
+  "id" SERIAL PRIMARY KEY,
+  "task_id" INT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+  "name" VARCHAR(256) NOT NULL,
+  "description" TEXT,
+  "time_spent" INTEGER NOT NULL DEFAULT 0,
   "finished_date" TIMESTAMP WITH TIME ZONE,
   "created_at" TIMESTAMP WITH TIME ZONE DEFAULT (CURRENT_TIMESTAMP),
   "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT (CURRENT_TIMESTAMP)
@@ -118,7 +131,7 @@ COMMENT ON TABLE "contents" IS 'table for documenting most detail block of what 
 
 COMMENT ON TABLE "short_terms" IS 'table for documenting total time of the short term progress';
 
-COMMENT ON TABLE "details" IS 'table for documenting the details of the short term progress, including what item was finished and how long it took';
+COMMENT ON TABLE "tasks" IS 'table for documenting the tasks of the short term progress, including what item was finished and how long it took';
 
 ALTER TABLE "long_terms" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 
@@ -136,9 +149,11 @@ ALTER TABLE "cycle_contents" ADD FOREIGN KEY ("cycle_id") REFERENCES "cycles" ("
 
 ALTER TABLE "cycle_contents" ADD FOREIGN KEY ("content_id") REFERENCES "contents" ("id");
 
-ALTER TABLE "details" ADD FOREIGN KEY ("short_term_id") REFERENCES "short_terms" ("id");
+ALTER TABLE "tasks" ADD FOREIGN KEY ("short_term_id") REFERENCES "short_terms" ("id");
 
-ALTER TABLE "details" ADD FOREIGN KEY ("content_id") REFERENCES "contents" ("id");
+ALTER TABLE "tasks" ADD FOREIGN KEY ("content_id") REFERENCES "cycle_contents" ("id");
+
+ALTER TABLE "subtasks" ADD FOREIGN KEY ("task_id") REFERENCES "tasks" ("id");
 
 ALTER TABLE "subcategories" ADD FOREIGN KEY ("category_id") REFERENCES "categories" ("id");
 
