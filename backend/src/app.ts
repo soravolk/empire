@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 import passport from "passport";
-import session, { CookieOptions } from "express-session";
 import cors from "cors";
 import AuthRoutes from "./routes/auth";
 import UserRoutes from "./routes/user";
@@ -15,7 +14,7 @@ import contentRoutes from "./routes/content";
 import taskRoutes from "./routes/task";
 import cycleRoutes from "./routes/cycle";
 import goalRoutes from "./routes/goal";
-import { checkAuthentication } from "./middleware/auth";
+import { requireJwt, ensureUser } from "./middleware/auth";
 import { init as dbInit, pg } from "./db/postgre";
 
 import "./services/auth";
@@ -25,24 +24,9 @@ export async function createApp(): Promise<Express> {
   const app: Express = express();
   const allowedOrigins = [process.env.FRONTEND_URL || ""];
 
-  const sessionConfig = {
-    secret: process.env.SESSION_SECRET!,
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-      secure: false,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    } as CookieOptions,
-  };
-
   if (process.env.NODE_ENV === "production") {
     app.set("trust proxy", 1);
-    sessionConfig.cookie.secure = true;
-    sessionConfig.cookie.sameSite = "none";
-    sessionConfig.cookie.httpOnly = true;
   }
-
-  app.use(session(sessionConfig));
 
   app.use((req, res, next) => {
     const cf = req.headers["cloudfront-forwarded-proto"];
@@ -58,11 +42,11 @@ export async function createApp(): Promise<Express> {
   );
 
   app.use(passport.initialize());
-  app.use(passport.session());
 
   app.use(express.json());
   app.use("/auth", AuthRoutes);
-  app.use(checkAuthentication);
+  // Require JWT for all subsequent routes and ensure user record exists
+  app.use(requireJwt, ensureUser);
   app.use("/users", UserRoutes);
   app.use("/longTerms", longTermRoutes);
   app.use("/shortTerms", shortTermRoutes);
