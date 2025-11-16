@@ -1,5 +1,8 @@
-import dotenv from "dotenv";
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+// Load dotenv only when not running inside AWS Lambda
+if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
+}
 
 import serverlessExpress from "@codegenie/serverless-express";
 import { Handler } from "aws-lambda";
