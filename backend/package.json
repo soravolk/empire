@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "NODE_ENV=dev nodemon dist/app.js",
     "prod": "NODE_ENV=production node dist/app.js",
-    "build": "tsc"
+    "build": "tsc",
+    "package:lambda": "npm run build || true && rm -rf terraform/lambda-package && mkdir -p terraform/lambda-package && cp -R dist/* terraform/lambda-package/ && cp -R node_modules terraform/lambda-package/node_modules && cp package.json terraform/lambda-package/ && cd terraform/lambda-package && zip -r ../lambda.zip ."
   },
   "keywords": [],
   "author": "",
