@@ -34,7 +34,7 @@ router.get(
     const token = jwt.sign(payload, JWT_SECRET, {
       expiresIn: "7d",
       issuer: "empire",
-      subject: String(payload.sub || ""),
+      // Note: don't set `subject` when payload already contains `sub`
     });
 
     const isProd = process.env.NODE_ENV === "production";
