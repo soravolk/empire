@@ -100,6 +100,24 @@ resource "aws_lambda_function" "api" {
   tags = var.tags
 }
 
+# Public Auth Lambda (no VPC) - handles Google OAuth and issues JWTs
+resource "aws_lambda_function" "auth" {
+  filename         = data.local_file.lambda_zip.filename
+  function_name    = "${var.app_name}-${var.environment}-auth"
+  role             = aws_iam_role.lambda_role.arn
+  handler          = "authLambda.handler"
+  source_code_hash = filebase64sha256(data.local_file.lambda_zip.filename)
+  runtime          = "nodejs20.x"
+  timeout          = 15
+  memory_size      = 256
+
+  environment {
+    variables = local.lambda_env_vars
+  }
+
+  tags = var.tags
+}
+
 # CloudWatch Log Group
 resource "aws_cloudwatch_log_group" "lambda_logs" {
   name              = "/aws/lambda/${aws_lambda_function.api.function_name}"
@@ -120,5 +138,19 @@ resource "aws_lambda_function_url" "api" {
     allow_headers     = ["*"]
     expose_headers    = ["keep-alive", "date"]
     max_age          = 86400
+  }
+}
+
+resource "aws_lambda_function_url" "auth" {
+  function_name      = aws_lambda_function.auth.function_name
+  authorization_type = "NONE"
+
+  cors {
+    allow_credentials = true
+    allow_origins     = var.cors_allowed_origins
+    allow_methods     = ["*"]
+    allow_headers     = ["*"]
+    expose_headers    = ["keep-alive", "date"]
+    max_age           = 86400
   }
 }
