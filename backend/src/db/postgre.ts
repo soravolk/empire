@@ -4,32 +4,31 @@ import { getDatabaseSecret } from "./getSecret";
 export let pg: Pool | undefined = undefined;
 
 export const init = async () => {
-  const { PG_USER, PG_HOST, PG_DATABASE, PORT, NODE_ENV } = process.env;
-
-  let databasePassword = undefined;
-  let sslConfig = undefined;
+  const { NODE_ENV, PG_USER, PG_HOST, PG_DATABASE } = process.env;
 
   if (NODE_ENV === "production") {
-    databasePassword = await getDatabaseSecret();
-    if (databasePassword == undefined) {
-      throw new Error("RDS secret is undefined");
-    }
-
-    if (typeof databasePassword !== "string") {
-      throw new Error("RDS secret is not string");
-    }
-
-    sslConfig = {
-      rejectUnauthorized: false, // TODO: add SSL and set to true ASAP
-    };
+    // Use Secrets Manager in production for full DB configuration
+    const cfg = await getDatabaseSecret();
+    console.log(
+      `[DB] Using host: ${cfg.host}, port: ${cfg.port}, db: ${cfg.database}`
+    );
+    pg = new Pool({
+      user: cfg.user,
+      host: cfg.host,
+      database: cfg.database,
+      port: cfg.port,
+      password: cfg.password,
+      ssl: { rejectUnauthorized: false }, // TODO: enable proper SSL validation with CA
+    });
+    return;
   }
 
+  // Local/dev: use environment variables
   pg = new Pool({
     user: PG_USER,
     host: PG_HOST,
     database: PG_DATABASE,
     port: 5432,
-    password: databasePassword,
-    ssl: sslConfig,
+    password: process.env.PG_PASSWORD,
   });
 };
