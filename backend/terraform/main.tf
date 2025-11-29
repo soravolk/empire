@@ -15,23 +15,33 @@ provider "aws" {
 }
 
 # Decode application secret JSON so we can surface selected keys as Lambda env vars
-locals {
-  app_secret_json = try(jsondecode(data.aws_secretsmanager_secret_version.app_secrets.secret_string), {})
+data "aws_ssm_parameter" "params" {
+  for_each        = var.ssm_params
+  name            = each.value
+  with_decryption = true
+}
 
-  lambda_env_vars_base = {
-    NODE_ENV       = "production"
-    FRONTEND_URL   = var.frontend_url
-    SECRET_NAME    = data.aws_secretsmanager_secret.app_secrets.name
-    PG_SECRET_NAME = var.pg_secret_name
+locals {
+  # Helper to safely read an SSM value by logical key
+  ssm = {
+    for k, v in data.aws_ssm_parameter.params : k => v.value
   }
 
-  lambda_env_vars = merge(
-    local.lambda_env_vars_base,
-    try(local.app_secret_json.GOOGLE_CLIENT_ID, null)     != null ? { GOOGLE_CLIENT_ID     = local.app_secret_json.GOOGLE_CLIENT_ID }     : {},
-    try(local.app_secret_json.GOOGLE_CLIENT_SECRET, null) != null ? { GOOGLE_CLIENT_SECRET = local.app_secret_json.GOOGLE_CLIENT_SECRET } : {},
-    try(local.app_secret_json.SESSION_SECRET, null)       != null ? { SESSION_SECRET       = local.app_secret_json.SESSION_SECRET }       : {},
-    try(local.app_secret_json.JWT_SECRET, null)           != null ? { JWT_SECRET           = local.app_secret_json.JWT_SECRET }           : {}
-  )
+  lambda_env_vars = {
+    NODE_ENV     = "production"
+    FRONTEND_URL = var.frontend_url
+    # Database (mapped to PG_* expected by code)
+    PG_HOST      = try(local.ssm.DB_HOST, "")
+    PG_PORT      = try(local.ssm.DB_PORT, "5432")
+    PG_USER      = try(local.ssm.DB_USER, "")
+    PG_PASSWORD  = try(local.ssm.DB_PASSWORD, "")
+    PG_DATABASE  = try(local.ssm.DB_NAME, "")
+    # App secrets
+    GOOGLE_CLIENT_ID     = try(local.ssm.GOOGLE_CLIENT_ID, "")
+    GOOGLE_CLIENT_SECRET = try(local.ssm.GOOGLE_CLIENT_SECRET, "")
+    JWT_SECRET           = try(local.ssm.JWT_SECRET, "")
+    BACKEND_URL          = try(local.ssm.BACKEND_URL, var.frontend_url)
+  }
 }
 
 # Data source to get current AWS account ID
