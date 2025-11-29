@@ -86,14 +86,9 @@ variable "private_route_table_ids" {
   default     = []
 }
 
-variable "pg_secret_name" {
-  description = "AWS Secrets Manager secret name for RDS database password"
-  type        = string
-}
-
-variable "app_secret_name" {
-  description = "AWS Secrets Manager secret name containing app-level config (Google, session/JWT, DB host, etc.)"
-  type        = string
+variable "ssm_params" {
+  description = "Map of logical keys to SSM parameter names (SecureString/String). Keys: DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, JWT_SECRET, BACKEND_URL"
+  type        = map(string)
 }
 
 variable "tags" {
