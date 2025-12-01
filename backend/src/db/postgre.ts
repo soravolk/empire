@@ -1,35 +1,30 @@
 import { Pool } from "pg";
-import { getDatabaseSecret } from "./getSecret";
 
 export let pg: Pool | undefined = undefined;
 
 export const init = async () => {
-  const { PG_USER, PG_HOST, PG_DATABASE, PORT, NODE_ENV } = process.env;
+  if (pg) return pg;
 
-  let databasePassword = undefined;
-  let sslConfig = undefined;
-
-  if (NODE_ENV === "production") {
-    databasePassword = await getDatabaseSecret();
-    if (databasePassword == undefined) {
-      throw new Error("RDS secret is undefined");
-    }
-
-    if (typeof databasePassword !== "string") {
-      throw new Error("RDS secret is not string");
-    }
-
-    sslConfig = {
-      rejectUnauthorized: false, // TODO: add SSL and set to true ASAP
-    };
+  const { NODE_ENV, PG_USER, PG_HOST, PG_DATABASE, PG_PASSWORD, PG_PORT } =
+    process.env;
+  if (
+    !PG_HOST ||
+    !PG_USER ||
+    (NODE_ENV === "production" && !PG_PASSWORD) ||
+    !PG_DATABASE
+  ) {
+    throw new Error(
+      "Missing required DB env vars (PG_HOST, PG_USER, PG_PASSWORD, PG_DATABASE)"
+    );
   }
 
   pg = new Pool({
     user: PG_USER,
     host: PG_HOST,
     database: PG_DATABASE,
-    port: 5432,
-    password: databasePassword,
-    ssl: sslConfig,
+    port: Number(PG_PORT),
+    password: PG_PASSWORD,
+    ssl: NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
   });
+  return pg;
 };
