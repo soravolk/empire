@@ -3,7 +3,6 @@ import db from "../../db/utils";
 
 describe("controllers/user", () => {
   afterEach(() => {
-    // 這個是對的，保留
     jest.restoreAllMocks();
   });
 
@@ -48,7 +47,6 @@ describe("controllers/user", () => {
 
       const result = await controller.getUserById("u1");
 
-      // guideline 6.2: 驗證呼叫參數
       expect(getByIdSpy).toHaveBeenCalledTimes(1);
       expect(getByIdSpy).toHaveBeenCalledWith("users", "u1", "u1");
       expect(result).toEqual(fakeUser);
