@@ -429,6 +429,7 @@ describe("controllers/goal → createGoal", () => {
       .spyOn(db, "getWithCondition")
       .mockResolvedValueOnce({ rows: countRows } as any);
 
+    const insertSpy = jest.spyOn(db, "insert");
     const req: any = {
       user: { id: uid },
       body: {
@@ -445,8 +446,7 @@ describe("controllers/goal → createGoal", () => {
     expect(res.json).toHaveBeenCalledWith({
       error: "goal cap reached",
     });
-    // ensure goal insert never happens
-    expect(db.insert).not.toHaveBeenCalled();
+    expect(insertSpy).not.toHaveBeenCalled();
   });
 
   it("should return 404 when ownership validation fails", async () => {
@@ -516,6 +516,7 @@ describe("controllers/goal → updateGoal", () => {
   });
 
   it("should return 400 when statement is empty or whitespace", async () => {
+    const getByIdSpy = jest.spyOn(db, "getById");
     const req: any = {
       user: { id: uid },
       params: { id: "10" },
@@ -528,10 +529,11 @@ describe("controllers/goal → updateGoal", () => {
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({ error: "invalid statement" });
-    expect(db.getById).not.toHaveBeenCalled();
+    expect(getByIdSpy).not.toHaveBeenCalled();
   });
 
   it("should return 400 when statement exceeds 280 characters", async () => {
+    const getByIdSpy = jest.spyOn(db, "getById");
     const longStatement = "a".repeat(281);
     const req: any = {
       user: { id: uid },
@@ -545,7 +547,7 @@ describe("controllers/goal → updateGoal", () => {
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({ error: "invalid statement" });
-    expect(db.getById).not.toHaveBeenCalled();
+    expect(getByIdSpy).not.toHaveBeenCalled();
   });
 
   it("should update goal statement when ownership check passes", async () => {
@@ -573,6 +575,7 @@ describe("controllers/goal → updateGoal", () => {
 
   it("should return 404 when goal is not found for the user", async () => {
     jest.spyOn(db, "getById").mockResolvedValueOnce({ rows: [] } as any);
+    const updateSpy = jest.spyOn(db, "updateById");
 
     const req: any = {
       user: { id: uid },
@@ -584,7 +587,7 @@ describe("controllers/goal → updateGoal", () => {
 
     await updateGoal(req, res, next);
 
-    expect(db.updateById).not.toHaveBeenCalled();
+    expect(updateSpy).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({ error: "not found" });
   });
@@ -650,6 +653,7 @@ describe("controllers/goal → deleteGoal", () => {
 
   it("should return 404 when goal does not belong to the user", async () => {
     jest.spyOn(db, "getById").mockResolvedValueOnce({ rows: [] } as any);
+    const deleteSpy = jest.spyOn(db, "deleteById");
 
     const req: any = {
       user: { id: uid },
@@ -660,7 +664,7 @@ describe("controllers/goal → deleteGoal", () => {
 
     await deleteGoal(req, res, next);
 
-    expect(db.deleteById).not.toHaveBeenCalled();
+    expect(deleteSpy).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({ error: "not found" });
   });
@@ -702,6 +706,8 @@ describe("controllers/goal → linkCategories", () => {
   });
 
   it("should return 400 when categoryIds is missing or empty", async () => {
+    const getByIdSpy = jest.spyOn(db, "getById");
+
     const req: any = {
       user: { id: uid },
       params: { id: "10" },
@@ -716,7 +722,7 @@ describe("controllers/goal → linkCategories", () => {
     expect(res.json).toHaveBeenCalledWith({
       error: "categoryIds required",
     });
-    expect(db.getById).not.toHaveBeenCalled();
+    expect(getByIdSpy).not.toHaveBeenCalled();
   });
 
   it("should return 404 when goal is not found for the user", async () => {
@@ -762,10 +768,11 @@ describe("controllers/goal → linkCategories", () => {
   it("should return 409 when category links already exist in pre-check", async () => {
     jest.spyOn(db, "getById").mockResolvedValueOnce({ rows: [{ id: 10 }] } as any);
 
-    jest
-      .spyOn(db, "getWithCondition")
-      .mockResolvedValueOnce({ rows: [{ id: 1 }] } as any); // existing links
+    jest.spyOn(db, "getWithCondition").mockResolvedValueOnce({
+      rows: [{ goal_id: 10, category_id: 5 }],
+    } as any);
 
+    const insertSpy = jest.spyOn(db, "insert");
     const req: any = {
       user: { id: uid },
       params: { id: "10" },
@@ -776,11 +783,11 @@ describe("controllers/goal → linkCategories", () => {
 
     await linkCategories(req, res, next);
 
-    expect(db.insert).not.toHaveBeenCalled();
+    expect(insertSpy).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(409);
     expect(res.json).toHaveBeenCalledWith({
       error: "category link already exists",
-      category_ids: [expect.anything()], // category_id from existing rows
+      category_ids: [5],
     });
   });
 
@@ -898,6 +905,7 @@ describe("controllers/goal → unlinkCategories", () => {
   });
 
   it("should return 400 when categoryIds is missing or empty", async () => {
+    const getByIdSpy = jest.spyOn(db, "getById");
     const req: any = {
       user: { id: uid },
       params: { id: "10" },
@@ -912,7 +920,7 @@ describe("controllers/goal → unlinkCategories", () => {
     expect(res.json).toHaveBeenCalledWith({
       error: "category_ids required",
     });
-    expect(db.getById).not.toHaveBeenCalled();
+    expect(getByIdSpy).not.toHaveBeenCalled();
   });
 
   it("should return 404 when goal is not found for the user", async () => {
