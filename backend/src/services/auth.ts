@@ -1,6 +1,5 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import user from "../controllers/user";
 
 passport.serializeUser((user, done) => {
   done(null, user);
@@ -18,27 +17,16 @@ passport.use(
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       callbackURL: `${process.env.FRONTEND_URL}/auth/google/callback`,
     },
-    async (accessToken, refreshToken, profile, done) => {
-      let loginUser;
-      try {
-        loginUser = await user.getUserById(profile.id);
-      } catch (error) {
-        return done(new Error("failed to get user information"), undefined);
-      }
-
-      if (!loginUser && profile.emails) {
-        try {
-          await user.createUser(
-            profile.id,
-            profile.emails[0].value,
-            profile.displayName
-          );
-          loginUser = await user.getUserById(profile.id);
-        } catch (error) {
-          return done(new Error("failed to create a new user"), undefined);
-        }
-      }
-      return done(null, loginUser);
+    async (_accessToken, _refreshToken, profile, done) => {
+      // Stateless: don't touch DB here; just return minimal identity info
+      const minimal = {
+        id: profile.id,
+        email: profile.emails?.[0]?.value,
+        name: profile.displayName,
+        picture: (profile.photos && profile.photos[0]?.value) || undefined,
+        provider: profile.provider,
+      };
+      return done(null, minimal as any);
     }
   )
 );
