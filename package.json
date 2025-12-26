@@ -1,1 +1,11 @@
-{}
+{
+  "name": "empire",
+  "private": true,
+  "scripts": {
+    "format:check": "npx prettier --check \"backend/**/*.{ts,tsx,js,jsx,json}\" \"web/src/**/*.{ts,tsx,js,jsx,json,css}\" \"*.{ts,tsx,js,jsx,json,md}\"",
+    "format:write": "npx prettier --write \"backend/**/*.{ts,tsx,js,jsx,json}\" \"web/src/**/*.{ts,tsx,js,jsx,json,css}\" \"*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.0.0"
+  }
+}
