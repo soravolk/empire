@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 import passport from "passport";
-import session, { CookieOptions } from "express-session";
 import cors from "cors";
 import AuthRoutes from "./routes/auth";
 import UserRoutes from "./routes/user";
@@ -15,33 +14,19 @@ import contentRoutes from "./routes/content";
 import taskRoutes from "./routes/task";
 import cycleRoutes from "./routes/cycle";
 import goalRoutes from "./routes/goal";
-import { checkAuthentication } from "./middleware/auth";
+import { requireJwt, ensureUser } from "./middleware/auth";
 import { init as dbInit, pg } from "./db/postgre";
 
 import "./services/auth";
 
-async function start() {
+// Create and configure Express app
+export async function createApp(): Promise<Express> {
   const app: Express = express();
   const allowedOrigins = [process.env.FRONTEND_URL || ""];
 
-  const sessionConfig = {
-    secret: process.env.SESSION_SECRET!,
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-      secure: false,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    } as CookieOptions,
-  };
-
   if (process.env.NODE_ENV === "production") {
     app.set("trust proxy", 1);
-    sessionConfig.cookie.secure = true;
-    sessionConfig.cookie.sameSite = "none";
-    sessionConfig.cookie.httpOnly = true;
   }
-
-  app.use(session(sessionConfig));
 
   app.use((req, res, next) => {
     const cf = req.headers["cloudfront-forwarded-proto"];
@@ -57,11 +42,11 @@ async function start() {
   );
 
   app.use(passport.initialize());
-  app.use(passport.session());
 
   app.use(express.json());
   app.use("/auth", AuthRoutes);
-  app.use(checkAuthentication);
+  // Require JWT for all subsequent routes and ensure user record exists
+  app.use(requireJwt, ensureUser);
   app.use("/users", UserRoutes);
   app.use("/longTerms", longTermRoutes);
   app.use("/shortTerms", shortTermRoutes);
@@ -76,16 +61,28 @@ async function start() {
     res.status(500).json({ message: err.message });
   });
 
-  const PORT = process.env.PORT;
-  app.listen(PORT);
-
+  // Initialize database
   await dbInit();
   if (pg === undefined) {
     throw new Error("db undefined");
   }
+
+  return app;
 }
 
-start().catch((err) => {
-  console.error("Failed to start app:", err);
-  process.exit(1);
-});
+// Traditional server startup (for local development)
+async function start() {
+  const app = await createApp();
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+// Only start the server if this file is run directly (not imported)
+if (require.main === module) {
+  start().catch((err) => {
+    console.error("Failed to start app:", err);
+    process.exit(1);
+  });
+}
