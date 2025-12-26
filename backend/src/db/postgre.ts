@@ -3,6 +3,8 @@ import { Pool } from "pg";
 export let pg: Pool | undefined = undefined;
 
 export const init = async () => {
+  if (pg) return pg;
+
   const { NODE_ENV, PG_USER, PG_HOST, PG_DATABASE, PG_PASSWORD, PG_PORT } =
     process.env;
   if (
