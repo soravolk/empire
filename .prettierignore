@@ -1,0 +1,17 @@
+# Dependencies
+node_modules
+
+# Database
+database/
+**/database/
+
+# Build outputs
+dist
+build
+coverage
+
+# Logs
+*.log
+
+# OS
+.DS_Store
