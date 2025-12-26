@@ -12,6 +12,7 @@ import {
   useAddCycleMutation,
   useDeleteCycleMutation,
   useAddCategoryMutation,
+  useUpdateCategoryMutation,
   useAddSubcategoryMutation,
   useAddContentToCycleMutation,
   useAddCategoryToLongTermMutation,
@@ -312,6 +313,7 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
 
   // Mutations for creating Category/Subcategory
   const [addCategory] = useAddCategoryMutation();
+  const [updateCategory] = useUpdateCategoryMutation();
   const [addSubcategory] = useAddSubcategoryMutation();
   const [addCategoryToLongTerm] = useAddCategoryToLongTermMutation();
   const [deleteCategoryFromLongTerm] = useDeleteCategoryFromLongTermMutation();
@@ -360,6 +362,15 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
     }
   };
 
+  const handleModifyCategory = async (id: number, newName: string) => {
+    try {
+      await updateCategory({ id, name: newName });
+    } catch (error) {
+      console.error("Error updating category:", error);
+      alert("Failed to update category. Please try again.");
+    }
+  };
+
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-3">
@@ -392,6 +403,7 @@ const CycleOptions: React.FC<CycleOptionsProps> = ({ longTerm }) => {
         selectedCategoryId={selectedTopCategoryId}
         onChangeSelected={setSelectedTopCategoryId}
         onCreate={handleCreateCategory}
+        onModify={handleModifyCategory}
         onDeleteSelected={async () => {
           if (selectedTopCategoryId == null || !longTerm?.id) return;
           // Find a cycle_categories row id representing this top category association
