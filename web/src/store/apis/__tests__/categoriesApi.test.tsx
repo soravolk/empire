@@ -1,7 +1,11 @@
-import { renderHook } from "@testing-library/react";
+import { renderHook, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import { categoriesApi, useUpdateCategoryMutation } from "../categoriesApi";
+import {
+  longTermsApi,
+  useFetchCategoriesFromLongTermQuery,
+} from "../longTermsApi";
 import { setupServer } from "msw/node";
 import { rest } from "msw";
 
@@ -20,6 +24,20 @@ function createTestStore() {
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().concat(categoriesApi.middleware),
+  });
+}
+
+// Helper to create a store with both APIs for cross-API cache invalidation tests
+function createTestStoreWithBothApis() {
+  return configureStore({
+    reducer: {
+      [categoriesApi.reducerPath]: categoriesApi.reducer,
+      [longTermsApi.reducerPath]: longTermsApi.reducer,
+    },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware()
+        .concat(categoriesApi.middleware)
+        .concat(longTermsApi.middleware),
   });
 }
 
@@ -83,5 +101,94 @@ describe("categoriesApi - updateCategory", () => {
     if ("error" in updateResult) {
       expect(updateResult.error).toBeDefined();
     }
+  });
+
+  it("should invalidate longTermsApi cache when category is updated", async () => {
+    let fetchCount = 0;
+    const mockLongTerm = { id: 1 };
+    const initialCategories = [
+      {
+        id: 100,
+        cycle_id: 1,
+        category_id: 1,
+        name: "Original Category",
+      },
+    ];
+    const updatedCategories = [
+      {
+        id: 100,
+        cycle_id: 1,
+        category_id: 1,
+        name: "Updated Category",
+      },
+    ];
+
+    server.use(
+      // Mock fetching categories from long term
+      rest.get(
+        "http://localhost:3001/longTerms/1/categories",
+        (_req, res, ctx) => {
+          fetchCount++;
+          // Return updated name on second fetch (after invalidation)
+          return res(
+            ctx.json(fetchCount === 1 ? initialCategories : updatedCategories),
+          );
+        },
+      ),
+      // Mock updating category
+      rest.put("http://localhost:3001/categories/1", (req, res, ctx) => {
+        return res(
+          ctx.json({
+            id: 1,
+            name: "Updated Category",
+            user_id: "user123",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }),
+        );
+      }),
+    );
+
+    const store = createTestStoreWithBothApis();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <Provider store={store}>{children}</Provider>
+    );
+
+    // First, fetch categories from long term
+    const { result: fetchResult } = renderHook(
+      () => useFetchCategoriesFromLongTermQuery(mockLongTerm),
+      { wrapper },
+    );
+
+    // Wait for initial fetch to complete
+    await waitFor(() => {
+      expect(fetchResult.current.isSuccess).toBe(true);
+    });
+
+    expect(fetchResult.current.data).toEqual(initialCategories);
+    expect(fetchResult.current.data?.[0].name).toBe("Original Category");
+    expect(fetchCount).toBe(1);
+
+    // Now update the category
+    const { result: updateResult } = renderHook(
+      () => useUpdateCategoryMutation(),
+      { wrapper },
+    );
+    const [updateCategory] = updateResult.current;
+
+    await updateCategory({ id: 1, name: "Updated Category" });
+
+    // Wait for cache invalidation to trigger refetch
+    await waitFor(
+      () => {
+        expect(fetchCount).toBe(2);
+      },
+      { timeout: 3000 },
+    );
+
+    // Verify the cache has been updated with new data
+    await waitFor(() => {
+      expect(fetchResult.current.data?.[0].name).toBe("Updated Category");
+    });
   });
 });
