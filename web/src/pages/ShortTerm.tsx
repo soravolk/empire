@@ -202,6 +202,30 @@ export default function ShortTerm() {
     Record<number, CycleCategoryItem>
   >({});
 
+  // Refetch trigger to force reload when data might be stale
+  const [refetchKey, setRefetchKey] = useState(0);
+
+  // Clear cache maps when window gains focus or short term changes to pick up any updates
+  useEffect(() => {
+    const handleFocus = () => {
+      setCategoryMap({});
+      setSubcategoryMap({});
+      setContentMap({});
+      setRefetchKey((prev) => prev + 1);
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
+  // Clear cache maps when short term selection changes
+  useEffect(() => {
+    setCategoryMap({});
+    setSubcategoryMap({});
+    setContentMap({});
+    setRefetchKey((prev) => prev + 1);
+  }, [shortTerm?.id]);
+
   useEffect(() => {
     const loadLookups = async () => {
       if (!tasks || tasks.length === 0) return;
@@ -298,7 +322,7 @@ export default function ShortTerm() {
     };
 
     loadLookups();
-  }, [tasks]);
+  }, [tasks, refetchKey]);
 
   // Memoized grouping for Category Cards view (category → subcategory → tasks)
   const categoryCardsData = useMemo(() => {

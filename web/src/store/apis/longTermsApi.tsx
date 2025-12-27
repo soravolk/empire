@@ -36,7 +36,7 @@ const longTermsApi = createApi({
       fetchCategoriesFromLongTerm: builder.query({
         providesTags: (result, error, longTerm) => {
           const tags = (result ?? []).map((category: any) => {
-            return { type: "Category" as const, id: category.id };
+            return { type: "Category" as const, id: category.category_id };
           });
           tags.push({ type: "LongTerm" as const, id: longTerm.id });
           return tags;
