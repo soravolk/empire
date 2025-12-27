@@ -47,6 +47,7 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@testing-library/user-event": "^14.6.1",
     "@types/http-proxy-middleware": "^1.0.0",
     "autoprefixer": "^10.4.19",
