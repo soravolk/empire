@@ -14,8 +14,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-terraform/terraform.tfvars
-terraform/lambda-package
-terraform/terraform.tfstate*
-terraform/.terraform
-terraform/.terraform.lock.hcl
+# terraform
+terraform.tfvars
+lambda-package
+terraform.tfstate*
+.terraform
+.terraform.lock.hcl
