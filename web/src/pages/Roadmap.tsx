@@ -1,46 +1,23 @@
 import { useState } from "react";
+import { useFetchRoadmapGoalsQuery } from "../store/apis/roadmapApi";
 
 interface Goal {
-  id: string;
+  goal_id: string;
   title: string;
   targetDate: string;
-  progress: number;
 }
-
-// Mock data for now
-const mockGoals: Goal[] = [
-  {
-    id: "1",
-    title: "Learn TypeScript",
-    targetDate: "2026-03-01",
-    progress: 65,
-  },
-  {
-    id: "2",
-    title: "Build Full-Stack App",
-    targetDate: "2026-06-15",
-    progress: 40,
-  },
-  {
-    id: "3",
-    title: "Master AWS",
-    targetDate: "2026-12-31",
-    progress: 25,
-  },
-  {
-    id: "4",
-    title: "Complete Side Project",
-    targetDate: "2026-04-20",
-    progress: 80,
-  },
-];
 
 export default function Roadmap() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isCreating, setIsCreating] = useState(false);
   const [newGoal, setNewGoal] = useState({ title: "", targetDate: "" });
 
-  const allItems = [...mockGoals, { id: "create", isCreationCard: true }];
+  const { data: goals = [], isLoading, error } = useFetchRoadmapGoalsQuery();
+
+  const allItems: any[] = [
+    ...goals,
+    { goal_id: "create", isCreationCard: true },
+  ];
 
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % allItems.length);
@@ -51,7 +28,7 @@ export default function Roadmap() {
   };
 
   const currentItem = allItems[currentIndex];
-  const isCreationCard = currentItem.id === "create";
+  const isCreationCard = currentItem?.isCreationCard === true;
 
   const handleCreateGoal = () => {
     if (newGoal.title && newGoal.targetDate) {
@@ -186,8 +163,8 @@ export default function Roadmap() {
                 {(currentItem as Goal).title}
               </h2>
 
-              <div className="mb-4">
-                <p className="text-sm text-gray-600 mb-1">Target Date</p>
+              <div>
+                <p className="text-sm text-gray-600 mb-2">Target Date</p>
                 <p className="text-lg font-medium text-gray-800">
                   {new Date(
                     (currentItem as Goal).targetDate
@@ -197,22 +174,6 @@ export default function Roadmap() {
                     day: "numeric",
                   })}
                 </p>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm text-gray-600">Progress</p>
-                  <p className="text-lg font-semibold text-blue-600">
-                    {(currentItem as Goal).progress}%
-                  </p>
-                </div>
-                {/* Progress Bar */}
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div
-                    className="bg-blue-600 h-3 rounded-full transition-all duration-300"
-                    style={{ width: `${(currentItem as Goal).progress}%` }}
-                  />
-                </div>
               </div>
             </div>
           )}
