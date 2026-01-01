@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { useFetchRoadmapGoalsQuery } from "../store/apis/roadmapApi";
+import {
+  useFetchRoadmapGoalsQuery,
+  useCreateRoadmapGoalMutation,
+} from "../store/apis/roadmapApi";
 
 interface Goal {
   goal_id: string;
@@ -13,6 +16,7 @@ export default function Roadmap() {
   const [newGoal, setNewGoal] = useState({ title: "", targetDate: "" });
 
   const { data: goals = [], isLoading, error } = useFetchRoadmapGoalsQuery();
+  const [createGoal] = useCreateRoadmapGoalMutation();
 
   const allItems: any[] = [
     ...goals,
@@ -32,8 +36,10 @@ export default function Roadmap() {
 
   const handleCreateGoal = () => {
     if (newGoal.title && newGoal.targetDate) {
-      // TODO: Save to backend
-      console.log("Creating goal:", newGoal);
+      createGoal({
+        title: newGoal.title,
+        targetDate: newGoal.targetDate,
+      });
       setNewGoal({ title: "", targetDate: "" });
       setIsCreating(false);
     }

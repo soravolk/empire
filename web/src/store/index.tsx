@@ -103,4 +103,7 @@ export {
   useUpdateSubtaskMutation,
   useDeleteSubtaskMutation,
 } from "./apis/subtasksApi";
-export { useFetchRoadmapGoalsQuery } from "./apis/roadmapApi";
+export {
+  useFetchRoadmapGoalsQuery,
+  useCreateRoadmapGoalMutation,
+} from "./apis/roadmapApi";

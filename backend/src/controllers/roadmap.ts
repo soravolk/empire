@@ -1,6 +1,8 @@
 import { RequestHandler } from "express";
-import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { ScanCommand } from "@aws-sdk/client-dynamodb";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { dynamodbClient } from "../db/dynamodb";
+import { v4 as uuidv4 } from "uuid";
 
 // Simple unmarshall helper for DynamoDB items
 const unmarshallItem = (item: any): any => {
@@ -51,5 +53,44 @@ export const listRoadmapGoals: RequestHandler = async (req, res) => {
   } catch (error) {
     console.error("Error fetching roadmap goals:", error);
     res.status(500).json({ message: "Failed to fetch goals" });
+  }
+};
+
+export const createRoadmapGoal: RequestHandler = async (req, res) => {
+  const uid = req.user!.id;
+  const { title, targetDate } = req.body;
+
+  if (!title || !targetDate) {
+    return res
+      .status(400)
+      .json({ message: "Title and targetDate are required" });
+  }
+
+  try {
+    const goal_id = uuidv4();
+    const now = Date.now();
+
+    const command = new PutCommand({
+      TableName: "goals",
+      Item: {
+        goal_id,
+        user_id: uid,
+        title,
+        targetDate,
+        created_at: now,
+        updated_at: now,
+      },
+    });
+
+    await dynamodbClient.send(command);
+
+    res.status(201).json({
+      goal_id,
+      title,
+      targetDate,
+    });
+  } catch (error) {
+    console.error("Error creating roadmap goal:", error);
+    res.status(500).json({ message: "Failed to create goal" });
   }
 };
