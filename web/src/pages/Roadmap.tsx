@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { useFetchRoadmapGoalsQuery } from "../store/apis/roadmapApi";
+import {
+  useFetchRoadmapGoalsQuery,
+  useCreateRoadmapGoalMutation,
+} from "../store/apis/roadmapApi";
 
 interface Goal {
   goal_id: string;
@@ -7,12 +10,21 @@ interface Goal {
   targetDate: string;
 }
 
+// Generate fake progress based on goal_id (deterministic)
+const getFakeProgress = (goalId: string): number => {
+  const hash = goalId
+    .split("")
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return (hash % 80) + 10; // Between 10-90%
+};
+
 export default function Roadmap() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isCreating, setIsCreating] = useState(false);
   const [newGoal, setNewGoal] = useState({ title: "", targetDate: "" });
 
   const { data: goals = [], isLoading, error } = useFetchRoadmapGoalsQuery();
+  const [createGoal] = useCreateRoadmapGoalMutation();
 
   const allItems: any[] = [
     ...goals,
@@ -32,8 +44,10 @@ export default function Roadmap() {
 
   const handleCreateGoal = () => {
     if (newGoal.title && newGoal.targetDate) {
-      // TODO: Save to backend
-      console.log("Creating goal:", newGoal);
+      createGoal({
+        title: newGoal.title,
+        targetDate: newGoal.targetDate,
+      });
       setNewGoal({ title: "", targetDate: "" });
       setIsCreating(false);
     }
@@ -163,7 +177,7 @@ export default function Roadmap() {
                 {(currentItem as Goal).title}
               </h2>
 
-              <div>
+              <div className="mb-4">
                 <p className="text-sm text-gray-600 mb-2">Target Date</p>
                 <p className="text-lg font-medium text-gray-800">
                   {new Date(
@@ -174,6 +188,25 @@ export default function Roadmap() {
                     day: "numeric",
                   })}
                 </p>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-sm text-gray-600">Progress</p>
+                  <p className="text-lg font-semibold text-blue-600">
+                    {getFakeProgress((currentItem as Goal).goal_id)}%
+                  </p>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${getFakeProgress(
+                        (currentItem as Goal).goal_id
+                      )}%`,
+                    }}
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -201,7 +234,7 @@ export default function Roadmap() {
         </div>
 
         {/* Indicators */}
-        <div className="flex justify-center gap-2 mt-6">
+        {/* <div className="flex justify-center gap-2 mt-6">
           {allItems.map((_, index) => (
             <button
               key={index}
@@ -212,12 +245,7 @@ export default function Roadmap() {
               aria-label={`Go to item ${index + 1}`}
             />
           ))}
-        </div>
-
-        {/* Counter */}
-        <p className="text-center text-gray-600 mt-4">
-          {currentIndex + 1} / {allItems.length}
-        </p>
+        </div> */}
       </div>
     </div>
   );
