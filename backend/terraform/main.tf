@@ -86,6 +86,34 @@ resource "aws_iam_role_policy_attachment" "lambda_vpc_execution" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
+# IAM policy for Lambda to access DynamoDB
+resource "aws_iam_role_policy" "lambda_dynamodb_policy" {
+  name   = "${var.app_name}-${var.environment}-lambda-dynamodb-policy"
+  role   = aws_iam_role.lambda_role.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:Query",
+          "dynamodb:Scan",
+          "dynamodb:BatchGetItem",
+          "dynamodb:BatchWriteItem"
+        ]
+        Resource = [
+          aws_dynamodb_table.goals.arn,
+          "${aws_dynamodb_table.goals.arn}/index/*"
+        ]
+      }
+    ]
+  })
+}
+
 # Lambda function
 resource "aws_lambda_function" "api" {
   filename         = data.local_file.lambda_zip.filename
@@ -163,4 +191,20 @@ resource "aws_lambda_function_url" "auth" {
     expose_headers    = ["keep-alive", "date"]
     max_age           = 86400
   }
+}
+
+# DynamoDB table for goals
+resource "aws_dynamodb_table" "goals" {
+  name           = "${var.app_name}-${var.environment}-goals"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "goal_id"
+
+  attribute {
+    name = "goal_id"
+    type = "S"
+  }
+
+  tags = merge(var.tags, {
+    Name = "${var.app_name}-${var.environment}-goals"
+  })
 }
