@@ -3,6 +3,7 @@ import {
   useFetchRoadmapGoalsQuery,
   useCreateRoadmapGoalMutation,
 } from "../store/apis/roadmapApi";
+import MilestoneView from "../components/MilestoneView";
 
 interface Goal {
   goal_id: string;
@@ -247,6 +248,11 @@ export default function Roadmap() {
           ))}
         </div> */}
       </div>
+
+      {/* Milestone View - only show when not on creation card */}
+      {!isCreationCard && (
+        <MilestoneView goalId={(currentItem as Goal).goal_id} />
+      )}
     </div>
   );
 }
