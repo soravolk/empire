@@ -36,11 +36,17 @@ resource "aws_dynamodb_table" "goals_local" {
     name = "goal_id"
     type = "S"
   }
+}
 
-  tags = {
-    Name        = "goals-local"
-    Environment = "local"
-    ManagedBy   = "Terraform"
+# Create the DynamoDB table for milestones (local testing)
+resource "aws_dynamodb_table" "milestones_local" {
+  name           = "milestones"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "milestone_id"
+
+  attribute {
+    name = "milestone_id"
+    type = "S"
   }
 }
 
@@ -52,4 +58,14 @@ output "local_goals_table_name" {
 output "local_goals_table_arn" {
   description = "Local DynamoDB goals table ARN"
   value       = aws_dynamodb_table.goals_local.arn
+}
+
+output "local_milestones_table_name" {
+  description = "Local DynamoDB milestones table name"
+  value       = aws_dynamodb_table.milestones_local.name
+}
+
+output "local_milestones_table_arn" {
+  description = "Local DynamoDB milestones table ARN"
+  value       = aws_dynamodb_table.milestones_local.arn
 }
