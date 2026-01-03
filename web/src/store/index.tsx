@@ -11,6 +11,7 @@ import { detailsApi } from "./apis/detailsApi";
 import { subtasksApi } from "./apis/subtasksApi";
 import { goalsApi } from "./apis/goalsApi";
 import { roadmapApi } from "./apis/roadmapApi";
+import { milestonesApi } from "./apis/milestonesApi";
 
 export const store = configureStore({
   reducer: {
@@ -25,6 +26,7 @@ export const store = configureStore({
     [subtasksApi.reducerPath]: subtasksApi.reducer,
     [goalsApi.reducerPath]: goalsApi.reducer,
     [roadmapApi.reducerPath]: roadmapApi.reducer,
+    [milestonesApi.reducerPath]: milestonesApi.reducer,
   },
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware()
@@ -38,7 +40,8 @@ export const store = configureStore({
       .concat(detailsApi.middleware)
       .concat(subtasksApi.middleware)
       .concat(goalsApi.middleware)
-      .concat(roadmapApi.middleware);
+      .concat(roadmapApi.middleware)
+      .concat(milestonesApi.middleware);
   },
 });
 
@@ -107,3 +110,4 @@ export {
   useFetchRoadmapGoalsQuery,
   useCreateRoadmapGoalMutation,
 } from "./apis/roadmapApi";
+export { useCreateMilestoneMutation } from "./apis/milestonesApi";

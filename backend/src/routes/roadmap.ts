@@ -1,9 +1,13 @@
 import { Router } from "express";
 import * as roadmap from "../controllers/roadmap";
+import * as milestone from "../controllers/milestone";
 
 const router = Router();
 
 router.get("/goals", roadmap.listRoadmapGoals);
 router.post("/goals", roadmap.createRoadmapGoal);
+
+// Milestone routes
+router.post("/goals/:goalId/milestones", milestone.createMilestone);
 
 export default router;
