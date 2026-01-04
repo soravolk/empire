@@ -1,43 +1,40 @@
-import { Pool } from "pg";
-import { getDatabaseSecret } from "../../db/getSecret";
-import { init, pg } from "../../db/postgre";
-
-jest.mock("pg", () => {
-  const Pool = jest.fn();
-  return { Pool };
-});
-
-jest.mock("../../db/getSecret", () => ({
-  getDatabaseSecret: jest.fn(),
-}));
-
-const MockedPool = Pool as unknown as jest.Mock;
-const mockGetDatabaseSecret =
-  getDatabaseSecret as unknown as jest.MockedFunction<typeof getDatabaseSecret>;
-
-const ORIGINAL_ENV = { ...process.env };
-
 describe("db/postgre → init", () => {
+  const ORIGINAL_ENV = { ...process.env };
+
   beforeEach(() => {
+    jest.resetModules();
     jest.clearAllMocks();
     process.env = { ...ORIGINAL_ENV };
+
     process.env.PG_USER = "test-user";
     process.env.PG_HOST = "localhost";
     process.env.PG_DATABASE = "test-db";
+    process.env.PG_PORT = "5432";
   });
 
   afterAll(() => {
     process.env = ORIGINAL_ENV;
   });
 
-  it("initializes Pool without secret in non-production environments", async () => {
+  it("creates a Pool in non-production without requiring PG_PASSWORD", async () => {
     process.env.NODE_ENV = "test";
-    const poolInstance = {};
-    MockedPool.mockReturnValueOnce(poolInstance as any);
+    delete process.env.PG_PASSWORD;
 
-    await init();
+    const poolInstance = { query: jest.fn() };
 
-    expect(mockGetDatabaseSecret).not.toHaveBeenCalled();
+    jest.doMock("pg", () => ({
+      Pool: jest.fn().mockImplementation(() => poolInstance),
+    }));
+
+    const postgre = await import("../../db/postgre");
+    const { Pool } = await import("pg");
+    const MockedPool = Pool as unknown as jest.Mock;
+
+    const result = await postgre.init();
+
+    expect(result).toBe(poolInstance);
+    expect(postgre.pg).toBe(poolInstance);
+
     expect(MockedPool).toHaveBeenCalledTimes(1);
     expect(MockedPool).toHaveBeenCalledWith({
       user: "test-user",
@@ -47,19 +44,27 @@ describe("db/postgre → init", () => {
       password: undefined,
       ssl: undefined,
     });
-    expect(pg).toBe(poolInstance);
   });
 
-  it("initializes Pool with secret and SSL config in production", async () => {
+  it("creates a Pool in production and requires PG_PASSWORD + sets ssl", async () => {
     process.env.NODE_ENV = "production";
+    process.env.PG_PASSWORD = "super-secret";
 
-    mockGetDatabaseSecret.mockResolvedValueOnce("super-secret");
-    const poolInstance = {};
-    MockedPool.mockReturnValueOnce(poolInstance as any);
+    const poolInstance = { query: jest.fn() };
 
-    await init();
+    jest.doMock("pg", () => ({
+      Pool: jest.fn().mockImplementation(() => poolInstance),
+    }));
 
-    expect(mockGetDatabaseSecret).toHaveBeenCalledTimes(1);
+    const postgre = await import("../../db/postgre");
+    const { Pool } = await import("pg");
+    const MockedPool = Pool as unknown as jest.Mock;
+
+    const result = await postgre.init();
+
+    expect(result).toBe(poolInstance);
+    expect(postgre.pg).toBe(poolInstance);
+
     expect(MockedPool).toHaveBeenCalledTimes(1);
     expect(MockedPool).toHaveBeenCalledWith({
       user: "test-user",
@@ -69,24 +74,53 @@ describe("db/postgre → init", () => {
       password: "super-secret",
       ssl: { rejectUnauthorized: false },
     });
-    expect(pg).toBe(poolInstance);
   });
 
-  it("throws when secret is undefined in production", async () => {
-    process.env.NODE_ENV = "production";
+  it("returns existing pg (does not create Pool twice)", async () => {
+    process.env.NODE_ENV = "test";
+    delete process.env.PG_PASSWORD;
 
-    mockGetDatabaseSecret.mockResolvedValueOnce(undefined as any);
+    const poolInstance = { query: jest.fn() };
 
-    await expect(init()).rejects.toThrow("RDS secret is undefined");
-    expect(MockedPool).not.toHaveBeenCalled();
+    jest.doMock("pg", () => ({
+      Pool: jest.fn().mockImplementation(() => poolInstance),
+    }));
+
+    const postgre = await import("../../db/postgre");
+    const { Pool } = await import("pg");
+    const MockedPool = Pool as unknown as jest.Mock;
+
+    const first = await postgre.init();
+    const second = await postgre.init();
+
+    expect(first).toBe(poolInstance);
+    expect(second).toBe(poolInstance);
+    expect(MockedPool).toHaveBeenCalledTimes(1);
   });
 
-  it("throws when secret is not a string in production", async () => {
+  it("throws when required env vars are missing (non-production)", async () => {
+    process.env.NODE_ENV = "test";
+    delete process.env.PG_HOST;
+
+    jest.doMock("pg", () => ({ Pool: jest.fn() }));
+
+    const postgre = await import("../../db/postgre");
+
+    await expect(postgre.init()).rejects.toThrow(
+      "Missing required DB env vars (PG_HOST, PG_USER, PG_PASSWORD, PG_DATABASE)"
+    );
+  });
+
+  it("throws in production when PG_PASSWORD is missing", async () => {
     process.env.NODE_ENV = "production";
+    delete process.env.PG_PASSWORD;
 
-    mockGetDatabaseSecret.mockResolvedValueOnce({ foo: "bar" } as any);
+    jest.doMock("pg", () => ({ Pool: jest.fn() }));
 
-    await expect(init()).rejects.toThrow("RDS secret is not string");
-    expect(MockedPool).not.toHaveBeenCalled();
+    const postgre = await import("../../db/postgre");
+
+    await expect(postgre.init()).rejects.toThrow(
+      "Missing required DB env vars (PG_HOST, PG_USER, PG_PASSWORD, PG_DATABASE)"
+    );
   });
 });
