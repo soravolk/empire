@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { MdDelete } from "react-icons/md";
+import { MdDelete, MdEdit } from "react-icons/md";
 import {
   useCreateMilestoneMutation,
   useDeleteMilestoneMutation,
   useFetchMilestonesQuery,
+  useUpdateMilestoneMutation,
 } from "../store";
 
 interface MilestoneViewProps {
@@ -27,11 +28,20 @@ export default function MilestoneView({ goalId }: MilestoneViewProps) {
     useCreateMilestoneMutation();
   const [deleteMilestone, { isLoading: isDeleting }] =
     useDeleteMilestoneMutation();
+  const [updateMilestone, { isLoading: isUpdating }] =
+    useUpdateMilestoneMutation();
   const [addingAtLevel, setAddingAtLevel] = useState<number | null>(null);
   const [formData, setFormData] = useState({ name: "", targetDate: "" });
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(
     null
   );
+  const [editingMilestoneId, setEditingMilestoneId] = useState<string | null>(
+    null
+  );
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    targetDate: "",
+  });
 
   // Group milestones by level
   const milestonesByLevel = milestones.reduce((acc, milestone) => {
@@ -89,6 +99,42 @@ export default function MilestoneView({ goalId }: MilestoneViewProps) {
         setSelectedMilestoneId(null);
       } catch (error) {
         console.error("Failed to delete milestone:", error);
+      }
+    }
+  };
+
+  const handleEditClick = (milestone: Milestone) => {
+    setEditingMilestoneId(milestone.id);
+    setEditFormData({
+      name: milestone.name,
+      targetDate: milestone.targetDate,
+    });
+  };
+
+  const handleEditCancel = () => {
+    setEditingMilestoneId(null);
+    setEditFormData({ name: "", targetDate: "" });
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (
+      editFormData.name.trim() &&
+      editFormData.targetDate &&
+      editingMilestoneId
+    ) {
+      try {
+        await updateMilestone({
+          goalId,
+          milestoneId: editingMilestoneId,
+          name: editFormData.name,
+          targetDate: editFormData.targetDate,
+        }).unwrap();
+
+        setEditingMilestoneId(null);
+        setEditFormData({ name: "", targetDate: "" });
+      } catch (error) {
+        console.error("Failed to update milestone:", error);
       }
     }
   };
@@ -162,27 +208,97 @@ export default function MilestoneView({ goalId }: MilestoneViewProps) {
                       {levelMilestones
                         .filter((m) => selectedMilestoneId === m.id)
                         .map((m) => (
-                          <div
-                            key={m.id}
-                            className="flex justify-between items-start"
-                          >
-                            <div>
-                              <h3 className="text-base font-semibold text-gray-800 mb-1">
-                                {m.name}
-                              </h3>
-                              <p className="text-xs text-gray-600">
-                                Target:{" "}
-                                {new Date(m.targetDate).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => handleDelete(m.id)}
-                              disabled={isDeleting}
-                              className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Delete milestone"
-                            >
-                              <MdDelete className="w-5 h-5" />
-                            </button>
+                          <div key={m.id}>
+                            {editingMilestoneId === m.id ? (
+                              <form
+                                onSubmit={handleEditSubmit}
+                                className="flex flex-col gap-2"
+                              >
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Milestone Name
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={editFormData.name}
+                                    onChange={(e) =>
+                                      setEditFormData({
+                                        ...editFormData,
+                                        name: e.target.value,
+                                      })
+                                    }
+                                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Enter milestone name"
+                                    autoFocus
+                                    required
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Target Date
+                                  </label>
+                                  <input
+                                    type="date"
+                                    value={editFormData.targetDate}
+                                    onChange={(e) =>
+                                      setEditFormData({
+                                        ...editFormData,
+                                        targetDate: e.target.value,
+                                      })
+                                    }
+                                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    required
+                                  />
+                                </div>
+                                <div className="flex gap-2 justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={handleEditCancel}
+                                    className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    type="submit"
+                                    disabled={isUpdating}
+                                    className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed rounded-md transition-colors"
+                                  >
+                                    {isUpdating ? "Saving..." : "Save"}
+                                  </button>
+                                </div>
+                              </form>
+                            ) : (
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h3 className="text-base font-semibold text-gray-800 mb-1">
+                                    {m.name}
+                                  </h3>
+                                  <p className="text-xs text-gray-600">
+                                    Target:{" "}
+                                    {new Date(
+                                      m.targetDate
+                                    ).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                <div className="flex gap-1">
+                                  <button
+                                    onClick={() => handleEditClick(m)}
+                                    className="p-1.5 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                                    title="Edit milestone"
+                                  >
+                                    <MdEdit className="w-5 h-5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDelete(m.id)}
+                                    disabled={isDeleting}
+                                    className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="Delete milestone"
+                                  >
+                                    <MdDelete className="w-5 h-5" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))}
                     </div>

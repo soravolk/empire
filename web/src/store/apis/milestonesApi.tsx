@@ -53,6 +53,20 @@ export const milestonesApi = createApi({
         { type: "Milestone", id: `GOAL_${goalId}` },
       ],
     }),
+    updateMilestone: builder.mutation<
+      Milestone,
+      { goalId: string; milestoneId: string; name: string; targetDate: string }
+    >({
+      query: ({ goalId, milestoneId, name, targetDate }) => ({
+        url: `/goals/${goalId}/milestones/${milestoneId}`,
+        method: "PUT",
+        body: { name, targetDate },
+      }),
+      invalidatesTags: (result, error, { goalId, milestoneId }) => [
+        { type: "Milestone", id: milestoneId },
+        { type: "Milestone", id: `GOAL_${goalId}` },
+      ],
+    }),
   }),
 });
 
@@ -60,4 +74,5 @@ export const {
   useFetchMilestonesQuery,
   useCreateMilestoneMutation,
   useDeleteMilestoneMutation,
+  useUpdateMilestoneMutation,
 } = milestonesApi;

@@ -1,5 +1,10 @@
 import { RequestHandler } from "express";
-import { PutCommand, ScanCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  PutCommand,
+  ScanCommand,
+  DeleteCommand,
+  UpdateCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { dynamodbClient } from "../db/dynamodb";
 import { v4 as uuidv4 } from "uuid";
 
@@ -107,5 +112,59 @@ export const deleteMilestone: RequestHandler = async (req, res) => {
     }
     console.error("Error deleting milestone:", error);
     res.status(500).json({ message: "Failed to delete milestone" });
+  }
+};
+
+export const updateMilestone: RequestHandler = async (req, res) => {
+  const uid = req.user!.id;
+  const { milestoneId } = req.params;
+  const { name, targetDate } = req.body;
+
+  if (!name || !targetDate) {
+    return res
+      .status(400)
+      .json({ message: "Name and targetDate are required" });
+  }
+
+  try {
+    const now = Date.now();
+
+    const command = new UpdateCommand({
+      TableName: "milestones",
+      Key: {
+        milestone_id: milestoneId,
+      },
+      UpdateExpression:
+        "SET #name = :name, target_date = :targetDate, updated_at = :updatedAt",
+      ConditionExpression: "user_id = :userId",
+      ExpressionAttributeNames: {
+        "#name": "name",
+      },
+      ExpressionAttributeValues: {
+        ":name": name,
+        ":targetDate": targetDate,
+        ":updatedAt": now,
+        ":userId": uid,
+      },
+      ReturnValues: "ALL_NEW",
+    });
+
+    const result = await dynamodbClient.send(command);
+    const item = result.Attributes;
+
+    res.status(200).json({
+      id: item?.milestone_id,
+      name: item?.name,
+      targetDate: item?.target_date,
+      level: item?.level,
+    });
+  } catch (error: any) {
+    if (error.name === "ConditionalCheckFailedException") {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to update this milestone" });
+    }
+    console.error("Error updating milestone:", error);
+    res.status(500).json({ message: "Failed to update milestone" });
   }
 };
