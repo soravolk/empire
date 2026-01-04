@@ -197,7 +197,7 @@ resource "aws_lambda_function_url" "auth" {
 
 # DynamoDB table for goals
 resource "aws_dynamodb_table" "goals" {
-  name           = "${var.app_name}-${var.environment}-goals"
+  name           = "goals"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "goal_id"
 
@@ -207,13 +207,13 @@ resource "aws_dynamodb_table" "goals" {
   }
 
   tags = merge(var.tags, {
-    Name = "${var.app_name}-${var.environment}-goals"
+    Name = "goals"
   })
 }
 
 # DynamoDB table for milestones
 resource "aws_dynamodb_table" "milestones" {
-  name           = "${var.app_name}-${var.environment}-milestones"
+  name           = "milestones"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "milestone_id"
 
@@ -221,8 +221,8 @@ resource "aws_dynamodb_table" "milestones" {
     name = "milestone_id"
     type = "S"
   }
-  
+
   tags = merge(var.tags, {
-    Name = "${var.app_name}-${var.environment}-milestones"
+    Name = "milestones"
   })
 }
