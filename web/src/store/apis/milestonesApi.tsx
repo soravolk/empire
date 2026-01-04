@@ -17,6 +17,16 @@ export const milestonesApi = createApi({
   }),
   tagTypes: ["Milestone"],
   endpoints: (builder) => ({
+    fetchMilestones: builder.query<Milestone[], string>({
+      query: (goalId) => `/goals/${goalId}/milestones`,
+      providesTags: (result, error, goalId) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: "Milestone" as const, id })),
+              { type: "Milestone", id: `GOAL_${goalId}` },
+            ]
+          : [{ type: "Milestone", id: `GOAL_${goalId}` }],
+    }),
     createMilestone: builder.mutation<
       Milestone,
       { goalId: string; name: string; targetDate: string; level: number }
@@ -26,8 +36,12 @@ export const milestonesApi = createApi({
         method: "POST",
         body: { name, targetDate, level },
       }),
+      invalidatesTags: (result, error, { goalId }) => [
+        { type: "Milestone", id: `GOAL_${goalId}` },
+      ],
     }),
   }),
 });
 
-export const { useCreateMilestoneMutation } = milestonesApi;
+export const { useFetchMilestonesQuery, useCreateMilestoneMutation } =
+  milestonesApi;

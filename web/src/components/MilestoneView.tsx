@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useCreateMilestoneMutation } from "../store";
+import { useCreateMilestoneMutation, useFetchMilestonesQuery } from "../store";
 
 interface MilestoneViewProps {
   goalId: string;
@@ -13,7 +13,11 @@ interface Milestone {
 }
 
 export default function MilestoneView({ goalId }: MilestoneViewProps) {
-  const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const {
+    data: milestones = [],
+    isLoading,
+    error,
+  } = useFetchMilestonesQuery(goalId);
   const [createMilestone, { isLoading: isCreating }] =
     useCreateMilestoneMutation();
   const [isAdding, setIsAdding] = useState(false);
@@ -41,23 +45,14 @@ export default function MilestoneView({ goalId }: MilestoneViewProps) {
     e.preventDefault();
     if (formData.name.trim() && formData.targetDate) {
       try {
-        const newMilestone = await createMilestone({
+        await createMilestone({
           goalId,
           name: formData.name,
           targetDate: formData.targetDate,
           level: milestones.length + 1,
         }).unwrap();
 
-        // Add to local state
-        setMilestones([
-          ...milestones,
-          {
-            id: newMilestone.id,
-            name: newMilestone.name,
-            targetDate: newMilestone.targetDate,
-            level: newMilestone.level,
-          },
-        ]);
+        // Reset form and close
         setFormData({ name: "", targetDate: "" });
         setIsAdding(false);
       } catch (error) {
@@ -65,6 +60,26 @@ export default function MilestoneView({ goalId }: MilestoneViewProps) {
       }
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-full max-w-4xl mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
+        <div className="flex items-center justify-center h-40">
+          <p className="text-gray-600">Loading milestones...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full max-w-4xl mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
+        <div className="flex items-center justify-center h-40">
+          <p className="text-red-600">Failed to load milestones</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">

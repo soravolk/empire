@@ -1,7 +1,41 @@
 import { RequestHandler } from "express";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { dynamodbClient } from "../db/dynamodb";
 import { v4 as uuidv4 } from "uuid";
+
+export const listMilestones: RequestHandler = async (req, res) => {
+  const uid = req.user!.id;
+  const { goalId } = req.params;
+
+  try {
+    const command = new ScanCommand({
+      TableName: "milestones",
+      FilterExpression: "goal_id = :goalId AND user_id = :userId",
+      ExpressionAttributeValues: {
+        ":goalId": goalId,
+        ":userId": uid,
+      },
+    });
+
+    const result = await dynamodbClient.send(command);
+
+    const milestones = (result.Items || []).map((item) => ({
+      id: item.milestone_id,
+      name: item.name,
+      targetDate: item.target_date,
+      level: item.level,
+      created_at: item.created_at,
+    }));
+
+    // Sort by level
+    milestones.sort((a, b) => a.level - b.level);
+
+    res.status(200).json(milestones);
+  } catch (error) {
+    console.error("Error listing milestones:", error);
+    res.status(500).json({ message: "Failed to list milestones" });
+  }
+};
 
 export const createMilestone: RequestHandler = async (req, res) => {
   const uid = req.user!.id;
