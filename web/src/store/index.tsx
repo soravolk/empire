@@ -113,4 +113,5 @@ export {
 export {
   useFetchMilestonesQuery,
   useCreateMilestoneMutation,
+  useDeleteMilestoneMutation,
 } from "./apis/milestonesApi";
