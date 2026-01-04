@@ -10,6 +10,7 @@ router.put("/goals/:goal_id", roadmap.updateRoadmapGoal);
 router.delete("/goals/:goal_id", roadmap.deleteRoadmapGoal);
 
 // Milestone routes
+router.get("/goals/:goalId/milestones", milestone.listMilestones);
 router.post("/goals/:goalId/milestones", milestone.createMilestone);
 
 export default router;

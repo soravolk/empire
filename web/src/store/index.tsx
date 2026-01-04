@@ -110,4 +110,7 @@ export {
   useFetchRoadmapGoalsQuery,
   useCreateRoadmapGoalMutation,
 } from "./apis/roadmapApi";
-export { useCreateMilestoneMutation } from "./apis/milestonesApi";
+export {
+  useFetchMilestonesQuery,
+  useCreateMilestoneMutation,
+} from "./apis/milestonesApi";
