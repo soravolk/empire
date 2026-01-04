@@ -35,3 +35,30 @@ resource "aws_security_group" "lambda" {
     Name = "${var.app_name}-${var.environment}-lambda-sg"
   })
 }
+
+# DynamoDB VPC Gateway Endpoint (no cost)
+resource "aws_vpc_endpoint" "dynamodb" {
+  count = var.enable_vpc ? 1 : 0
+  
+  vpc_id       = data.aws_vpc.main[0].id
+  service_name = "com.amazonaws.${data.aws_region.current.name}.dynamodb"
+  
+  vpc_endpoint_type = "Gateway"
+  
+  # Associate with route tables automatically
+  route_table_ids = var.enable_vpc ? data.aws_route_tables.vpc_route_tables[0].ids : []
+  
+  tags = merge(var.tags, {
+    Name = "${var.app_name}-${var.environment}-dynamodb-endpoint"
+  })
+}
+
+# Get current AWS region
+data "aws_region" "current" {}
+
+# Get all route tables in the VPC
+data "aws_route_tables" "vpc_route_tables" {
+  count = var.enable_vpc ? 1 : 0
+  
+  vpc_id = data.aws_vpc.main[0].id
+}

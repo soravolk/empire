@@ -32,3 +32,19 @@ output "lambda_attached_security_group_ids" {
   description = "All security groups attached to the Lambda (managed + provided)"
   value       = var.enable_vpc ? concat([aws_security_group.lambda[0].id], var.security_group_ids) : []
 }
+
+# DynamoDB Outputs
+output "goals_table_name" {
+  description = "DynamoDB goals table name"
+  value       = aws_dynamodb_table.goals.name
+}
+
+output "goals_table_arn" {
+  description = "DynamoDB goals table ARN"
+  value       = aws_dynamodb_table.goals.arn
+}
+
+output "goals_table_stream_arn" {
+  description = "DynamoDB goals table stream ARN"
+  value       = try(aws_dynamodb_table.goals.stream_arn, "")
+}
