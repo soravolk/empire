@@ -1,124 +1,105 @@
-import passport from "passport";
-import user from "../../controllers/user";
+jest.mock("passport", () => ({
+  __esModule: true,
+  default: {
+    serializeUser: jest.fn(),
+    deserializeUser: jest.fn(),
+    use: jest.fn(),
+  },
+}));
 
-jest.mock("../../controllers/user");
-jest.mock("passport");
-
-// --- Mock GoogleStrategy to capture verify callback ---
 let verifyCallback: Function = () => {};
+let strategyOptions: any;
 
-jest.mock("passport-google-oauth20", () => {
-  return {
-    Strategy: jest.fn().mockImplementation((options, verify) => {
-      verifyCallback = verify; // store verify callback
-      return {}; // strategy instance (unused)
-    }),
-  };
-});
+jest.mock("passport-google-oauth20", () => ({
+  Strategy: jest.fn().mockImplementation((options, verify) => {
+    strategyOptions = options;
+    verifyCallback = verify;
+    return { name: "google-strategy" };
+  }),
+}));
 
-describe("auth Google OAuth Strategy", () => {
-  beforeAll(() => {
-    // Load auth.ts to register the strategy
+describe("services/auth (Google OAuth Strategy registration)", () => {
+  const ORIGINAL_ENV = { ...process.env };
+
+  beforeEach(() => {
+    jest.resetModules();
+    jest.clearAllMocks();
+
+    process.env = {
+      ...ORIGINAL_ENV,
+      GOOGLE_CLIENT_ID: "client-id",
+      GOOGLE_CLIENT_SECRET: "client-secret",
+      FRONTEND_URL: "https://frontend.example.com",
+    };
+
     require("../../services/auth");
   });
 
-  beforeEach(() => {
-    jest.clearAllMocks();
+  afterAll(() => {
+    process.env = ORIGINAL_ENV;
   });
 
-  it("should login existing user", async () => {
-    (user.getUserById as jest.Mock).mockResolvedValue({
-      id: "benson",
-      email: "benson@test.com",
-    });
+  it("registers serializeUser/deserializeUser handlers", async () => {
+    const passport = (await import("passport")).default as any;
 
+    expect(passport.serializeUser).toHaveBeenCalledTimes(1);
+    expect(passport.deserializeUser).toHaveBeenCalledTimes(1);
+  });
+
+  it("registers GoogleStrategy via passport.use", async () => {
+    const passport = (await import("passport")).default as any;
+
+    expect(passport.use).toHaveBeenCalledTimes(1);
+    expect(passport.use).toHaveBeenCalledWith(expect.any(Object));
+  });
+
+  it("passes correct GoogleStrategy options", () => {
+    expect(strategyOptions).toEqual({
+      clientID: "client-id",
+      clientSecret: "client-secret",
+      callbackURL: "https://frontend.example.com/auth/google/callback",
+    });
+  });
+
+  it("verify callback maps profile to user object (id/email/name)", async () => {
     const done = jest.fn();
 
     await verifyCallback(
-      "token",
+      "access",
       "refresh",
       {
         id: "benson",
         emails: [{ value: "benson@test.com" }],
-        displayName: "TEST USER",
+        displayName: "Benson Test",
       },
       done
     );
 
-    expect(user.getUserById).toHaveBeenCalledWith("benson"); // ★ 修正這裡
     expect(done).toHaveBeenCalledWith(null, {
       id: "benson",
       email: "benson@test.com",
+      name: "Benson Test",
     });
   });
 
-  it("should create a new user if not exists", async () => {
-    (user.getUserById as jest.Mock)
-      .mockResolvedValueOnce(null) // first lookup → not found
-      .mockResolvedValueOnce({ id: "volk", email: "volk@test.com" }); // after create
-
-    (user.createUser as jest.Mock).mockResolvedValue(undefined);
-
+  it("verify callback handles missing emails gracefully", async () => {
     const done = jest.fn();
 
     await verifyCallback(
-      "token",
+      "access",
       "refresh",
       {
-        id: "volk",                               // ★ 改成 volk
-        emails: [{ value: "volk@test.com" }],
-        displayName: "New Person",
+        id: "u1",
+        emails: undefined,
+        displayName: "No Email",
       },
       done
-    );
-
-    expect(user.createUser).toHaveBeenCalledWith(
-      "volk",
-      "volk@test.com",
-      "New Person"
     );
 
     expect(done).toHaveBeenCalledWith(null, {
-      id: "volk",
-      email: "volk@test.com",
+      id: "u1",
+      email: undefined,
+      name: "No Email",
     });
-  });
-
-  it("should return error when getUserById throws", async () => {
-    (user.getUserById as jest.Mock).mockRejectedValue(new Error("fail"));
-
-    const done = jest.fn();
-
-    await verifyCallback("t", "r", { id: "ernir" }, done);
-
-    expect(done).toHaveBeenCalledWith(
-      new Error("failed to get user information"),
-      undefined
-    );
-  });
-
-  it("should return error when createUser throws", async () => {
-    (user.getUserById as jest.Mock)
-      .mockResolvedValueOnce(null); // not found
-
-    (user.createUser as jest.Mock).mockRejectedValue(new Error("fail"));
-
-    const done = jest.fn();
-
-    await verifyCallback(
-      "token",
-      "refresh",
-      {
-        id: "ernir",
-        emails: [{ value: "ernir@test.com" }],
-        displayName: "TEST",
-      },
-      done
-    );
-
-    expect(done).toHaveBeenCalledWith(
-      new Error("failed to create a new user"),
-      undefined
-    );
   });
 });
