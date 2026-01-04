@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { useCreateMilestoneMutation, useFetchMilestonesQuery } from "../store";
+import { MdDelete } from "react-icons/md";
+import {
+  useCreateMilestoneMutation,
+  useDeleteMilestoneMutation,
+  useFetchMilestonesQuery,
+} from "../store";
 
 interface MilestoneViewProps {
   goalId: string;
@@ -20,6 +25,8 @@ export default function MilestoneView({ goalId }: MilestoneViewProps) {
   } = useFetchMilestonesQuery(goalId);
   const [createMilestone, { isLoading: isCreating }] =
     useCreateMilestoneMutation();
+  const [deleteMilestone, { isLoading: isDeleting }] =
+    useDeleteMilestoneMutation();
   const [addingAtLevel, setAddingAtLevel] = useState<number | null>(null);
   const [formData, setFormData] = useState({ name: "", targetDate: "" });
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(
@@ -71,6 +78,17 @@ export default function MilestoneView({ goalId }: MilestoneViewProps) {
         setAddingAtLevel(null);
       } catch (error) {
         console.error("Failed to create milestone:", error);
+      }
+    }
+  };
+
+  const handleDelete = async (milestoneId: string) => {
+    if (window.confirm("Are you sure you want to delete this milestone?")) {
+      try {
+        await deleteMilestone({ goalId, milestoneId }).unwrap();
+        setSelectedMilestoneId(null);
+      } catch (error) {
+        console.error("Failed to delete milestone:", error);
       }
     }
   };
@@ -140,18 +158,31 @@ export default function MilestoneView({ goalId }: MilestoneViewProps) {
                   {levelMilestones.some(
                     (m) => selectedMilestoneId === m.id
                   ) && (
-                    <div className="text-left mt-2">
+                    <div className="text-left mt-2 w-full">
                       {levelMilestones
                         .filter((m) => selectedMilestoneId === m.id)
                         .map((m) => (
-                          <div key={m.id}>
-                            <h3 className="text-base font-semibold text-gray-800 mb-1">
-                              {m.name}
-                            </h3>
-                            <p className="text-xs text-gray-600">
-                              Target:{" "}
-                              {new Date(m.targetDate).toLocaleDateString()}
-                            </p>
+                          <div
+                            key={m.id}
+                            className="flex justify-between items-start"
+                          >
+                            <div>
+                              <h3 className="text-base font-semibold text-gray-800 mb-1">
+                                {m.name}
+                              </h3>
+                              <p className="text-xs text-gray-600">
+                                Target:{" "}
+                                {new Date(m.targetDate).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => handleDelete(m.id)}
+                              disabled={isDeleting}
+                              className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Delete milestone"
+                            >
+                              <MdDelete className="w-5 h-5" />
+                            </button>
                           </div>
                         ))}
                     </div>

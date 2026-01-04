@@ -40,8 +40,24 @@ export const milestonesApi = createApi({
         { type: "Milestone", id: `GOAL_${goalId}` },
       ],
     }),
+    deleteMilestone: builder.mutation<
+      void,
+      { goalId: string; milestoneId: string }
+    >({
+      query: ({ goalId, milestoneId }) => ({
+        url: `/goals/${goalId}/milestones/${milestoneId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, { goalId, milestoneId }) => [
+        { type: "Milestone", id: milestoneId },
+        { type: "Milestone", id: `GOAL_${goalId}` },
+      ],
+    }),
   }),
 });
 
-export const { useFetchMilestonesQuery, useCreateMilestoneMutation } =
-  milestonesApi;
+export const {
+  useFetchMilestonesQuery,
+  useCreateMilestoneMutation,
+  useDeleteMilestoneMutation,
+} = milestonesApi;

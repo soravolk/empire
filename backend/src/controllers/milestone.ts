@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-import { PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, ScanCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { dynamodbClient } from "../db/dynamodb";
 import { v4 as uuidv4 } from "uuid";
 
@@ -77,5 +77,35 @@ export const createMilestone: RequestHandler = async (req, res) => {
   } catch (error) {
     console.error("Error creating milestone:", error);
     res.status(500).json({ message: "Failed to create milestone" });
+  }
+};
+
+export const deleteMilestone: RequestHandler = async (req, res) => {
+  const uid = req.user!.id;
+  const { milestoneId } = req.params;
+
+  try {
+    const command = new DeleteCommand({
+      TableName: "milestones",
+      Key: {
+        milestone_id: milestoneId,
+      },
+      ConditionExpression: "user_id = :userId",
+      ExpressionAttributeValues: {
+        ":userId": uid,
+      },
+    });
+
+    await dynamodbClient.send(command);
+
+    res.status(200).json({ message: "Milestone deleted successfully" });
+  } catch (error: any) {
+    if (error.name === "ConditionalCheckFailedException") {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to delete this milestone" });
+    }
+    console.error("Error deleting milestone:", error);
+    res.status(500).json({ message: "Failed to delete milestone" });
   }
 };
