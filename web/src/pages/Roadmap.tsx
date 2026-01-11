@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   useFetchRoadmapGoalsQuery,
   useCreateRoadmapGoalMutation,
+  useUpdateRoadmapGoalMutation,
 } from "../store/apis/roadmapApi";
 
 interface Goal {
@@ -27,6 +28,7 @@ export default function Roadmap() {
 
   const { data: goals = [], isLoading, error } = useFetchRoadmapGoalsQuery();
   const [createGoal] = useCreateRoadmapGoalMutation();
+  const [updateGoal] = useUpdateRoadmapGoalMutation();
 
   const allItems: any[] = [
     ...goals,
@@ -63,10 +65,19 @@ export default function Roadmap() {
     });
   };
 
-  const handleSaveEdit = () => {
-    // TODO: Add update mutation when available
-    console.log("Saving edited goal:", editGoal);
-    setIsEditing(false);
+  const handleSaveEdit = async () => {
+    if (!editGoal.title || !editGoal.targetDate) return;
+
+    try {
+      await updateGoal({
+        goal_id: (currentItem as Goal).goal_id,
+        title: editGoal.title,
+        targetDate: editGoal.targetDate,
+      }).unwrap();
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Failed to update goal:", error);
+    }
   };
 
   const handleCancelEdit = () => {

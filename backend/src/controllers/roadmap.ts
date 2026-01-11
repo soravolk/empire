@@ -94,3 +94,41 @@ export const createRoadmapGoal: RequestHandler = async (req, res) => {
     res.status(500).json({ message: "Failed to create goal" });
   }
 };
+
+export const updateRoadmapGoal: RequestHandler = async (req, res) => {
+  const uid = req.user!.id;
+  const { goal_id } = req.params;
+  const { title, targetDate } = req.body;
+
+  if (!title || !targetDate) {
+    return res
+      .status(400)
+      .json({ message: "Title and targetDate are required" });
+  }
+
+  try {
+    const now = Date.now();
+
+    const command = new PutCommand({
+      TableName: "goals",
+      Item: {
+        goal_id,
+        user_id: uid,
+        title,
+        targetDate,
+        updated_at: now,
+      },
+    });
+
+    await dynamodbClient.send(command);
+
+    res.status(200).json({
+      goal_id,
+      title,
+      targetDate,
+    });
+  } catch (error) {
+    console.error("Error updating roadmap goal:", error);
+    res.status(500).json({ message: "Failed to update goal" });
+  }
+};

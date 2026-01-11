@@ -37,8 +37,25 @@ export const roadmapApi = createApi({
         body: { title, targetDate },
       }),
     }),
+    updateRoadmapGoal: builder.mutation<
+      RoadmapGoal,
+      { goal_id: string; title: string; targetDate: string }
+    >({
+      invalidatesTags: (result, error, arg) => [
+        { type: "RoadmapGoal", id: arg.goal_id },
+        "RoadmapGoal",
+      ],
+      query: ({ goal_id, title, targetDate }) => ({
+        url: `/goals/${goal_id}`,
+        method: "PUT",
+        body: { title, targetDate },
+      }),
+    }),
   }),
 });
 
-export const { useFetchRoadmapGoalsQuery, useCreateRoadmapGoalMutation } =
-  roadmapApi;
+export const {
+  useFetchRoadmapGoalsQuery,
+  useCreateRoadmapGoalMutation,
+  useUpdateRoadmapGoalMutation,
+} = roadmapApi;
