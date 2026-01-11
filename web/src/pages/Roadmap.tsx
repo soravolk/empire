@@ -3,6 +3,7 @@ import {
   useFetchRoadmapGoalsQuery,
   useCreateRoadmapGoalMutation,
   useUpdateRoadmapGoalMutation,
+  useDeleteRoadmapGoalMutation,
 } from "../store/apis/roadmapApi";
 
 interface Goal {
@@ -29,6 +30,7 @@ export default function Roadmap() {
   const { data: goals = [], isLoading, error } = useFetchRoadmapGoalsQuery();
   const [createGoal] = useCreateRoadmapGoalMutation();
   const [updateGoal] = useUpdateRoadmapGoalMutation();
+  const [deleteGoal] = useDeleteRoadmapGoalMutation();
 
   const allItems: any[] = [
     ...goals,
@@ -83,6 +85,22 @@ export default function Roadmap() {
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditGoal({ title: "", targetDate: "" });
+  };
+
+  const handleDeleteGoal = async () => {
+    if (!window.confirm("Are you sure you want to delete this goal?")) return;
+
+    try {
+      await deleteGoal((currentItem as Goal).goal_id).unwrap();
+      // Move to previous item or reset to first item after deletion
+      if (currentIndex > 0) {
+        setCurrentIndex(currentIndex - 1);
+      } else {
+        setCurrentIndex(0);
+      }
+    } catch (error) {
+      console.error("Failed to delete goal:", error);
+    }
   };
 
   return (
@@ -209,26 +227,48 @@ export default function Roadmap() {
                 <h2 className="text-2xl font-semibold mb-4 text-gray-800 flex-1">
                   {(currentItem as Goal).title}
                 </h2>
-                <button
-                  onClick={handleEditClick}
-                  className="p-1.5 rounded-md hover:bg-gray-200/30 transition-colors"
-                  aria-label="Edit goal"
-                  title="Edit goal"
-                >
-                  <svg
-                    className="w-4 h-4 text-gray-700"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                <div className="flex gap-1">
+                  <button
+                    onClick={handleEditClick}
+                    className="p-1.5 rounded-md hover:bg-gray-200/30 transition-colors"
+                    aria-label="Edit goal"
+                    title="Edit goal"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                    />
-                  </svg>
-                </button>
+                    <svg
+                      className="w-4 h-4 text-gray-700"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={handleDeleteGoal}
+                    className="p-1.5 rounded-md hover:bg-red-100/50 transition-colors"
+                    aria-label="Delete goal"
+                    title="Delete goal"
+                  >
+                    <svg
+                      className="w-4 h-4 text-red-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               <div className="mb-4">

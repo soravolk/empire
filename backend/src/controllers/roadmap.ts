@@ -132,3 +132,35 @@ export const updateRoadmapGoal: RequestHandler = async (req, res) => {
     res.status(500).json({ message: "Failed to update goal" });
   }
 };
+
+export const deleteRoadmapGoal: RequestHandler = async (req, res) => {
+  const uid = req.user!.id;
+  const { goal_id } = req.params;
+
+  try {
+    const { DeleteCommand } = await import("@aws-sdk/lib-dynamodb");
+
+    const command = new DeleteCommand({
+      TableName: "goals",
+      Key: {
+        goal_id,
+      },
+      ConditionExpression: "user_id = :uid",
+      ExpressionAttributeValues: {
+        ":uid": uid,
+      },
+    });
+
+    await dynamodbClient.send(command);
+
+    res.status(200).json({ message: "Goal deleted successfully" });
+  } catch (error: any) {
+    if (error.name === "ConditionalCheckFailedException") {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to delete this goal" });
+    }
+    console.error("Error deleting roadmap goal:", error);
+    res.status(500).json({ message: "Failed to delete goal" });
+  }
+};

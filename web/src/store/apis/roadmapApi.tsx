@@ -51,6 +51,13 @@ export const roadmapApi = createApi({
         body: { title, targetDate },
       }),
     }),
+    deleteRoadmapGoal: builder.mutation<void, string>({
+      invalidatesTags: ["RoadmapGoal"],
+      query: (goal_id) => ({
+        url: `/goals/${goal_id}`,
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 
@@ -58,4 +65,5 @@ export const {
   useFetchRoadmapGoalsQuery,
   useCreateRoadmapGoalMutation,
   useUpdateRoadmapGoalMutation,
+  useDeleteRoadmapGoalMutation,
 } = roadmapApi;
