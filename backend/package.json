@@ -14,7 +14,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.500.0",
     "@aws-sdk/client-secrets-manager": "^3.826.0",
+    "@aws-sdk/lib-dynamodb": "^3.958.0",
     "@codegenie/serverless-express": "^4.17.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -23,7 +25,8 @@
     "jsonwebtoken": "^9.0.2",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
-    "pg": "^8.11.3"
+    "pg": "^8.11.3",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.156",

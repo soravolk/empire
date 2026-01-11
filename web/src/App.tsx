@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import ShortTerm from "./pages/ShortTerm";
 import LongTerm from "./pages/LongTerm";
 import Setting from "./pages/Setting";
+import Roadmap from "./pages/Roadmap";
 import { CycleListProvider } from "./context/cycle";
 import { LongTermProvider } from "./context/longTerm";
 import { AuthProvider } from "./context/auth";
@@ -39,6 +40,14 @@ const router = createBrowserRouter([
             <CycleListProvider>
               <LongTerm />
             </CycleListProvider>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/roadmap",
+        element: (
+          <ProtectedRoute>
+            <Roadmap />
           </ProtectedRoute>
         ),
       },

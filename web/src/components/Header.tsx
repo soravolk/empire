@@ -52,6 +52,9 @@ export default function Header() {
         <Link className={navItemClass} to="/longTerm">
           Long Term
         </Link>
+        <Link className={navItemClass} to="/roadmap">
+          Roadmap
+        </Link>
         <Link className={navItemClass} to="/setting">
           Setting
         </Link>
