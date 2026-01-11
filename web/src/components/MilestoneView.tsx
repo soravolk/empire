@@ -9,6 +9,7 @@ import {
 
 interface MilestoneViewProps {
   goalId: string;
+  onMilestoneDoubleClick?: (milestone: { id: string; name: string }) => void;
 }
 
 interface Milestone {
@@ -18,7 +19,10 @@ interface Milestone {
   level: number;
 }
 
-export default function MilestoneView({ goalId }: MilestoneViewProps) {
+export default function MilestoneView({
+  goalId,
+  onMilestoneDoubleClick,
+}: MilestoneViewProps) {
   const {
     data: milestones = [],
     isLoading,
@@ -136,6 +140,12 @@ export default function MilestoneView({ goalId }: MilestoneViewProps) {
       } catch (error) {
         console.error("Failed to update milestone:", error);
       }
+    }
+  };
+
+  const handleMilestoneDoubleClick = (milestone: Milestone) => {
+    if (onMilestoneDoubleClick) {
+      onMilestoneDoubleClick({ id: milestone.id, name: milestone.name });
     }
   };
 
@@ -370,11 +380,15 @@ export default function MilestoneView({ goalId }: MilestoneViewProps) {
                       <button
                         key={milestone.id}
                         onClick={() => handleMilestoneClick(milestone.id)}
+                        onDoubleClick={() =>
+                          handleMilestoneDoubleClick(milestone)
+                        }
                         className={`w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all ${
                           selectedMilestoneId === milestone.id
                             ? "bg-blue-600 border-blue-700"
                             : "bg-blue-500 border-blue-600 hover:bg-blue-600"
                         }`}
+                        title="Double-click to view tasks"
                       >
                         <svg
                           className="w-8 h-8 text-white"

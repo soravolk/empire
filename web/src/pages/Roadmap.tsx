@@ -7,6 +7,7 @@ import {
 } from "../store/apis/roadmapApi";
 import MilestoneView from "../components/MilestoneView";
 import GoalView from "../components/GoalView";
+import TaskView from "../components/TaskView";
 
 interface Goal {
   goal_id: string;
@@ -28,6 +29,11 @@ export default function Roadmap() {
   const [isEditing, setIsEditing] = useState(false);
   const [newGoal, setNewGoal] = useState({ title: "", targetDate: "" });
   const [editGoal, setEditGoal] = useState({ title: "", targetDate: "" });
+  const [taskViewOpen, setTaskViewOpen] = useState(false);
+  const [selectedTaskMilestone, setSelectedTaskMilestone] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const { data: goals = [], isLoading, error } = useFetchRoadmapGoalsQuery();
   const [createGoal] = useCreateRoadmapGoalMutation();
@@ -158,7 +164,29 @@ export default function Roadmap() {
 
       {/* Milestone View - only show when not on creation card */}
       {!isCreationCard && (
-        <MilestoneView goalId={(currentItem as Goal).goal_id} />
+        <MilestoneView
+          goalId={(currentItem as Goal).goal_id}
+          onMilestoneDoubleClick={(milestone) => {
+            setSelectedTaskMilestone({
+              id: milestone.id,
+              name: milestone.name,
+            });
+            setTaskViewOpen(true);
+          }}
+        />
+      )}
+
+      {/* TaskView Modal */}
+      {selectedTaskMilestone && (
+        <TaskView
+          isOpen={taskViewOpen}
+          onClose={() => {
+            setTaskViewOpen(false);
+            setSelectedTaskMilestone(null);
+          }}
+          milestoneId={selectedTaskMilestone.id}
+          milestoneName={selectedTaskMilestone.name}
+        />
       )}
     </div>
   );
