@@ -21,7 +21,9 @@ const getFakeProgress = (goalId: string): number => {
 export default function Roadmap() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isCreating, setIsCreating] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [newGoal, setNewGoal] = useState({ title: "", targetDate: "" });
+  const [editGoal, setEditGoal] = useState({ title: "", targetDate: "" });
 
   const { data: goals = [], isLoading, error } = useFetchRoadmapGoalsQuery();
   const [createGoal] = useCreateRoadmapGoalMutation();
@@ -51,6 +53,25 @@ export default function Roadmap() {
       setNewGoal({ title: "", targetDate: "" });
       setIsCreating(false);
     }
+  };
+
+  const handleEditClick = () => {
+    setIsEditing(true);
+    setEditGoal({
+      title: (currentItem as Goal).title,
+      targetDate: (currentItem as Goal).targetDate,
+    });
+  };
+
+  const handleSaveEdit = () => {
+    // TODO: Add update mutation when available
+    console.log("Saving edited goal:", editGoal);
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditGoal({ title: "", targetDate: "" });
   };
 
   return (
@@ -168,14 +189,36 @@ export default function Roadmap() {
                 </div>
               </div>
             )
-          ) : (
+          ) : !isEditing ? (
             <div
               className="w-full max-w-md rounded-lg shadow-lg p-6 border border-gray-200 h-64 flex flex-col justify-between"
               style={{ backgroundColor: "rgba(255, 217, 114, 0.7)" }}
             >
-              <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-                {(currentItem as Goal).title}
-              </h2>
+              <div className="flex justify-between items-start">
+                <h2 className="text-2xl font-semibold mb-4 text-gray-800 flex-1">
+                  {(currentItem as Goal).title}
+                </h2>
+                <button
+                  onClick={handleEditClick}
+                  className="p-1.5 rounded-md hover:bg-gray-200/30 transition-colors"
+                  aria-label="Edit goal"
+                  title="Edit goal"
+                >
+                  <svg
+                    className="w-4 h-4 text-gray-700"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                    />
+                  </svg>
+                </button>
+              </div>
 
               <div className="mb-4">
                 <p className="text-sm text-gray-600 mb-2">Target Date</p>
@@ -207,6 +250,61 @@ export default function Roadmap() {
                     }}
                   />
                 </div>
+              </div>
+            </div>
+          ) : (
+            <div
+              className="w-full max-w-md rounded-lg shadow-lg p-6 border border-gray-200 h-64 flex flex-col justify-between overflow-hidden"
+              style={{ backgroundColor: "rgba(255, 217, 114, 0.7)" }}
+            >
+              <h2 className="text-2xl font-semibold mb-3 text-gray-800">
+                Edit Goal
+              </h2>
+
+              <div className="flex flex-col gap-3 flex-1 overflow-y-auto">
+                <div>
+                  <label className="text-xs text-gray-600 mb-1 block">
+                    Goal Title
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter goal title"
+                    value={editGoal.title}
+                    onChange={(e) =>
+                      setEditGoal({ ...editGoal, title: e.target.value })
+                    }
+                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-600 mb-1 block">
+                    Target Date
+                  </label>
+                  <input
+                    type="date"
+                    value={editGoal.targetDate}
+                    onChange={(e) =>
+                      setEditGoal({ ...editGoal, targetDate: e.target.value })
+                    }
+                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={handleSaveEdit}
+                  className="flex-1 px-2 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className="flex-1 px-2 py-1 text-sm bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors"
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           )}
