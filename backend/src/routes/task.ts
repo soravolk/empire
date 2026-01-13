@@ -8,6 +8,7 @@ const router = Router();
 router.get("/milestone/:milestone_id", task.getTasksByMilestone);
 router.post("/", task.createTask);
 router.put("/:task_id", task.updateTask);
+router.delete("/:task_id", task.deleteTask);
 
 // Subtask routes - these need to be defined here since the frontend API calls /tasks/:taskId/subtasks
 router.post("/:taskId/subtasks", subtask.createSubtask);

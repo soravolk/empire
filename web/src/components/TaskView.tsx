@@ -4,6 +4,7 @@ import {
   useCreateTaskInMilestoneMutation,
   useGetTasksByMilestoneQuery,
   useUpdateTaskMutation,
+  useDeleteTaskMutation,
 } from "../store";
 
 interface Task {
@@ -55,6 +56,8 @@ const TaskView: React.FC<TaskViewProps> = ({
 
   const [updateTask] = useUpdateTaskMutation();
 
+  const [deleteTask] = useDeleteTaskMutation();
+
   // Convert API data to local format
   const tasks: Task[] =
     tasksData?.map((task) => ({
@@ -84,10 +87,14 @@ const TaskView: React.FC<TaskViewProps> = ({
     }
   };
 
-  const handleDeleteTask = (taskId: string) => {
+  const handleDeleteTask = async (taskId: string) => {
     if (window.confirm("Are you sure you want to delete this task?")) {
-      // TODO: Implement delete API call
-      console.log("Delete task:", taskId);
+      try {
+        await deleteTask(taskId).unwrap();
+      } catch (error) {
+        console.error("Failed to delete task:", error);
+        alert("Failed to delete task. Please try again.");
+      }
     }
   };
 

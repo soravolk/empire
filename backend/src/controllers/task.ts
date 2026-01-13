@@ -1,5 +1,11 @@
 import { RequestHandler } from "express";
-import { PutCommand, ScanCommand, UpdateCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  PutCommand,
+  ScanCommand,
+  UpdateCommand,
+  GetCommand,
+  DeleteCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { dynamodbClient } from "../db/dynamodb";
 import { v4 as uuidv4 } from "uuid";
 import db from "../db/utils";
@@ -91,7 +97,7 @@ const updateTask: RequestHandler = async (req, res) => {
     });
 
     const getResult = await dynamodbClient.send(getCommand);
-    
+
     if (!getResult.Item) {
       return res.status(404).json({ error: "Task not found" });
     }
@@ -157,4 +163,44 @@ const updateTask: RequestHandler = async (req, res) => {
   }
 };
 
-export default { getTasksByMilestone, createTask, updateTask };
+const deleteTask: RequestHandler = async (req, res) => {
+  const uid = req.user!.id;
+  const { task_id } = req.params;
+
+  if (!task_id) {
+    return res.status(400).json({ error: "task_id is required" });
+  }
+
+  try {
+    // First verify the task belongs to the user
+    const getCommand = new GetCommand({
+      TableName: "tasks",
+      Key: { task_id },
+    });
+
+    const getResult = await dynamodbClient.send(getCommand);
+
+    if (!getResult.Item) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    if (getResult.Item.user_id !== uid) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+
+    // Delete the task
+    const deleteCommand = new DeleteCommand({
+      TableName: "tasks",
+      Key: { task_id },
+    });
+
+    await dynamodbClient.send(deleteCommand);
+
+    res.status(200).json({ message: "Task deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    res.status(500).json({ error: "internal server error" });
+  }
+};
+
+export default { getTasksByMilestone, createTask, updateTask, deleteTask };

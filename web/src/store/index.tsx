@@ -123,4 +123,5 @@ export {
   useGetTasksByMilestoneQuery,
   useCreateTaskMutation as useCreateTaskInMilestoneMutation,
   useUpdateTaskMutation,
+  useDeleteTaskMutation,
 } from "./apis/taskApi";
