@@ -379,7 +379,7 @@ export default function MilestoneView({
                     {levelMilestones.map((milestone) => (
                       <button
                         key={milestone.id}
-                        onClick={() => handleMilestoneClick(milestone.id)}
+                        onMouseEnter={() => handleMilestoneClick(milestone.id)}
                         onDoubleClick={() =>
                           handleMilestoneDoubleClick(milestone)
                         }
