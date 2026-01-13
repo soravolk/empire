@@ -152,75 +152,6 @@ const TaskView: React.FC<TaskViewProps> = ({
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6">
-            {/* Create Task Form */}
-            {isCreating && (
-              <div className="mb-4 p-4 border border-gray-300 rounded-lg bg-gray-50">
-                <h3 className="text-lg font-semibold mb-3 text-gray-800">
-                  New Task
-                </h3>
-                <div className="flex flex-col gap-3">
-                  <div>
-                    <label className="text-xs text-gray-600 mb-1 block">
-                      Task Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter task name"
-                      value={newTask.name}
-                      onChange={(e) =>
-                        setNewTask({ ...newTask, name: e.target.value })
-                      }
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-600 mb-1 block">
-                      Description
-                    </label>
-                    <textarea
-                      placeholder="Enter task description"
-                      value={newTask.description}
-                      onChange={(e) =>
-                        setNewTask({ ...newTask, description: e.target.value })
-                      }
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-600"
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-600 mb-1 block">
-                      Due Date
-                    </label>
-                    <input
-                      type="date"
-                      value={newTask.dueDate}
-                      onChange={(e) =>
-                        setNewTask({ ...newTask, dueDate: e.target.value })
-                      }
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-600"
-                    />
-                  </div>
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      onClick={handleCreateTask}
-                      className="flex-1 px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                    >
-                      Create
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsCreating(false);
-                        setNewTask({ name: "", description: "", dueDate: "" });
-                      }}
-                      className="flex-1 px-4 py-2 text-sm bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Task List */}
             <div className="space-y-3 max-w-2xl mx-auto">
               {tasks.length === 0 && !isCreating && (
@@ -316,6 +247,79 @@ const TaskView: React.FC<TaskViewProps> = ({
                 </div>
               ))}
             </div>
+
+            {/* Create Task Form */}
+            {isCreating && (
+              <div className="mt-4 max-w-2xl mx-auto border border-gray-200 rounded-3xl bg-white bg-opacity-60 hover:shadow-md transition-shadow overflow-hidden">
+                <div className="px-6 py-3 rounded-full border border-gray-400 bg-gradient-to-r from-white/10 to-gray-100/90 backdrop-blur-sm">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    New Task
+                  </h3>
+                </div>
+
+                <div className="p-4 flex flex-col gap-3">
+                  <div>
+                    <label className="text-xs text-gray-600 mb-1 block">
+                      Task Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter task name"
+                      value={newTask.name}
+                      onChange={(e) =>
+                        setNewTask({ ...newTask, name: e.target.value })
+                      }
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600 mb-1 block">
+                      Description
+                    </label>
+                    <textarea
+                      placeholder="Enter task description"
+                      value={newTask.description}
+                      onChange={(e) =>
+                        setNewTask({ ...newTask, description: e.target.value })
+                      }
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-600"
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600 mb-1 block">
+                      Due Date
+                    </label>
+                    <input
+                      type="date"
+                      value={newTask.dueDate}
+                      onChange={(e) =>
+                        setNewTask({ ...newTask, dueDate: e.target.value })
+                      }
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-600"
+                    />
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={handleCreateTask}
+                      disabled={isCreatingTask}
+                      className="flex-1 px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isCreatingTask ? "Creating..." : "Create"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsCreating(false);
+                        setNewTask({ name: "", description: "", dueDate: "" });
+                      }}
+                      className="flex-1 px-4 py-2 text-sm bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Floating Add Task Button */}
             {!isCreating && (
