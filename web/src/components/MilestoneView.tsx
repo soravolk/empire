@@ -380,9 +380,7 @@ export default function MilestoneView({
                       <button
                         key={milestone.id}
                         onMouseEnter={() => handleMilestoneClick(milestone.id)}
-                        onDoubleClick={() =>
-                          handleMilestoneDoubleClick(milestone)
-                        }
+                        onClick={() => handleMilestoneDoubleClick(milestone)}
                         className={`w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all ${
                           selectedMilestoneId === milestone.id
                             ? "bg-blue-600 border-blue-700"
