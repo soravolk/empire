@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { MdClose, MdDelete, MdEdit, MdCheck } from "react-icons/md";
+import { useCreateTaskInMilestoneMutation } from "../store";
 
 interface Task {
   id: string;
@@ -51,18 +52,34 @@ const TaskView: React.FC<TaskViewProps> = ({
     {}
   );
 
-  const handleCreateTask = () => {
+  const [createTask, { isLoading: isCreatingTask }] =
+    useCreateTaskInMilestoneMutation();
+
+  const handleCreateTask = async () => {
     if (newTask.name.trim() && newTask.dueDate) {
-      const task: Task = {
-        id: Date.now().toString(),
-        name: newTask.name,
-        description: newTask.description,
-        dueDate: newTask.dueDate,
-        timeSpent: 0,
-      };
-      setTasks([...tasks, task]);
-      setNewTask({ name: "", description: "", dueDate: "" });
-      setIsCreating(false);
+      try {
+        const result = await createTask({
+          milestone_id: milestoneId,
+          name: newTask.name,
+          description: newTask.description,
+          due_date: newTask.dueDate,
+        }).unwrap();
+
+        // Add the new task to local state
+        const task: Task = {
+          id: result.task_id,
+          name: result.name,
+          description: result.description,
+          dueDate: result.due_date || "",
+          timeSpent: result.time_spent,
+        };
+        setTasks([...tasks, task]);
+        setNewTask({ name: "", description: "", dueDate: "" });
+        setIsCreating(false);
+      } catch (error) {
+        console.error("Failed to create task:", error);
+        alert("Failed to create task. Please try again.");
+      }
     }
   };
 

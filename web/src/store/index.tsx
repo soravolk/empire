@@ -12,6 +12,7 @@ import { subtasksApi } from "./apis/subtasksApi";
 import { goalsApi } from "./apis/goalsApi";
 import { roadmapApi } from "./apis/roadmapApi";
 import { milestonesApi } from "./apis/milestonesApi";
+import { taskApi } from "./apis/taskApi";
 
 export const store = configureStore({
   reducer: {
@@ -27,6 +28,7 @@ export const store = configureStore({
     [goalsApi.reducerPath]: goalsApi.reducer,
     [roadmapApi.reducerPath]: roadmapApi.reducer,
     [milestonesApi.reducerPath]: milestonesApi.reducer,
+    [taskApi.reducerPath]: taskApi.reducer,
   },
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware()
@@ -41,7 +43,8 @@ export const store = configureStore({
       .concat(subtasksApi.middleware)
       .concat(goalsApi.middleware)
       .concat(roadmapApi.middleware)
-      .concat(milestonesApi.middleware);
+      .concat(milestonesApi.middleware)
+      .concat(taskApi.middleware);
   },
 });
 
@@ -116,3 +119,4 @@ export {
   useDeleteMilestoneMutation,
   useUpdateMilestoneMutation,
 } from "./apis/milestonesApi";
+export { useCreateTaskMutation as useCreateTaskInMilestoneMutation } from "./apis/taskApi";
