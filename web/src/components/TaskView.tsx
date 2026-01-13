@@ -44,6 +44,12 @@ const TaskView: React.FC<TaskViewProps> = ({
     {}
   );
 
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editedTask, setEditedTask] = useState({
+    name: "",
+    description: "",
+  });
+
   const [createTask, { isLoading: isCreatingTask }] =
     useCreateTaskInMilestoneMutation();
 
@@ -124,6 +130,34 @@ const TaskView: React.FC<TaskViewProps> = ({
     setSliderValues({ ...sliderValues, [taskId]: 0 });
   };
 
+  const handleEditTask = (task: Task) => {
+    setEditingTaskId(task.id);
+    setEditedTask({
+      name: task.name,
+      description: task.description,
+    });
+  };
+
+  const handleSaveEdit = async (taskId: string) => {
+    try {
+      await updateTask({
+        task_id: taskId,
+        name: editedTask.name,
+        description: editedTask.description,
+      }).unwrap();
+      setEditingTaskId(null);
+      setEditedTask({ name: "", description: "" });
+    } catch (error) {
+      console.error("Failed to update task:", error);
+      alert("Failed to update task. Please try again.");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTaskId(null);
+    setEditedTask({ name: "", description: "" });
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -180,10 +214,24 @@ const TaskView: React.FC<TaskViewProps> = ({
                   >
                     <div className="px-6 py-3 rounded-full border border-gray-400 bg-gradient-to-r from-white/10 to-gray-100/90 backdrop-blur-sm">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-lg font-semibold text-gray-800">
-                          {task.name}
-                        </h4>
-                        <div className="text-sm text-gray-600">
+                        {editingTaskId === task.id ? (
+                          <input
+                            type="text"
+                            value={editedTask.name}
+                            onChange={(e) =>
+                              setEditedTask({
+                                ...editedTask,
+                                name: e.target.value,
+                              })
+                            }
+                            className="flex-1 px-2 py-1 text-lg font-semibold bg-white border border-gray-300 rounded-md focus:outline-none focus:border-blue-600"
+                          />
+                        ) : (
+                          <h4 className="text-lg font-semibold text-gray-800">
+                            {task.name}
+                          </h4>
+                        )}
+                        <div className="text-sm text-gray-600 ml-4">
                           Total: {task.timeSpent} min
                         </div>
                       </div>
@@ -192,19 +240,62 @@ const TaskView: React.FC<TaskViewProps> = ({
                     <div className="p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
-                          {task.description && (
-                            <p className="text-sm text-gray-600 mt-1">
-                              {task.description}
-                            </p>
+                          {editingTaskId === task.id ? (
+                            <textarea
+                              value={editedTask.description}
+                              onChange={(e) =>
+                                setEditedTask({
+                                  ...editedTask,
+                                  description: e.target.value,
+                                })
+                              }
+                              className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:border-blue-600"
+                              rows={3}
+                              placeholder="Enter task description"
+                            />
+                          ) : (
+                            task.description && (
+                              <p className="text-sm text-gray-600 mt-1">
+                                {task.description}
+                              </p>
+                            )
                           )}
                         </div>
-                        <button
-                          onClick={() => handleDeleteTask(task.id)}
-                          className="p-2 rounded-md hover:bg-red-50 text-red-600 transition-colors"
-                          aria-label="Delete task"
-                        >
-                          <MdDelete className="w-5 h-5" />
-                        </button>
+                        <div className="flex gap-1 ml-2">
+                          {editingTaskId === task.id ? (
+                            <>
+                              <button
+                                onClick={() => handleSaveEdit(task.id)}
+                                className="p-2 rounded-md hover:bg-green-50 text-green-600 transition-colors"
+                                aria-label="Save changes"
+                              >
+                                <MdCheck className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={handleCancelEdit}
+                                className="p-2 rounded-md hover:bg-gray-100 text-gray-600 transition-colors"
+                                aria-label="Cancel edit"
+                              >
+                                <MdClose className="w-5 h-5" />
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => handleEditTask(task)}
+                              className="p-2 rounded-md hover:bg-blue-50 text-blue-600 transition-colors"
+                              aria-label="Edit task"
+                            >
+                              <MdEdit className="w-5 h-5" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDeleteTask(task.id)}
+                            className="p-2 rounded-md hover:bg-red-50 text-red-600 transition-colors"
+                            aria-label="Delete task"
+                          >
+                            <MdDelete className="w-5 h-5" />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="flex items-center justify-between mt-3">
