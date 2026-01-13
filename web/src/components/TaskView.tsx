@@ -3,6 +3,7 @@ import { MdClose, MdDelete, MdEdit, MdCheck } from "react-icons/md";
 import {
   useCreateTaskInMilestoneMutation,
   useGetTasksByMilestoneQuery,
+  useUpdateTaskMutation,
 } from "../store";
 
 interface Task {
@@ -46,6 +47,8 @@ const TaskView: React.FC<TaskViewProps> = ({
   const [createTask, { isLoading: isCreatingTask }] =
     useCreateTaskInMilestoneMutation();
 
+  const [updateTask] = useUpdateTaskMutation();
+
   // Convert API data to local format
   const tasks: Task[] =
     tasksData?.map((task) => ({
@@ -82,9 +85,22 @@ const TaskView: React.FC<TaskViewProps> = ({
     }
   };
 
-  const handleTimeSpentChange = (taskId: string, additionalTime: number) => {
-    // TODO: Implement update time_spent API call
-    console.log("Update time spent:", taskId, additionalTime);
+  const handleTimeSpentChange = async (
+    taskId: string,
+    additionalTime: number
+  ) => {
+    try {
+      const task = tasks.find((t) => t.id === taskId);
+      if (task) {
+        await updateTask({
+          task_id: taskId,
+          time_spent: task.timeSpent + additionalTime,
+        }).unwrap();
+      }
+    } catch (error) {
+      console.error("Failed to update time spent:", error);
+      alert("Failed to update time. Please try again.");
+    }
   };
 
   const handleSliderChange = (taskId: string, value: number) => {

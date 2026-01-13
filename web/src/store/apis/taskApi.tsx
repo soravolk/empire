@@ -27,7 +27,12 @@ export const taskApi = createApi({
     }),
     createTask: builder.mutation<
       Task,
-      { milestone_id: string; name: string; description?: string; due_date?: string }
+      {
+        milestone_id: string;
+        name: string;
+        description?: string;
+        due_date?: string;
+      }
     >({
       invalidatesTags: ["Task"],
       query: ({ milestone_id, name, description, due_date }) => ({
@@ -36,7 +41,28 @@ export const taskApi = createApi({
         body: { milestone_id, name, description, due_date },
       }),
     }),
+    updateTask: builder.mutation<
+      Task,
+      {
+        task_id: string;
+        name?: string;
+        description?: string;
+        due_date?: string;
+        time_spent?: number;
+      }
+    >({
+      invalidatesTags: ["Task"],
+      query: ({ task_id, ...body }) => ({
+        url: `/${task_id}`,
+        method: "PUT",
+        body,
+      }),
+    }),
   }),
 });
 
-export const { useGetTasksByMilestoneQuery, useCreateTaskMutation } = taskApi;
+export const {
+  useGetTasksByMilestoneQuery,
+  useCreateTaskMutation,
+  useUpdateTaskMutation,
+} = taskApi;
