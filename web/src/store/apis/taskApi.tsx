@@ -18,6 +18,13 @@ export const taskApi = createApi({
   }),
   tagTypes: ["Task"],
   endpoints: (builder) => ({
+    getTasksByMilestone: builder.query<Task[], string>({
+      providesTags: ["Task"],
+      query: (milestone_id) => ({
+        url: `/milestone/${milestone_id}`,
+        method: "GET",
+      }),
+    }),
     createTask: builder.mutation<
       Task,
       { milestone_id: string; name: string; description?: string; due_date?: string }
@@ -32,4 +39,4 @@ export const taskApi = createApi({
   }),
 });
 
-export const { useCreateTaskMutation } = taskApi;
+export const { useGetTasksByMilestoneQuery, useCreateTaskMutation } = taskApi;

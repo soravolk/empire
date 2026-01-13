@@ -5,6 +5,7 @@ import subtask from "../controllers/subtask";
 const router = Router();
 
 // Task routes
+router.get("/milestone/:milestone_id", task.getTasksByMilestone);
 router.post("/", task.createTask);
 
 // Subtask routes - these need to be defined here since the frontend API calls /tasks/:taskId/subtasks

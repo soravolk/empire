@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { MdClose, MdDelete, MdEdit, MdCheck } from "react-icons/md";
-import { useCreateTaskInMilestoneMutation } from "../store";
+import {
+  useCreateTaskInMilestoneMutation,
+  useGetTasksByMilestoneQuery,
+} from "../store";
 
 interface Task {
   id: string;
@@ -23,23 +26,11 @@ const TaskView: React.FC<TaskViewProps> = ({
   milestoneId,
   milestoneName,
 }) => {
-  // Mock tasks - replace with actual API calls
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: "1",
-      name: "Sample Task 1",
-      description: "This is a sample task",
-      dueDate: "2026-02-01",
-      timeSpent: 0,
-    },
-    {
-      id: "2",
-      name: "Sample Task 2",
-      description: "Another sample task",
-      dueDate: "2026-02-15",
-      timeSpent: 120, // 2 hours
-    },
-  ]);
+  const {
+    data: tasksData,
+    isLoading: isLoadingTasks,
+    error: tasksError,
+  } = useGetTasksByMilestoneQuery(milestoneId);
 
   const [isCreating, setIsCreating] = useState(false);
   const [newTask, setNewTask] = useState({
@@ -55,25 +46,26 @@ const TaskView: React.FC<TaskViewProps> = ({
   const [createTask, { isLoading: isCreatingTask }] =
     useCreateTaskInMilestoneMutation();
 
+  // Convert API data to local format
+  const tasks: Task[] =
+    tasksData?.map((task) => ({
+      id: task.task_id,
+      name: task.name,
+      description: task.description || "",
+      dueDate: task.due_date || "",
+      timeSpent: task.time_spent,
+    })) || [];
+
   const handleCreateTask = async () => {
     if (newTask.name.trim() && newTask.dueDate) {
       try {
-        const result = await createTask({
+        await createTask({
           milestone_id: milestoneId,
           name: newTask.name,
           description: newTask.description,
           due_date: newTask.dueDate,
         }).unwrap();
 
-        // Add the new task to local state
-        const task: Task = {
-          id: result.task_id,
-          name: result.name,
-          description: result.description,
-          dueDate: result.due_date || "",
-          timeSpent: result.time_spent,
-        };
-        setTasks([...tasks, task]);
         setNewTask({ name: "", description: "", dueDate: "" });
         setIsCreating(false);
       } catch (error) {
@@ -85,16 +77,14 @@ const TaskView: React.FC<TaskViewProps> = ({
 
   const handleDeleteTask = (taskId: string) => {
     if (window.confirm("Are you sure you want to delete this task?")) {
-      setTasks(tasks.filter((t) => t.id !== taskId));
+      // TODO: Implement delete API call
+      console.log("Delete task:", taskId);
     }
   };
 
   const handleTimeSpentChange = (taskId: string, additionalTime: number) => {
-    setTasks(
-      tasks.map((t) =>
-        t.id === taskId ? { ...t, timeSpent: t.timeSpent + additionalTime } : t
-      )
-    );
+    // TODO: Implement update time_spent API call
+    console.log("Update time spent:", taskId, additionalTime);
   };
 
   const handleSliderChange = (taskId: string, value: number) => {
@@ -154,98 +144,105 @@ const TaskView: React.FC<TaskViewProps> = ({
           <div className="flex-1 overflow-y-auto p-6">
             {/* Task List */}
             <div className="space-y-3 max-w-2xl mx-auto">
-              {tasks.length === 0 && !isCreating && (
+              {isLoadingTasks && (
+                <div className="text-center py-12 text-gray-500">
+                  Loading tasks...
+                </div>
+              )}
+
+              {!isLoadingTasks && tasks.length === 0 && !isCreating && (
                 <div className="text-center py-12 text-gray-500">
                   No tasks yet. Click "Add New Task" to create one.
                 </div>
               )}
 
-              {tasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="border border-gray-200 rounded-3xl bg-white bg-opacity-60 hover:shadow-md transition-shadow overflow-hidden"
-                >
-                  <div className="px-6 py-3 rounded-full border border-gray-400 bg-gradient-to-r from-white/10 to-gray-100/90 backdrop-blur-sm">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-lg font-semibold text-gray-800">
-                        {task.name}
-                      </h4>
-                      <div className="text-sm text-gray-600">
-                        Total: {task.timeSpent} min
+              {!isLoadingTasks &&
+                tasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="border border-gray-200 rounded-3xl bg-white bg-opacity-60 hover:shadow-md transition-shadow overflow-hidden"
+                  >
+                    <div className="px-6 py-3 rounded-full border border-gray-400 bg-gradient-to-r from-white/10 to-gray-100/90 backdrop-blur-sm">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-lg font-semibold text-gray-800">
+                          {task.name}
+                        </h4>
+                        <div className="text-sm text-gray-600">
+                          Total: {task.timeSpent} min
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        {task.description && (
-                          <p className="text-sm text-gray-600 mt-1">
-                            {task.description}
-                          </p>
+                    <div className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          {task.description && (
+                            <p className="text-sm text-gray-600 mt-1">
+                              {task.description}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handleDeleteTask(task.id)}
+                          className="p-2 rounded-md hover:bg-red-50 text-red-600 transition-colors"
+                          aria-label="Delete task"
+                        >
+                          <MdDelete className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-3">
+                        <div className="flex-1 flex items-center gap-3 mr-4">
+                          <label className="text-xs text-gray-500 whitespace-nowrap">
+                            Add time:
+                          </label>
+                          <input
+                            type="range"
+                            min="0"
+                            max="120"
+                            step="5"
+                            value={sliderValues[task.id] || 0}
+                            onChange={(e) =>
+                              handleSliderChange(
+                                task.id,
+                                parseInt(e.target.value)
+                              )
+                            }
+                            className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                          />
+                          <span className="text-xs text-gray-600 font-medium min-w-[3rem] text-right">
+                            +{sliderValues[task.id] || 0} min
+                          </span>
+                        </div>
+
+                        {sliderValues[task.id] > 0 ? (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleConfirmTime(task.id)}
+                              className="p-2 rounded-full bg-gray-400 hover:bg-gray-500 text-white transition-colors"
+                              aria-label="Confirm time"
+                            >
+                              <MdCheck className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => handleCancelTime(task.id)}
+                              className="p-2 rounded-full border bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300 transition-colors"
+                              aria-label="Cancel"
+                            >
+                              <MdClose className="w-5 h-5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            className={`px-3 py-1 text-sm rounded-full border bg-gray-100 hover:bg-blue-100 text-gray-800 border-gray-300`}
+                          >
+                            Clear
+                          </button>
                         )}
                       </div>
-                      <button
-                        onClick={() => handleDeleteTask(task.id)}
-                        className="p-2 rounded-md hover:bg-red-50 text-red-600 transition-colors"
-                        aria-label="Delete task"
-                      >
-                        <MdDelete className="w-5 h-5" />
-                      </button>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-3">
-                      <div className="flex-1 flex items-center gap-3 mr-4">
-                        <label className="text-xs text-gray-500 whitespace-nowrap">
-                          Add time:
-                        </label>
-                        <input
-                          type="range"
-                          min="0"
-                          max="120"
-                          step="5"
-                          value={sliderValues[task.id] || 0}
-                          onChange={(e) =>
-                            handleSliderChange(
-                              task.id,
-                              parseInt(e.target.value)
-                            )
-                          }
-                          className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                        />
-                        <span className="text-xs text-gray-600 font-medium min-w-[3rem] text-right">
-                          +{sliderValues[task.id] || 0} min
-                        </span>
-                      </div>
-
-                      {sliderValues[task.id] > 0 ? (
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleConfirmTime(task.id)}
-                            className="p-2 rounded-full bg-gray-400 hover:bg-gray-500 text-white transition-colors"
-                            aria-label="Confirm time"
-                          >
-                            <MdCheck className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => handleCancelTime(task.id)}
-                            className="p-2 rounded-full border bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300 transition-colors"
-                            aria-label="Cancel"
-                          >
-                            <MdClose className="w-5 h-5" />
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          className={`px-3 py-1 text-sm rounded-full border bg-gray-100 hover:bg-blue-100 text-gray-800 border-gray-300`}
-                        >
-                          Clear
-                        </button>
-                      )}
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
 
             {/* Create Task Form */}

@@ -119,4 +119,7 @@ export {
   useDeleteMilestoneMutation,
   useUpdateMilestoneMutation,
 } from "./apis/milestonesApi";
-export { useCreateTaskMutation as useCreateTaskInMilestoneMutation } from "./apis/taskApi";
+export {
+  useGetTasksByMilestoneQuery,
+  useCreateTaskMutation as useCreateTaskInMilestoneMutation,
+} from "./apis/taskApi";

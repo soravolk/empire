@@ -1,15 +1,31 @@
 import { RequestHandler } from "express";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { dynamodbClient } from "../db/dynamodb";
 import { v4 as uuidv4 } from "uuid";
 import db from "../db/utils";
 
-const getDetails: RequestHandler = async (req, res) => {
-  const { id: uid } = req.user!;
+const getTasksByMilestone: RequestHandler = async (req, res) => {
+  const uid = req.user!.id;
+  const { milestone_id } = req.params;
+
+  if (!milestone_id) {
+    return res.status(400).json({ error: "milestone_id is required" });
+  }
+
   try {
-    const { rows } = await db.getAll("tasks", uid);
-    res.status(200).json(rows);
+    const command = new ScanCommand({
+      TableName: "tasks",
+      FilterExpression: "milestone_id = :milestone_id AND user_id = :user_id",
+      ExpressionAttributeValues: {
+        ":milestone_id": milestone_id,
+        ":user_id": uid,
+      },
+    });
+
+    const result = await dynamodbClient.send(command);
+    res.status(200).json(result.Items || []);
   } catch (error) {
+    console.error("Error fetching tasks:", error);
     res.status(500).json({ error: "internal server error" });
   }
 };
@@ -19,7 +35,9 @@ const createTask: RequestHandler = async (req, res) => {
   const { milestone_id, name, description, due_date } = req.body;
 
   if (!milestone_id || !name) {
-    return res.status(400).json({ error: "milestone_id and name are required" });
+    return res
+      .status(400)
+      .json({ error: "milestone_id and name are required" });
   }
 
   try {
@@ -56,5 +74,4 @@ const createTask: RequestHandler = async (req, res) => {
   }
 };
 
-export default { getDetails, createTask };
-
+export default { getTasksByMilestone, createTask };
