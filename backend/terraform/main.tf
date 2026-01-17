@@ -109,7 +109,9 @@ resource "aws_iam_role_policy" "lambda_dynamodb_policy" {
           aws_dynamodb_table.goals.arn,
           "${aws_dynamodb_table.goals.arn}/index/*",
           aws_dynamodb_table.milestones.arn,
-          "${aws_dynamodb_table.milestones.arn}/index/*"
+          "${aws_dynamodb_table.milestones.arn}/index/*",
+          aws_dynamodb_table.tasks.arn,
+          "${aws_dynamodb_table.tasks.arn}/index/*"
         ]
       }
     ]
@@ -224,5 +226,20 @@ resource "aws_dynamodb_table" "milestones" {
 
   tags = merge(var.tags, {
     Name = "milestones"
+  })
+}
+
+resource "aws_dynamodb_table" "tasks" {
+  name           = "tasks"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "task_id"
+
+  attribute {
+    name = "task_id"
+    type = "S"
+  }
+
+  tags = merge(var.tags, {
+    Name = "tasks"
   })
 }
