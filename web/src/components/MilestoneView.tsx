@@ -17,6 +17,7 @@ interface Milestone {
   name: string;
   targetDate: string;
   level: number;
+  type?: "target" | "routine";
 }
 
 // Progress Bar Component for Milestone Level
@@ -61,27 +62,35 @@ export default function MilestoneView({
   const [updateMilestone, { isLoading: isUpdating }] =
     useUpdateMilestoneMutation();
   const [addingAtLevel, setAddingAtLevel] = useState<number | null>(null);
-  const [formData, setFormData] = useState({ name: "", targetDate: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    targetDate: "",
+    type: "target" as "target" | "routine",
+  });
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(
-    null
+    null,
   );
   const [editingMilestoneId, setEditingMilestoneId] = useState<string | null>(
-    null
+    null,
   );
   const [editFormData, setEditFormData] = useState({
     name: "",
     targetDate: "",
+    type: "target" as "target" | "routine",
   });
 
   // Group milestones by level
-  const milestonesByLevel = milestones.reduce((acc, milestone) => {
-    const level = milestone.level;
-    if (!acc[level]) {
-      acc[level] = [];
-    }
-    acc[level].push(milestone);
-    return acc;
-  }, {} as Record<number, Milestone[]>);
+  const milestonesByLevel = milestones.reduce(
+    (acc, milestone) => {
+      const level = milestone.level;
+      if (!acc[level]) {
+        acc[level] = [];
+      }
+      acc[level].push(milestone);
+      return acc;
+    },
+    {} as Record<number, Milestone[]>,
+  );
 
   // Get max level
   const maxLevel =
@@ -93,12 +102,12 @@ export default function MilestoneView({
 
   const handleCancel = () => {
     setAddingAtLevel(null);
-    setFormData({ name: "", targetDate: "" });
+    setFormData({ name: "", targetDate: "", type: "target" });
   };
 
   const handleMilestoneClick = (milestoneId: string) => {
     setSelectedMilestoneId(
-      selectedMilestoneId === milestoneId ? null : milestoneId
+      selectedMilestoneId === milestoneId ? null : milestoneId,
     );
   };
 
@@ -111,10 +120,11 @@ export default function MilestoneView({
           name: formData.name,
           targetDate: formData.targetDate,
           level: addingAtLevel,
+          type: formData.type,
         }).unwrap();
 
         // Reset form and close
-        setFormData({ name: "", targetDate: "" });
+        setFormData({ name: "", targetDate: "", type: "target" });
         setAddingAtLevel(null);
       } catch (error) {
         console.error("Failed to create milestone:", error);
@@ -138,12 +148,13 @@ export default function MilestoneView({
     setEditFormData({
       name: milestone.name,
       targetDate: milestone.targetDate,
+      type: milestone.type || "target",
     });
   };
 
   const handleEditCancel = () => {
     setEditingMilestoneId(null);
-    setEditFormData({ name: "", targetDate: "" });
+    setEditFormData({ name: "", targetDate: "", type: "target" });
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -159,10 +170,11 @@ export default function MilestoneView({
           milestoneId: editingMilestoneId,
           name: editFormData.name,
           targetDate: editFormData.targetDate,
+          type: editFormData.type,
         }).unwrap();
 
         setEditingMilestoneId(null);
-        setEditFormData({ name: "", targetDate: "" });
+        setEditFormData({ name: "", targetDate: "", type: "target" });
       } catch (error) {
         console.error("Failed to update milestone:", error);
       }
@@ -241,7 +253,7 @@ export default function MilestoneView({
                     <MilestoneProgressBar
                       totalMilestones={levelMilestones.length}
                       completedMilestones={Math.floor(
-                        levelMilestones.length / 2
+                        levelMilestones.length / 2,
                       )}
                     />
                   )}
@@ -249,7 +261,7 @@ export default function MilestoneView({
                 <div className="flex flex-col items-start">
                   {/* Details shown when a milestone at this level is clicked */}
                   {levelMilestones.some(
-                    (m) => selectedMilestoneId === m.id
+                    (m) => selectedMilestoneId === m.id,
                   ) && (
                     <div className="text-left mt-2 w-full">
                       {levelMilestones
@@ -261,6 +273,55 @@ export default function MilestoneView({
                                 onSubmit={handleEditSubmit}
                                 className="flex flex-col gap-2"
                               >
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Milestone Type
+                                  </label>
+                                  <div className="flex gap-4">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name="edit-milestone-type"
+                                        value="target"
+                                        checked={editFormData.type === "target"}
+                                        onChange={(e) =>
+                                          setEditFormData({
+                                            ...editFormData,
+                                            type: e.target.value as
+                                              | "target"
+                                              | "routine",
+                                          })
+                                        }
+                                        className="w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                      />
+                                      <span className="text-sm text-gray-700">
+                                        Target
+                                      </span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name="edit-milestone-type"
+                                        value="routine"
+                                        checked={
+                                          editFormData.type === "routine"
+                                        }
+                                        onChange={(e) =>
+                                          setEditFormData({
+                                            ...editFormData,
+                                            type: e.target.value as
+                                              | "target"
+                                              | "routine",
+                                          })
+                                        }
+                                        className="w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                      />
+                                      <span className="text-sm text-gray-700">
+                                        Routine
+                                      </span>
+                                    </label>
+                                  </div>
+                                </div>
                                 <div>
                                   <label className="block text-xs font-medium text-gray-700 mb-1">
                                     Milestone Name
@@ -280,6 +341,7 @@ export default function MilestoneView({
                                     required
                                   />
                                 </div>
+
                                 <div>
                                   <label className="block text-xs font-medium text-gray-700 mb-1">
                                     Target Date
@@ -323,7 +385,7 @@ export default function MilestoneView({
                                   <p className="text-xs text-gray-600">
                                     Target:{" "}
                                     {new Date(
-                                      m.targetDate
+                                      m.targetDate,
                                     ).toLocaleDateString()}
                                   </p>
                                 </div>
@@ -359,6 +421,49 @@ export default function MilestoneView({
                       onSubmit={handleSubmit}
                       className="h-full flex flex-col gap-2"
                     >
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Milestone Type
+                        </label>
+                        <div className="flex gap-4">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="edit-milestone-type"
+                              value="target"
+                              checked={formData.type === "target"}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  type: e.target.value as "target" | "routine",
+                                })
+                              }
+                              className="w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">
+                              Target
+                            </span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="edit-milestone-type"
+                              value="routine"
+                              checked={formData.type === "routine"}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  type: e.target.value as "target" | "routine",
+                                })
+                              }
+                              className="w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">
+                              Routine
+                            </span>
+                          </label>
+                        </div>
+                      </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">
                           Milestone Name
@@ -483,11 +588,50 @@ export default function MilestoneView({
 
           {/* Show form if adding at the next level, otherwise show add button card */}
           {addingAtLevel === maxLevel + 1 ? (
-            <div className="flex flex-col w-full border-2 border-blue-400 rounded-lg p-6 bg-white h-[200px]">
+            <div className="flex flex-col w-full border-2 border-blue-400 rounded-lg p-6 bg-white min-h-[200px]">
               <form
                 onSubmit={handleSubmit}
                 className="h-full flex flex-col gap-2"
               >
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Milestone Type
+                  </label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="edit-milestone-type"
+                        value="target"
+                        checked={formData.type === "target"}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            type: e.target.value as "target" | "routine",
+                          })
+                        }
+                        className="w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Target</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="edit-milestone-type"
+                        value="routine"
+                        checked={formData.type === "routine"}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            type: e.target.value as "target" | "routine",
+                          })
+                        }
+                        className="w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Routine</span>
+                    </label>
+                  </div>
+                </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     Milestone Name

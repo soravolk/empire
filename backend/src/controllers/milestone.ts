@@ -24,13 +24,16 @@ export const listMilestones: RequestHandler = async (req, res) => {
 
     const result = await dynamodbClient.send(command);
 
-    const milestones = (result.Items || []).map((item) => ({
-      id: item.milestone_id,
-      name: item.name,
-      targetDate: item.target_date,
-      level: item.level,
-      created_at: item.created_at,
-    }));
+    const milestones = (result.Items || []).map((item) => {
+      return {
+        id: item.milestone_id,
+        name: item.name,
+        targetDate: item.target_date,
+        level: item.level,
+        type: item.type,
+        created_at: item.created_at,
+      };
+    });
 
     // Sort by level
     milestones.sort((a, b) => a.level - b.level);
@@ -45,12 +48,12 @@ export const listMilestones: RequestHandler = async (req, res) => {
 export const createMilestone: RequestHandler = async (req, res) => {
   const uid = req.user!.id;
   const { goalId } = req.params;
-  const { name, targetDate, level } = req.body;
+  const { name, targetDate, level, type } = req.body;
 
-  if (!name || !targetDate || level === undefined) {
+  if (!name || !targetDate || level === undefined || !type) {
     return res
       .status(400)
-      .json({ message: "Name, targetDate, and level are required" });
+      .json({ message: "Name, targetDate, level, and type are required" });
   }
 
   try {
@@ -66,6 +69,7 @@ export const createMilestone: RequestHandler = async (req, res) => {
         name,
         target_date: targetDate,
         level,
+        type,
         created_at: now,
         updated_at: now,
       },
@@ -118,12 +122,12 @@ export const deleteMilestone: RequestHandler = async (req, res) => {
 export const updateMilestone: RequestHandler = async (req, res) => {
   const uid = req.user!.id;
   const { milestoneId } = req.params;
-  const { name, targetDate } = req.body;
+  const { name, targetDate, type } = req.body;
 
-  if (!name || !targetDate) {
+  if (!name || !targetDate || !type) {
     return res
       .status(400)
-      .json({ message: "Name and targetDate are required" });
+      .json({ message: "Name, targetDate, and type are required" });
   }
 
   try {
@@ -135,14 +139,16 @@ export const updateMilestone: RequestHandler = async (req, res) => {
         milestone_id: milestoneId,
       },
       UpdateExpression:
-        "SET #name = :name, target_date = :targetDate, updated_at = :updatedAt",
+        "SET #name = :name, target_date = :targetDate, #type = :type, updated_at = :updatedAt",
       ConditionExpression: "user_id = :userId",
       ExpressionAttributeNames: {
         "#name": "name",
+        "#type": "type",
       },
       ExpressionAttributeValues: {
         ":name": name,
         ":targetDate": targetDate,
+        ":type": type,
         ":updatedAt": now,
         ":userId": uid,
       },
