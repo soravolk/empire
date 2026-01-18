@@ -4,7 +4,7 @@
   "description": "Backend server for Empire project",
   "main": "dist/app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"No tests yet\" && exit 0",
     "dev": "NODE_ENV=dev nodemon dist/app.js",
     "prod": "NODE_ENV=production node dist/app.js",
     "build": "tsc",
