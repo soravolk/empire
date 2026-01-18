@@ -17,6 +17,7 @@ interface Milestone {
   name: string;
   targetDate: string;
   level: number;
+  type?: "target" | "routine";
 }
 
 // Progress Bar Component for Milestone Level
@@ -61,7 +62,11 @@ export default function MilestoneView({
   const [updateMilestone, { isLoading: isUpdating }] =
     useUpdateMilestoneMutation();
   const [addingAtLevel, setAddingAtLevel] = useState<number | null>(null);
-  const [formData, setFormData] = useState({ name: "", targetDate: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    targetDate: "",
+    type: "target" as "target" | "routine",
+  });
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(
     null
   );
@@ -71,6 +76,7 @@ export default function MilestoneView({
   const [editFormData, setEditFormData] = useState({
     name: "",
     targetDate: "",
+    type: "target" as "target" | "routine",
   });
 
   // Group milestones by level
@@ -93,7 +99,7 @@ export default function MilestoneView({
 
   const handleCancel = () => {
     setAddingAtLevel(null);
-    setFormData({ name: "", targetDate: "" });
+    setFormData({ name: "", targetDate: "", type: "target" });
   };
 
   const handleMilestoneClick = (milestoneId: string) => {
@@ -111,10 +117,11 @@ export default function MilestoneView({
           name: formData.name,
           targetDate: formData.targetDate,
           level: addingAtLevel,
+          type: formData.type,
         }).unwrap();
 
         // Reset form and close
-        setFormData({ name: "", targetDate: "" });
+        setFormData({ name: "", targetDate: "", type: "target" });
         setAddingAtLevel(null);
       } catch (error) {
         console.error("Failed to create milestone:", error);
@@ -138,12 +145,13 @@ export default function MilestoneView({
     setEditFormData({
       name: milestone.name,
       targetDate: milestone.targetDate,
+      type: milestone.type || "target",
     });
   };
 
   const handleEditCancel = () => {
     setEditingMilestoneId(null);
-    setEditFormData({ name: "", targetDate: "" });
+    setEditFormData({ name: "", targetDate: "", type: "target" });
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -159,10 +167,11 @@ export default function MilestoneView({
           milestoneId: editingMilestoneId,
           name: editFormData.name,
           targetDate: editFormData.targetDate,
+          type: editFormData.type,
         }).unwrap();
 
         setEditingMilestoneId(null);
-        setEditFormData({ name: "", targetDate: "" });
+        setEditFormData({ name: "", targetDate: "", type: "target" });
       } catch (error) {
         console.error("Failed to update milestone:", error);
       }
@@ -282,6 +291,26 @@ export default function MilestoneView({
                                 </div>
                                 <div>
                                   <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Milestone Type
+                                  </label>
+                                  <select
+                                    value={editFormData.type}
+                                    onChange={(e) =>
+                                      setEditFormData({
+                                        ...editFormData,
+                                        type: e.target.value as
+                                          | "target"
+                                          | "routine",
+                                      })
+                                    }
+                                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  >
+                                    <option value="target">Target</option>
+                                    <option value="routine">Routine</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">
                                     Target Date
                                   </label>
                                   <input
@@ -374,6 +403,24 @@ export default function MilestoneView({
                           autoFocus
                           required
                         />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                          Milestone Type
+                        </label>
+                        <select
+                          value={formData.type}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              type: e.target.value as "target" | "routine",
+                            })
+                          }
+                          className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="target">Target</option>
+                          <option value="routine">Routine</option>
+                        </select>
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">

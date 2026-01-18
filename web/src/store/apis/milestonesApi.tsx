@@ -6,6 +6,7 @@ export interface Milestone {
   name: string;
   targetDate: string;
   level: number;
+  type?: "target" | "routine";
   created_at?: number;
 }
 
@@ -29,12 +30,18 @@ export const milestonesApi = createApi({
     }),
     createMilestone: builder.mutation<
       Milestone,
-      { goalId: string; name: string; targetDate: string; level: number }
+      {
+        goalId: string;
+        name: string;
+        targetDate: string;
+        level: number;
+        type?: "target" | "routine";
+      }
     >({
-      query: ({ goalId, name, targetDate, level }) => ({
+      query: ({ goalId, name, targetDate, level, type }) => ({
         url: `/goals/${goalId}/milestones`,
         method: "POST",
-        body: { name, targetDate, level },
+        body: { name, targetDate, level, type: type || "target" },
       }),
       invalidatesTags: (result, error, { goalId }) => [
         { type: "Milestone", id: `GOAL_${goalId}` },
@@ -55,12 +62,18 @@ export const milestonesApi = createApi({
     }),
     updateMilestone: builder.mutation<
       Milestone,
-      { goalId: string; milestoneId: string; name: string; targetDate: string }
+      {
+        goalId: string;
+        milestoneId: string;
+        name: string;
+        targetDate: string;
+        type?: "target" | "routine";
+      }
     >({
-      query: ({ goalId, milestoneId, name, targetDate }) => ({
+      query: ({ goalId, milestoneId, name, targetDate, type }) => ({
         url: `/goals/${goalId}/milestones/${milestoneId}`,
         method: "PUT",
-        body: { name, targetDate },
+        body: { name, targetDate, type },
       }),
       invalidatesTags: (result, error, { goalId, milestoneId }) => [
         { type: "Milestone", id: milestoneId },
