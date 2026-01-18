@@ -19,6 +19,32 @@ interface Milestone {
   level: number;
 }
 
+// Progress Bar Component for Milestone Level
+function MilestoneProgressBar({
+  totalMilestones,
+  completedMilestones,
+}: {
+  totalMilestones: number;
+  completedMilestones: number;
+}) {
+  const progress =
+    totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      <span className="text-xs text-gray-600 font-medium min-w-[3rem]">
+        {completedMilestones}/{totalMilestones}
+      </span>
+    </div>
+  );
+}
+
 export default function MilestoneView({
   goalId,
   onMilestoneDoubleClick,
@@ -206,10 +232,21 @@ export default function MilestoneView({
 
               {/* Milestone Card */}
               <div className="flex flex-col w-full border-2 border-gray-300 bg-gray-50 rounded-lg p-6 min-h-[200px]">
-                <div className="flex flex-col items-start mb-4">
+                <div className="flex justify-between items-start mb-4">
                   <div className="text-sm text-gray-600 font-medium">
                     Level {level}
                   </div>
+                  {/* Progress Bar - show if there are milestones at this level */}
+                  {levelMilestones.length > 0 && (
+                    <MilestoneProgressBar
+                      totalMilestones={levelMilestones.length}
+                      completedMilestones={Math.floor(
+                        levelMilestones.length / 2
+                      )}
+                    />
+                  )}
+                </div>
+                <div className="flex flex-col items-start">
                   {/* Details shown when a milestone at this level is clicked */}
                   {levelMilestones.some(
                     (m) => selectedMilestoneId === m.id
