@@ -14,6 +14,8 @@ interface GoalViewProps {
   isCreating: boolean;
   isEditing: boolean;
   currentItem: Goal;
+  goals: Goal[];
+  currentIndex: number;
   newGoal: { title: string; targetDate: string };
   editGoal: { title: string; targetDate: string };
   onPrevSlide: () => void;
@@ -37,6 +39,8 @@ const GoalView: React.FC<GoalViewProps> = ({
   isCreating,
   isEditing,
   currentItem,
+  goals,
+  currentIndex,
   newGoal,
   editGoal,
   onPrevSlide,
@@ -54,12 +58,30 @@ const GoalView: React.FC<GoalViewProps> = ({
   onDelete,
   getProgress,
 }) => {
+  // Calculate previous and next indices
+  const totalItems = goals.length + 1; // +1 for creation card
+  const prevIndex = (currentIndex - 1 + totalItems) % totalItems;
+  const nextIndex = (currentIndex + 1) % totalItems;
+
+  const getPrevItem = () => {
+    if (prevIndex === goals.length) return null; // Creation card
+    return goals[prevIndex];
+  };
+
+  const getNextItem = () => {
+    if (nextIndex === goals.length) return null; // Creation card
+    return goals[nextIndex];
+  };
+
+  const prevItem = getPrevItem();
+  const nextItem = getNextItem();
+
   return (
-    <div className="flex items-center justify-center gap-4">
+    <div className="flex items-center justify-center gap-4 w-full max-w-4xl mx-auto">
       {/* Previous Button */}
       <button
         onClick={onPrevSlide}
-        className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
+        className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex-shrink-0 z-10"
         aria-label="Previous goal"
       >
         <svg
@@ -77,40 +99,77 @@ const GoalView: React.FC<GoalViewProps> = ({
         </svg>
       </button>
 
-      {/* Goal Card or Creation Card */}
-      {isCreationCard ? (
-        <GoalCreationCard
-          isCreating={isCreating}
-          title={newGoal.title}
-          targetDate={newGoal.targetDate}
-          onTitleChange={onTitleChange}
-          onDateChange={onDateChange}
-          onSave={onCreateSave}
-          onCancel={onCreateCancel}
-          onClickCreate={onClickCreate}
-        />
-      ) : !isEditing ? (
-        <GoalCard
-          goal={currentItem}
-          progress={getProgress(currentItem.goal_id)}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
-      ) : (
-        <GoalEditCard
-          title={editGoal.title}
-          targetDate={editGoal.targetDate}
-          onTitleChange={onEditTitle}
-          onDateChange={onEditDate}
-          onSave={onEditSave}
-          onCancel={onEditCancel}
-        />
-      )}
+      {/* Carousel Container */}
+      <div className="flex items-center justify-center overflow-hidden relative flex-1">
+        {/* Previous Card Preview - Cropped */}
+        <div className="absolute left-0 w-80 opacity-40 scale-90 transform transition-all duration-300 -translate-x-48 pointer-events-none">
+          {prevItem ? (
+            <GoalCard
+              goal={prevItem}
+              progress={getProgress(prevItem.goal_id)}
+              onEdit={() => {}}
+              onDelete={() => {}}
+            />
+          ) : (
+            <div className="bg-white/30 backdrop-blur-sm rounded-lg shadow-md p-6 h-64 flex items-center justify-center">
+              <span className="text-gray-500 text-lg">+ Create Goal</span>
+            </div>
+          )}
+        </div>
+
+        {/* Current Card */}
+        <div className="w-80 transform transition-all duration-300 relative z-10">
+          {isCreationCard ? (
+            <GoalCreationCard
+              isCreating={isCreating}
+              title={newGoal.title}
+              targetDate={newGoal.targetDate}
+              onTitleChange={onTitleChange}
+              onDateChange={onDateChange}
+              onSave={onCreateSave}
+              onCancel={onCreateCancel}
+              onClickCreate={onClickCreate}
+            />
+          ) : !isEditing ? (
+            <GoalCard
+              goal={currentItem}
+              progress={getProgress(currentItem.goal_id)}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ) : (
+            <GoalEditCard
+              title={editGoal.title}
+              targetDate={editGoal.targetDate}
+              onTitleChange={onEditTitle}
+              onDateChange={onEditDate}
+              onSave={onEditSave}
+              onCancel={onEditCancel}
+            />
+          )}
+        </div>
+
+        {/* Next Card Preview - Cropped */}
+        <div className="absolute right-0 w-80 opacity-40 scale-90 transform transition-all duration-300 translate-x-40 pointer-events-none">
+          {nextItem ? (
+            <GoalCard
+              goal={nextItem}
+              progress={getProgress(nextItem.goal_id)}
+              onEdit={() => {}}
+              onDelete={() => {}}
+            />
+          ) : (
+            <div className="bg-white/30 backdrop-blur-sm rounded-lg shadow-md p-6 h-64 flex items-center justify-center">
+              <span className="text-gray-500 text-lg">+ Create Goal</span>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Next Button */}
       <button
         onClick={onNextSlide}
-        className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
+        className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex-shrink-0 z-10"
         aria-label="Next goal"
       >
         <svg

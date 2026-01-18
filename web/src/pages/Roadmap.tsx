@@ -122,6 +122,8 @@ export default function Roadmap() {
           isCreating={isCreating}
           isEditing={isEditing}
           currentItem={currentItem as Goal}
+          goals={goals}
+          currentIndex={currentIndex}
           newGoal={newGoal}
           editGoal={editGoal}
           onPrevSlide={prevSlide}
