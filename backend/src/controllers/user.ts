@@ -1,20 +1,45 @@
-import db from "../db/utils";
+import { dynamodbClient } from "../db/dynamodb";
+import { PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 
-// TODO: id should use number type
 const createUser = async (id: string, email: string, display_name: string) => {
   try {
-    await db.insert("users", { id, email, display_name });
+    const created_at = Date.now();
+    const updated_at = created_at;
+
+    const command = new PutCommand({
+      TableName: "users",
+      Item: {
+        user_id: id,
+        email,
+        display_name,
+        created_at,
+        updated_at,
+      },
+    });
+
+    await dynamodbClient.send(command);
+
+    return { user_id: id, email, display_name, created_at, updated_at };
   } catch (error) {
-    throw new Error("failed to create a new user");
+    console.error("Failed to create user:", error);
+    throw new Error("Failed to create a new user");
   }
 };
 
-const getUserById = async (id: string) => {
+const getUserById = async (user_id: string) => {
   try {
-    const { rows } = await db.getById("users", id, id);
-    return rows[0];
+    const command = new GetCommand({
+      TableName: "users",
+      Key: {
+        user_id,
+      },
+    });
+
+    const response = await dynamodbClient.send(command);
+    return response.Item;
   } catch (error) {
-    throw new Error("failed to get an user from the specified ID");
+    console.error("Failed to get user:", error);
+    throw new Error("Failed to get user from the specified ID");
   }
 };
 
