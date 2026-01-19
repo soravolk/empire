@@ -62,6 +62,18 @@ resource "aws_dynamodb_table" "tasks_local" {
   }
 }
 
+resource "aws_dynamodb_table" "users_local" {
+  name           = "users"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "user_id"
+
+  attribute {
+    name = "user_id"
+    type = "S"
+  }
+}
+
+
 output "local_goals_table_name" {
   description = "Local DynamoDB goals table name"
   value       = aws_dynamodb_table.goals_local.name

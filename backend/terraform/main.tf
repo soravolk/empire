@@ -111,7 +111,8 @@ resource "aws_iam_role_policy" "lambda_dynamodb_policy" {
           aws_dynamodb_table.milestones.arn,
           "${aws_dynamodb_table.milestones.arn}/index/*",
           aws_dynamodb_table.tasks.arn,
-          "${aws_dynamodb_table.tasks.arn}/index/*"
+          "${aws_dynamodb_table.tasks.arn}/index/*",
+          aws_dynamodb_table.users.arn
         ]
       }
     ]
@@ -241,5 +242,21 @@ resource "aws_dynamodb_table" "tasks" {
 
   tags = merge(var.tags, {
     Name = "tasks"
+  })
+}
+
+# DynamoDB table for users
+resource "aws_dynamodb_table" "users" {
+  name           = "users"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "user_id"
+
+  attribute {
+    name = "user_id"
+    type = "S"
+  }
+
+  tags = merge(var.tags, {
+    Name = "users"
   })
 }
