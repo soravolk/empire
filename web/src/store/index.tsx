@@ -10,6 +10,9 @@ import { shortTermsApi } from "./apis/shortTermsApi";
 import { detailsApi } from "./apis/detailsApi";
 import { subtasksApi } from "./apis/subtasksApi";
 import { goalsApi } from "./apis/goalsApi";
+import { roadmapApi } from "./apis/roadmapApi";
+import { milestonesApi } from "./apis/milestonesApi";
+import { taskApi } from "./apis/taskApi";
 
 export const store = configureStore({
   reducer: {
@@ -23,6 +26,9 @@ export const store = configureStore({
     [detailsApi.reducerPath]: detailsApi.reducer,
     [subtasksApi.reducerPath]: subtasksApi.reducer,
     [goalsApi.reducerPath]: goalsApi.reducer,
+    [roadmapApi.reducerPath]: roadmapApi.reducer,
+    [milestonesApi.reducerPath]: milestonesApi.reducer,
+    [taskApi.reducerPath]: taskApi.reducer,
   },
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware()
@@ -35,7 +41,10 @@ export const store = configureStore({
       .concat(shortTermsApi.middleware)
       .concat(detailsApi.middleware)
       .concat(subtasksApi.middleware)
-      .concat(goalsApi.middleware);
+      .concat(goalsApi.middleware)
+      .concat(roadmapApi.middleware)
+      .concat(milestonesApi.middleware)
+      .concat(taskApi.middleware);
   },
 });
 
@@ -100,3 +109,19 @@ export {
   useUpdateSubtaskMutation,
   useDeleteSubtaskMutation,
 } from "./apis/subtasksApi";
+export {
+  useFetchRoadmapGoalsQuery,
+  useCreateRoadmapGoalMutation,
+} from "./apis/roadmapApi";
+export {
+  useFetchMilestonesQuery,
+  useCreateMilestoneMutation,
+  useDeleteMilestoneMutation,
+  useUpdateMilestoneMutation,
+} from "./apis/milestonesApi";
+export {
+  useGetTasksByMilestoneQuery,
+  useCreateTaskMutation as useCreateTaskInMilestoneMutation,
+  useUpdateTaskMutation,
+  useDeleteTaskMutation,
+} from "./apis/taskApi";

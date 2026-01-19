@@ -1,7 +1,14 @@
 import { Router } from "express";
+import task from "../controllers/task";
 import subtask from "../controllers/subtask";
 
 const router = Router();
+
+// Task routes
+router.get("/milestone/:milestone_id", task.getTasksByMilestone);
+router.post("/", task.createTask);
+router.put("/:task_id", task.updateTask);
+router.delete("/:task_id", task.deleteTask);
 
 // Subtask routes - these need to be defined here since the frontend API calls /tasks/:taskId/subtasks
 router.post("/:taskId/subtasks", subtask.createSubtask);

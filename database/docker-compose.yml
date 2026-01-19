@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 services:
   postgres:
     image: postgres:17
@@ -8,8 +8,17 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_DB: empire
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - ./.pgdata:/var/lib/postgresql/data # local data directory
       - ./schema.sql:/docker-entrypoint-initdb.d/init.sql # database initialization script
 
+  # Local DynamoDB for development and testing
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    volumes:
+      - ./.dynamodb_data:/home/dynamodblocal/data
+    command: -jar DynamoDBLocal.jar -dbPath /home/dynamodblocal/data
