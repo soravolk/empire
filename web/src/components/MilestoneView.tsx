@@ -343,6 +343,43 @@ export default function MilestoneView({
           const levelMilestones = milestonesByLevel[level] || [];
           const isAddingAtThisLevel = addingAtLevel === level;
 
+          // Sort milestones to group linked pairs together
+          // Strategy: Build pairs array where each routine is followed by its target
+          const sortedMilestones: Milestone[] = [];
+          const processed = new Set<string>();
+
+          // First pass: Add linked pairs (routine + target)
+          levelMilestones.forEach((milestone) => {
+            if (processed.has(milestone.id)) return;
+
+            if (milestone.type === "routine" && milestone.linkedTargetId) {
+              // Find the linked target
+              const linkedTarget = levelMilestones.find(
+                (m) => m.id === milestone.linkedTargetId,
+              );
+
+              if (linkedTarget) {
+                // Add routine first, then its target
+                sortedMilestones.push(milestone);
+                sortedMilestones.push(linkedTarget);
+                processed.add(milestone.id);
+                processed.add(linkedTarget.id);
+              } else {
+                // Linked target not found at this level, add routine alone
+                sortedMilestones.push(milestone);
+                processed.add(milestone.id);
+              }
+            }
+          });
+
+          // Second pass: Add remaining unlinked milestones
+          levelMilestones.forEach((milestone) => {
+            if (!processed.has(milestone.id)) {
+              sortedMilestones.push(milestone);
+              processed.add(milestone.id);
+            }
+          });
+
           return (
             <div className="w-full" key={level}>
               {/* Arrow */}
@@ -452,32 +489,89 @@ export default function MilestoneView({
                 ) : (
                   <div className="flex items-center justify-center gap-4 flex-1 flex-wrap">
                     {/* Render all milestone buttons at this level */}
-                    {levelMilestones.map((milestone) => (
-                      <button
-                        key={milestone.id}
-                        onMouseEnter={() => handleMilestoneClick(milestone.id)}
-                        onClick={() => handleMilestoneDoubleClick(milestone)}
-                        className={`w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all ${
-                          selectedMilestoneId === milestone.id
-                            ? "bg-blue-600 border-blue-700"
-                            : "bg-blue-500 border-blue-600 hover:bg-blue-600"
-                        }`}
-                        title="Double-click to view tasks"
-                      >
-                        {milestone.type === "routine" ? (
-                          <BsArrowRepeat className="w-8 h-8 text-white" />
-                        ) : (
-                          <svg
-                            className="w-8 h-8 text-white"
-                            fill="currentColor"
-                            stroke="none"
-                            viewBox="0 0 24 24"
+                    {sortedMilestones.map((milestone, index) => {
+                      // Check if this milestone is part of a linked pair
+                      const isRoutineWithLink =
+                        milestone.type === "routine" &&
+                        milestone.linkedTargetId;
+                      const linkedTarget = isRoutineWithLink
+                        ? sortedMilestones.find(
+                            (m) => m.id === milestone.linkedTargetId,
+                          )
+                        : null;
+                      const isLinkedTarget = sortedMilestones.some(
+                        (m) =>
+                          m.type === "routine" &&
+                          m.linkedTargetId === milestone.id,
+                      );
+                      const linkedRoutine = isLinkedTarget
+                        ? sortedMilestones.find(
+                            (m) =>
+                              m.type === "routine" &&
+                              m.linkedTargetId === milestone.id,
+                          )
+                        : null;
+
+                      // Only render connector after routine milestone (not after target)
+                      const shouldShowConnector =
+                        isRoutineWithLink && linkedTarget;
+
+                      return (
+                        <div
+                          key={milestone.id}
+                          className="flex items-center gap-0"
+                        >
+                          <button
+                            onMouseEnter={() =>
+                              handleMilestoneClick(milestone.id)
+                            }
+                            onClick={() =>
+                              handleMilestoneDoubleClick(milestone)
+                            }
+                            className={`w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all ${
+                              selectedMilestoneId === milestone.id
+                                ? "bg-blue-600 border-blue-700"
+                                : "bg-blue-500 border-blue-600 hover:bg-blue-600"
+                            }`}
+                            title="Double-click to view tasks"
                           >
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                          </svg>
-                        )}
-                      </button>
-                    ))}
+                            {milestone.type === "routine" ? (
+                              <BsArrowRepeat className="w-8 h-8 text-white" />
+                            ) : (
+                              <svg
+                                className="w-8 h-8 text-white"
+                                fill="currentColor"
+                                stroke="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                              </svg>
+                            )}
+                          </button>
+
+                          {/* Dashed line connector between routine and linked target */}
+                          {shouldShowConnector && (
+                            <div className="flex items-center">
+                              <svg
+                                width="32"
+                                height="4"
+                                className="text-blue-400"
+                              >
+                                <line
+                                  x1="0"
+                                  y1="2"
+                                  x2="32"
+                                  y2="2"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeDasharray="4 4"
+                                />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
 
                     {/* Add Button */}
                     <button
