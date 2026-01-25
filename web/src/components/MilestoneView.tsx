@@ -20,6 +20,13 @@ interface Milestone {
   targetDate: string;
   level: number;
   type?: "target" | "routine";
+  // Routine-specific fields
+  frequencyCount?: number;
+  frequencyPeriod?: "day" | "week" | "month";
+  durationAmount?: number;
+  durationUnit?: "minutes" | "hours";
+  durationPeriod?: "day" | "week" | "month";
+  linkedTargetId?: string;
 }
 
 // Progress Bar Component for Milestone Level
@@ -144,13 +151,37 @@ export default function MilestoneView({
     e.preventDefault();
     if (formData.name.trim() && formData.targetDate && addingAtLevel !== null) {
       try {
-        await createMilestone({
+        // Prepare the payload with routine fields if type is "routine"
+        const payload: any = {
           goalId,
           name: formData.name,
           targetDate: formData.targetDate,
           level: addingAtLevel,
           type: formData.type,
-        }).unwrap();
+        };
+
+        // Add routine-specific fields if type is routine
+        if (formData.type === "routine") {
+          // Add frequency if provided
+          if (formData.frequencyCount) {
+            payload.frequencyCount = parseInt(formData.frequencyCount, 10);
+            payload.frequencyPeriod = formData.frequencyPeriod;
+          }
+
+          // Add duration if provided
+          if (formData.durationAmount) {
+            payload.durationAmount = parseInt(formData.durationAmount, 10);
+            payload.durationUnit = formData.durationUnit;
+            payload.durationPeriod = formData.durationPeriod;
+          }
+
+          // Add linked target if provided
+          if (formData.linkedTargetId) {
+            payload.linkedTargetId = formData.linkedTargetId;
+          }
+        }
+
+        await createMilestone(payload).unwrap();
 
         // Reset form and close
         setFormData({
@@ -188,12 +219,12 @@ export default function MilestoneView({
       name: milestone.name,
       targetDate: milestone.targetDate,
       type: milestone.type || "target",
-      frequencyCount: "",
-      frequencyPeriod: "week",
-      durationAmount: "",
-      durationUnit: "minutes",
-      durationPeriod: "day",
-      linkedTargetId: "",
+      frequencyCount: milestone.frequencyCount?.toString() || "",
+      frequencyPeriod: milestone.frequencyPeriod || "week",
+      durationAmount: milestone.durationAmount?.toString() || "",
+      durationUnit: milestone.durationUnit || "minutes",
+      durationPeriod: milestone.durationPeriod || "day",
+      linkedTargetId: milestone.linkedTargetId || "",
     });
   };
 
@@ -220,13 +251,37 @@ export default function MilestoneView({
       editingMilestoneId
     ) {
       try {
-        await updateMilestone({
+        // Prepare the payload with routine fields if type is "routine"
+        const payload: any = {
           goalId,
           milestoneId: editingMilestoneId,
           name: editFormData.name,
           targetDate: editFormData.targetDate,
           type: editFormData.type,
-        }).unwrap();
+        };
+
+        // Add routine-specific fields if type is routine
+        if (editFormData.type === "routine") {
+          // Add frequency if provided
+          if (editFormData.frequencyCount) {
+            payload.frequencyCount = parseInt(editFormData.frequencyCount, 10);
+            payload.frequencyPeriod = editFormData.frequencyPeriod;
+          }
+
+          // Add duration if provided
+          if (editFormData.durationAmount) {
+            payload.durationAmount = parseInt(editFormData.durationAmount, 10);
+            payload.durationUnit = editFormData.durationUnit;
+            payload.durationPeriod = editFormData.durationPeriod;
+          }
+
+          // Add linked target if provided
+          if (editFormData.linkedTargetId) {
+            payload.linkedTargetId = editFormData.linkedTargetId;
+          }
+        }
+
+        await updateMilestone(payload).unwrap();
 
         setEditingMilestoneId(null);
         setEditFormData({

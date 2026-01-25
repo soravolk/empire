@@ -8,6 +8,13 @@ export interface Milestone {
   level: number;
   type?: "target" | "routine";
   created_at?: number;
+  // Routine-specific fields
+  frequencyCount?: number;
+  frequencyPeriod?: "day" | "week" | "month";
+  durationAmount?: number;
+  durationUnit?: "minutes" | "hours";
+  durationPeriod?: "day" | "week" | "month";
+  linkedTargetId?: string;
 }
 
 export const milestonesApi = createApi({
@@ -36,12 +43,42 @@ export const milestonesApi = createApi({
         targetDate: string;
         level: number;
         type?: "target" | "routine";
+        // Routine-specific fields
+        frequencyCount?: number;
+        frequencyPeriod?: "day" | "week" | "month";
+        durationAmount?: number;
+        durationUnit?: "minutes" | "hours";
+        durationPeriod?: "day" | "week" | "month";
+        linkedTargetId?: string;
       }
     >({
-      query: ({ goalId, name, targetDate, level, type }) => ({
+      query: ({
+        goalId,
+        name,
+        targetDate,
+        level,
+        type,
+        frequencyCount,
+        frequencyPeriod,
+        durationAmount,
+        durationUnit,
+        durationPeriod,
+        linkedTargetId,
+      }) => ({
         url: `/goals/${goalId}/milestones`,
         method: "POST",
-        body: { name, targetDate, level, type: type },
+        body: {
+          name,
+          targetDate,
+          level,
+          type,
+          frequencyCount,
+          frequencyPeriod,
+          durationAmount,
+          durationUnit,
+          durationPeriod,
+          linkedTargetId,
+        },
       }),
       invalidatesTags: (result, error, { goalId }) => [
         { type: "Milestone", id: `GOAL_${goalId}` },
@@ -68,12 +105,41 @@ export const milestonesApi = createApi({
         name: string;
         targetDate: string;
         type?: "target" | "routine";
+        // Routine-specific fields
+        frequencyCount?: number;
+        frequencyPeriod?: "day" | "week" | "month";
+        durationAmount?: number;
+        durationUnit?: "minutes" | "hours";
+        durationPeriod?: "day" | "week" | "month";
+        linkedTargetId?: string;
       }
     >({
-      query: ({ goalId, milestoneId, name, targetDate, type }) => ({
+      query: ({
+        goalId,
+        milestoneId,
+        name,
+        targetDate,
+        type,
+        frequencyCount,
+        frequencyPeriod,
+        durationAmount,
+        durationUnit,
+        durationPeriod,
+        linkedTargetId,
+      }) => ({
         url: `/goals/${goalId}/milestones/${milestoneId}`,
         method: "PUT",
-        body: { name, targetDate, type },
+        body: {
+          name,
+          targetDate,
+          type,
+          frequencyCount,
+          frequencyPeriod,
+          durationAmount,
+          durationUnit,
+          durationPeriod,
+          linkedTargetId,
+        },
       }),
       invalidatesTags: (result, error, { goalId, milestoneId }) => [
         { type: "Milestone", id: milestoneId },

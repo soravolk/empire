@@ -25,7 +25,7 @@ export const listMilestones: RequestHandler = async (req, res) => {
     const result = await dynamodbClient.send(command);
 
     const milestones = (result.Items || []).map((item) => {
-      return {
+      const milestone: any = {
         id: item.milestone_id,
         name: item.name,
         targetDate: item.target_date,
@@ -33,6 +33,22 @@ export const listMilestones: RequestHandler = async (req, res) => {
         type: item.type,
         created_at: item.created_at,
       };
+
+      // Add routine-specific fields if present
+      if (item.frequency_count !== undefined) {
+        milestone.frequencyCount = item.frequency_count;
+        milestone.frequencyPeriod = item.frequency_period;
+      }
+      if (item.duration_amount !== undefined) {
+        milestone.durationAmount = item.duration_amount;
+        milestone.durationUnit = item.duration_unit;
+        milestone.durationPeriod = item.duration_period;
+      }
+      if (item.linked_target_id) {
+        milestone.linkedTargetId = item.linked_target_id;
+      }
+
+      return milestone;
     });
 
     // Sort by level
@@ -48,7 +64,19 @@ export const listMilestones: RequestHandler = async (req, res) => {
 export const createMilestone: RequestHandler = async (req, res) => {
   const uid = req.user!.id;
   const { goalId } = req.params;
-  const { name, targetDate, level, type } = req.body;
+  const {
+    name,
+    targetDate,
+    level,
+    type,
+    // Routine-specific fields
+    frequencyCount,
+    frequencyPeriod,
+    durationAmount,
+    durationUnit,
+    durationPeriod,
+    linkedTargetId,
+  } = req.body;
 
   if (!name || !targetDate || level === undefined || !type) {
     return res
@@ -60,19 +88,38 @@ export const createMilestone: RequestHandler = async (req, res) => {
     const milestone_id = uuidv4();
     const now = Date.now();
 
+    // Build the item with base fields
+    const item: any = {
+      milestone_id,
+      goal_id: goalId,
+      user_id: uid,
+      name,
+      target_date: targetDate,
+      level,
+      type,
+      created_at: now,
+      updated_at: now,
+    };
+
+    // Add routine-specific fields if present
+    if (type === "routine") {
+      if (frequencyCount !== undefined && frequencyPeriod) {
+        item.frequency_count = frequencyCount;
+        item.frequency_period = frequencyPeriod;
+      }
+      if (durationAmount !== undefined && durationUnit && durationPeriod) {
+        item.duration_amount = durationAmount;
+        item.duration_unit = durationUnit;
+        item.duration_period = durationPeriod;
+      }
+      if (linkedTargetId) {
+        item.linked_target_id = linkedTargetId;
+      }
+    }
+
     const command = new PutCommand({
       TableName: "milestones",
-      Item: {
-        milestone_id,
-        goal_id: goalId,
-        user_id: uid,
-        name,
-        target_date: targetDate,
-        level,
-        type,
-        created_at: now,
-        updated_at: now,
-      },
+      Item: item,
     });
 
     await dynamodbClient.send(command);
@@ -82,6 +129,7 @@ export const createMilestone: RequestHandler = async (req, res) => {
       name,
       targetDate,
       level,
+      type,
     });
   } catch (error) {
     console.error("Error creating milestone:", error);
@@ -122,7 +170,18 @@ export const deleteMilestone: RequestHandler = async (req, res) => {
 export const updateMilestone: RequestHandler = async (req, res) => {
   const uid = req.user!.id;
   const { milestoneId } = req.params;
-  const { name, targetDate, type } = req.body;
+  const {
+    name,
+    targetDate,
+    type,
+    // Routine-specific fields
+    frequencyCount,
+    frequencyPeriod,
+    durationAmount,
+    durationUnit,
+    durationPeriod,
+    linkedTargetId,
+  } = req.body;
 
   if (!name || !targetDate || !type) {
     return res
@@ -133,25 +192,58 @@ export const updateMilestone: RequestHandler = async (req, res) => {
   try {
     const now = Date.now();
 
+    // Build update expression dynamically
+    const updateParts: string[] = [
+      "#name = :name",
+      "target_date = :targetDate",
+      "#type = :type",
+      "updated_at = :updatedAt",
+    ];
+
+    const expressionAttributeNames: Record<string, string> = {
+      "#name": "name",
+      "#type": "type",
+    };
+
+    const expressionAttributeValues: Record<string, any> = {
+      ":name": name,
+      ":targetDate": targetDate,
+      ":type": type,
+      ":updatedAt": now,
+      ":userId": uid,
+    };
+
+    // Add routine-specific fields if present
+    if (type === "routine") {
+      if (frequencyCount !== undefined && frequencyPeriod) {
+        updateParts.push("frequency_count = :frequencyCount");
+        updateParts.push("frequency_period = :frequencyPeriod");
+        expressionAttributeValues[":frequencyCount"] = frequencyCount;
+        expressionAttributeValues[":frequencyPeriod"] = frequencyPeriod;
+      }
+      if (durationAmount !== undefined && durationUnit && durationPeriod) {
+        updateParts.push("duration_amount = :durationAmount");
+        updateParts.push("duration_unit = :durationUnit");
+        updateParts.push("duration_period = :durationPeriod");
+        expressionAttributeValues[":durationAmount"] = durationAmount;
+        expressionAttributeValues[":durationUnit"] = durationUnit;
+        expressionAttributeValues[":durationPeriod"] = durationPeriod;
+      }
+      if (linkedTargetId) {
+        updateParts.push("linked_target_id = :linkedTargetId");
+        expressionAttributeValues[":linkedTargetId"] = linkedTargetId;
+      }
+    }
+
     const command = new UpdateCommand({
       TableName: "milestones",
       Key: {
         milestone_id: milestoneId,
       },
-      UpdateExpression:
-        "SET #name = :name, target_date = :targetDate, #type = :type, updated_at = :updatedAt",
+      UpdateExpression: `SET ${updateParts.join(", ")}`,
       ConditionExpression: "user_id = :userId",
-      ExpressionAttributeNames: {
-        "#name": "name",
-        "#type": "type",
-      },
-      ExpressionAttributeValues: {
-        ":name": name,
-        ":targetDate": targetDate,
-        ":type": type,
-        ":updatedAt": now,
-        ":userId": uid,
-      },
+      ExpressionAttributeNames: expressionAttributeNames,
+      ExpressionAttributeValues: expressionAttributeValues,
       ReturnValues: "ALL_NEW",
     });
 
@@ -163,6 +255,7 @@ export const updateMilestone: RequestHandler = async (req, res) => {
       name: item?.name,
       targetDate: item?.target_date,
       level: item?.level,
+      type: item?.type,
     });
   } catch (error: any) {
     if (error.name === "ConditionalCheckFailedException") {
