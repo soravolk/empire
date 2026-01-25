@@ -262,23 +262,28 @@ export default function MilestoneView({
 
         // Add routine-specific fields if type is routine
         if (editFormData.type === "routine") {
-          // Add frequency if provided
+          // Add frequency if provided (or null to clear)
           if (editFormData.frequencyCount) {
             payload.frequencyCount = parseInt(editFormData.frequencyCount, 10);
             payload.frequencyPeriod = editFormData.frequencyPeriod;
+          } else {
+            payload.frequencyCount = null;
+            payload.frequencyPeriod = null;
           }
 
-          // Add duration if provided
+          // Add duration if provided (or null to clear)
           if (editFormData.durationAmount) {
             payload.durationAmount = parseInt(editFormData.durationAmount, 10);
             payload.durationUnit = editFormData.durationUnit;
             payload.durationPeriod = editFormData.durationPeriod;
+          } else {
+            payload.durationAmount = null;
+            payload.durationUnit = null;
+            payload.durationPeriod = null;
           }
 
-          // Add linked target if provided
-          if (editFormData.linkedTargetId) {
-            payload.linkedTargetId = editFormData.linkedTargetId;
-          }
+          // Always send linkedTargetId (empty string means clear the link)
+          payload.linkedTargetId = editFormData.linkedTargetId || null;
         }
 
         await updateMilestone(payload).unwrap();
@@ -519,7 +524,7 @@ export default function MilestoneView({
                       return (
                         <div
                           key={milestone.id}
-                          className="flex items-center gap-0"
+                          className={`flex items-center gap-0 ${isRoutineWithLink ? "-mr-4" : ""}`}
                         >
                           <button
                             onMouseEnter={() =>

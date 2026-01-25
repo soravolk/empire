@@ -213,26 +213,68 @@ export const updateMilestone: RequestHandler = async (req, res) => {
       ":userId": uid,
     };
 
-    // Add routine-specific fields if present
+    const removeParts: string[] = [];
+
+    // Add routine-specific fields if present, or remove them if null/switching to target
     if (type === "routine") {
-      if (frequencyCount !== undefined && frequencyPeriod) {
+      // Handle frequency
+      if (
+        frequencyCount !== undefined &&
+        frequencyCount !== null &&
+        frequencyPeriod
+      ) {
         updateParts.push("frequency_count = :frequencyCount");
         updateParts.push("frequency_period = :frequencyPeriod");
         expressionAttributeValues[":frequencyCount"] = frequencyCount;
         expressionAttributeValues[":frequencyPeriod"] = frequencyPeriod;
+      } else if (frequencyCount === null) {
+        removeParts.push("frequency_count", "frequency_period");
       }
-      if (durationAmount !== undefined && durationUnit && durationPeriod) {
+
+      // Handle duration
+      if (
+        durationAmount !== undefined &&
+        durationAmount !== null &&
+        durationUnit &&
+        durationPeriod
+      ) {
         updateParts.push("duration_amount = :durationAmount");
         updateParts.push("duration_unit = :durationUnit");
         updateParts.push("duration_period = :durationPeriod");
         expressionAttributeValues[":durationAmount"] = durationAmount;
         expressionAttributeValues[":durationUnit"] = durationUnit;
         expressionAttributeValues[":durationPeriod"] = durationPeriod;
+      } else if (durationAmount === null) {
+        removeParts.push("duration_amount", "duration_unit", "duration_period");
       }
-      if (linkedTargetId) {
+
+      // Handle linked target (explicitly check for null to remove)
+      if (
+        linkedTargetId !== undefined &&
+        linkedTargetId !== null &&
+        linkedTargetId !== ""
+      ) {
         updateParts.push("linked_target_id = :linkedTargetId");
         expressionAttributeValues[":linkedTargetId"] = linkedTargetId;
+      } else if (linkedTargetId === null || linkedTargetId === "") {
+        removeParts.push("linked_target_id");
       }
+    } else {
+      // If switching to target type, remove all routine fields
+      removeParts.push(
+        "frequency_count",
+        "frequency_period",
+        "duration_amount",
+        "duration_unit",
+        "duration_period",
+        "linked_target_id",
+      );
+    }
+
+    // Build the full update expression
+    let updateExpression = `SET ${updateParts.join(", ")}`;
+    if (removeParts.length > 0) {
+      updateExpression += ` REMOVE ${removeParts.join(", ")}`;
     }
 
     const command = new UpdateCommand({
@@ -240,7 +282,7 @@ export const updateMilestone: RequestHandler = async (req, res) => {
       Key: {
         milestone_id: milestoneId,
       },
-      UpdateExpression: `SET ${updateParts.join(", ")}`,
+      UpdateExpression: updateExpression,
       ConditionExpression: "user_id = :userId",
       ExpressionAttributeNames: expressionAttributeNames,
       ExpressionAttributeValues: expressionAttributeValues,
