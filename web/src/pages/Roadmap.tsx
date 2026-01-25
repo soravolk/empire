@@ -33,6 +33,14 @@ export default function Roadmap() {
   const [selectedTaskMilestone, setSelectedTaskMilestone] = useState<{
     id: string;
     name: string;
+    type?: "target" | "routine";
+    frequencyCount?: number;
+    frequencyPeriod?: "day" | "week" | "month";
+    durationAmount?: number;
+    durationUnit?: "minutes" | "hours";
+    durationPeriod?: "day" | "week" | "month";
+    linkedTargetId?: string;
+    linkedTargetName?: string;
   } | null>(null);
 
   const { data: goals = [], isLoading, error } = useFetchRoadmapGoalsQuery();
@@ -169,10 +177,7 @@ export default function Roadmap() {
         <MilestoneView
           goalId={(currentItem as Goal).goal_id}
           onMilestoneDoubleClick={(milestone) => {
-            setSelectedTaskMilestone({
-              id: milestone.id,
-              name: milestone.name,
-            });
+            setSelectedTaskMilestone(milestone);
             setTaskViewOpen(true);
           }}
         />
@@ -188,6 +193,13 @@ export default function Roadmap() {
           }}
           milestoneId={selectedTaskMilestone.id}
           milestoneName={selectedTaskMilestone.name}
+          type={selectedTaskMilestone.type}
+          frequencyCount={selectedTaskMilestone.frequencyCount}
+          frequencyPeriod={selectedTaskMilestone.frequencyPeriod}
+          durationAmount={selectedTaskMilestone.durationAmount}
+          durationUnit={selectedTaskMilestone.durationUnit}
+          durationPeriod={selectedTaskMilestone.durationPeriod}
+          linkedTargetId={selectedTaskMilestone.linkedTargetId}
         />
       )}
     </div>

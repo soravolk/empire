@@ -11,7 +11,17 @@ import MilestoneForm from "./MilestoneForm";
 
 interface MilestoneViewProps {
   goalId: string;
-  onMilestoneDoubleClick?: (milestone: { id: string; name: string }) => void;
+  onMilestoneDoubleClick?: (milestone: {
+    id: string;
+    name: string;
+    type?: "target" | "routine";
+    frequencyCount?: number;
+    frequencyPeriod?: "day" | "week" | "month";
+    durationAmount?: number;
+    durationUnit?: "minutes" | "hours";
+    durationPeriod?: "day" | "week" | "month";
+    linkedTargetId?: string;
+  }) => void;
 }
 
 interface Milestone {
@@ -308,7 +318,17 @@ export default function MilestoneView({
 
   const handleMilestoneDoubleClick = (milestone: Milestone) => {
     if (onMilestoneDoubleClick) {
-      onMilestoneDoubleClick({ id: milestone.id, name: milestone.name });
+      onMilestoneDoubleClick({
+        id: milestone.id,
+        name: milestone.name,
+        type: milestone.type,
+        frequencyCount: milestone.frequencyCount,
+        frequencyPeriod: milestone.frequencyPeriod,
+        durationAmount: milestone.durationAmount,
+        durationUnit: milestone.durationUnit,
+        durationPeriod: milestone.durationPeriod,
+        linkedTargetId: milestone.linkedTargetId,
+      });
     }
   };
 
