@@ -112,7 +112,12 @@ resource "aws_iam_role_policy" "lambda_dynamodb_policy" {
           "${aws_dynamodb_table.milestones.arn}/index/*",
           aws_dynamodb_table.tasks.arn,
           "${aws_dynamodb_table.tasks.arn}/index/*",
-          aws_dynamodb_table.users.arn
+          aws_dynamodb_table.users.arn,
+          "${aws_dynamodb_table.users.arn}/index/*",
+          aws_dynamodb_table.routine_completions.arn,
+          "${aws_dynamodb_table.routine_completions.arn}/index/*",
+          aws_dynamodb_table.routine_time_entries.arn,
+          "${aws_dynamodb_table.routine_time_entries.arn}/index/*"
         ]
       }
     ]
@@ -258,5 +263,49 @@ resource "aws_dynamodb_table" "users" {
 
   tags = merge(var.tags, {
     Name = "users"
+  })
+}
+
+# DynamoDB table for routine completions (append-only events)
+resource "aws_dynamodb_table" "routine_completions" {
+  name         = "routine_completions"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "milestone_id"
+  range_key    = "recorded_at"
+
+  attribute {
+    name = "milestone_id"
+    type = "S"
+  }
+
+  attribute {
+    name = "recorded_at"
+    type = "N"
+  }
+
+  tags = merge(var.tags, {
+    Name = "routine_completions"
+  })
+}
+
+# DynamoDB table for routine time entries (append-only events)
+resource "aws_dynamodb_table" "routine_time_entries" {
+  name         = "routine_time_entries"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "milestone_id"
+  range_key    = "recorded_at"
+
+  attribute {
+    name = "milestone_id"
+    type = "S"
+  }
+
+  attribute {
+    name = "recorded_at"
+    type = "N"
+  }
+
+  tags = merge(var.tags, {
+    Name = "routine_time_entries"
   })
 }
