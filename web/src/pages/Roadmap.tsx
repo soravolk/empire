@@ -184,13 +184,14 @@ export default function Roadmap() {
       )}
 
       {/* TaskView Modal */}
-      {selectedTaskMilestone && (
+      {selectedTaskMilestone && !isCreationCard && (
         <TaskView
           isOpen={taskViewOpen}
           onClose={() => {
             setTaskViewOpen(false);
             setSelectedTaskMilestone(null);
           }}
+          goalId={currentItem.goal_id}
           milestoneId={selectedTaskMilestone.id}
           milestoneName={selectedTaskMilestone.name}
           type={selectedTaskMilestone.type}

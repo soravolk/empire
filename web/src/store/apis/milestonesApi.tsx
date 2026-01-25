@@ -146,6 +146,59 @@ export const milestonesApi = createApi({
         { type: "Milestone", id: `GOAL_${goalId}` },
       ],
     }),
+    // Routine tracking mutations
+    addRoutineCompletion: builder.mutation<
+      {
+        id: string;
+        milestoneId: string;
+        completedAt: number;
+        createdAt: number;
+      },
+      {
+        goalId: string;
+        milestoneId: string;
+        timestamp?: number;
+      }
+    >({
+      query: ({ goalId, milestoneId, timestamp }) => ({
+        url: `/goals/${goalId}/milestones/${milestoneId}/routine/complete`,
+        method: "POST",
+        body: { timestamp },
+      }),
+    }),
+    addRoutineTime: builder.mutation<
+      {
+        id: string;
+        milestoneId: string;
+        durationMinutes: number;
+        recordedAt: number;
+        createdAt: number;
+      },
+      {
+        goalId: string;
+        milestoneId: string;
+        minutes: number;
+        timestamp?: number;
+      }
+    >({
+      query: ({ goalId, milestoneId, minutes, timestamp }) => ({
+        url: `/goals/${goalId}/milestones/${milestoneId}/routine/time`,
+        method: "POST",
+        body: { minutes, timestamp },
+      }),
+    }),
+    getRoutineStats: builder.query<
+      {
+        today: { completions: number; minutes: number };
+        week: { completions: number; minutes: number };
+        month: { completions: number; minutes: number };
+        total: { completions: number; minutes: number };
+      },
+      { goalId: string; milestoneId: string }
+    >({
+      query: ({ goalId, milestoneId }) =>
+        `/goals/${goalId}/milestones/${milestoneId}/routine/stats`,
+    }),
   }),
 });
 
@@ -154,4 +207,7 @@ export const {
   useCreateMilestoneMutation,
   useDeleteMilestoneMutation,
   useUpdateMilestoneMutation,
+  useAddRoutineCompletionMutation,
+  useAddRoutineTimeMutation,
+  useGetRoutineStatsQuery,
 } = milestonesApi;

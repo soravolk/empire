@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MdClose, MdDelete, MdEdit, MdCheck } from "react-icons/md";
 import {
   useCreateTaskInMilestoneMutation,
@@ -6,6 +6,11 @@ import {
   useUpdateTaskMutation,
   useDeleteTaskMutation,
 } from "../store";
+import {
+  useAddRoutineCompletionMutation,
+  useAddRoutineTimeMutation,
+  useGetRoutineStatsQuery,
+} from "../store/apis/milestonesApi";
 
 interface Task {
   id: string;
@@ -18,6 +23,7 @@ interface Task {
 interface TaskViewProps {
   isOpen: boolean;
   onClose: () => void;
+  goalId: string;
   milestoneId: string;
   milestoneName: string;
   type?: "target" | "routine";
@@ -32,6 +38,7 @@ interface TaskViewProps {
 const TaskView: React.FC<TaskViewProps> = ({
   isOpen,
   onClose,
+  goalId,
   milestoneId,
   milestoneName,
   type = "target",
@@ -48,6 +55,19 @@ const TaskView: React.FC<TaskViewProps> = ({
     error: tasksError,
   } = useGetTasksByMilestoneQuery(milestoneId);
 
+  // Fetch routine stats for routine milestones
+  const {
+    data: routineStats,
+    isLoading: isLoadingStats,
+    refetch: refetchStats,
+  } = useGetRoutineStatsQuery(
+    { goalId, milestoneId },
+    { skip: type !== "routine" },
+  );
+
+  const [addRoutineCompletion] = useAddRoutineCompletionMutation();
+  const [addRoutineTime] = useAddRoutineTimeMutation();
+
   const [isCreating, setIsCreating] = useState(false);
   const [newTask, setNewTask] = useState({
     name: "",
@@ -61,6 +81,19 @@ const TaskView: React.FC<TaskViewProps> = ({
 
   const [routineTimeSpent, setRoutineTimeSpent] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
+
+  // Sync stats from backend
+  useEffect(() => {
+    if (routineStats && frequencyPeriod) {
+      const periodKey =
+        frequencyPeriod === "day"
+          ? "today"
+          : frequencyPeriod === "week"
+            ? "week"
+            : "month";
+      setCompletedCount(routineStats[periodKey].completions);
+    }
+  }, [routineStats, frequencyPeriod]);
 
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editedTask, setEditedTask] = useState({
@@ -240,12 +273,26 @@ const TaskView: React.FC<TaskViewProps> = ({
                           </p>
                         </div>
                         <button
-                          onClick={() =>
-                            setCompletedCount((prev) =>
-                              Math.min(prev + 1, frequencyCount),
-                            )
-                          }
-                          className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
+                          onClick={async () => {
+                            if (completedCount < frequencyCount) {
+                              try {
+                                await addRoutineCompletion({
+                                  goalId,
+                                  milestoneId,
+                                  timestamp: Date.now(),
+                                }).unwrap();
+                                setCompletedCount((prev) => prev + 1);
+                                refetchStats();
+                              } catch (error) {
+                                console.error(
+                                  "Failed to mark routine complete:",
+                                  error,
+                                );
+                              }
+                            }
+                          }}
+                          disabled={completedCount >= frequencyCount}
+                          className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                         >
                           Mark Done
                         </button>
@@ -265,10 +312,24 @@ const TaskView: React.FC<TaskViewProps> = ({
                       <div className="mt-3 bg-gray-50 p-4 rounded-lg">
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-sm text-gray-600">
-                            Time spent today:
+                            Time spent this {durationPeriod}:
                           </p>
                           <p className="text-xl font-bold text-blue-600">
-                            {routineTimeSpent} {durationUnit}
+                            {routineStats && durationPeriod
+                              ? (() => {
+                                  const periodKey =
+                                    durationPeriod === "day"
+                                      ? "today"
+                                      : durationPeriod === "week"
+                                        ? "week"
+                                        : "month";
+                                  const totalMinutes =
+                                    routineStats[periodKey].minutes;
+                                  return durationUnit === "hours"
+                                    ? `${(totalMinutes / 60).toFixed(1)} hours`
+                                    : `${totalMinutes} minutes`;
+                                })()
+                              : `0 ${durationUnit}`}
                           </p>
                         </div>
                         <div className="flex items-center gap-3">
@@ -290,10 +351,28 @@ const TaskView: React.FC<TaskViewProps> = ({
                         {routineTimeSpent > 0 && (
                           <div className="flex gap-2 mt-3">
                             <button
-                              onClick={() => {
-                                // TODO: Save routine time spent
-                                console.log("Save time:", routineTimeSpent);
-                                setRoutineTimeSpent(0);
+                              onClick={async () => {
+                                try {
+                                  const minutes =
+                                    durationUnit === "hours"
+                                      ? routineTimeSpent * 60
+                                      : routineTimeSpent;
+
+                                  await addRoutineTime({
+                                    goalId,
+                                    milestoneId,
+                                    minutes,
+                                    timestamp: Date.now(),
+                                  }).unwrap();
+
+                                  setRoutineTimeSpent(0);
+                                  refetchStats();
+                                } catch (error) {
+                                  console.error(
+                                    "Failed to save routine time:",
+                                    error,
+                                  );
+                                }
                               }}
                               className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
                             >
