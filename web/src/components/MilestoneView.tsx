@@ -67,6 +67,13 @@ export default function MilestoneView({
     name: "",
     targetDate: "",
     type: "target" as "target" | "routine",
+    // Routine-specific fields
+    frequencyCount: "",
+    frequencyPeriod: "week" as "day" | "week" | "month",
+    durationAmount: "",
+    durationUnit: "minutes" as "minutes" | "hours",
+    durationPeriod: "day" as "day" | "week" | "month",
+    linkedTargetId: "",
   });
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(
     null,
@@ -78,6 +85,13 @@ export default function MilestoneView({
     name: "",
     targetDate: "",
     type: "target" as "target" | "routine",
+    // Routine-specific fields
+    frequencyCount: "",
+    frequencyPeriod: "week" as "day" | "week" | "month",
+    durationAmount: "",
+    durationUnit: "minutes" as "minutes" | "hours",
+    durationPeriod: "day" as "day" | "week" | "month",
+    linkedTargetId: "",
   });
 
   // Group milestones by level
@@ -97,13 +111,26 @@ export default function MilestoneView({
   const maxLevel =
     milestones.length > 0 ? Math.max(...milestones.map((m) => m.level)) : 0;
 
+  // Get target milestones for linking
+  const targetMilestones = milestones.filter((m) => m.type === "target");
+
   const handleAddClick = (level: number) => {
     setAddingAtLevel(level);
   };
 
   const handleCancel = () => {
     setAddingAtLevel(null);
-    setFormData({ name: "", targetDate: "", type: "target" });
+    setFormData({
+      name: "",
+      targetDate: "",
+      type: "target",
+      frequencyCount: "",
+      frequencyPeriod: "week",
+      durationAmount: "",
+      durationUnit: "minutes",
+      durationPeriod: "day",
+      linkedTargetId: "",
+    });
   };
 
   const handleMilestoneClick = (milestoneId: string) => {
@@ -125,7 +152,17 @@ export default function MilestoneView({
         }).unwrap();
 
         // Reset form and close
-        setFormData({ name: "", targetDate: "", type: "target" });
+        setFormData({
+          name: "",
+          targetDate: "",
+          type: "target",
+          frequencyCount: "",
+          frequencyPeriod: "week",
+          durationAmount: "",
+          durationUnit: "minutes",
+          durationPeriod: "day",
+          linkedTargetId: "",
+        });
         setAddingAtLevel(null);
       } catch (error) {
         console.error("Failed to create milestone:", error);
@@ -150,12 +187,28 @@ export default function MilestoneView({
       name: milestone.name,
       targetDate: milestone.targetDate,
       type: milestone.type || "target",
+      frequencyCount: "",
+      frequencyPeriod: "week",
+      durationAmount: "",
+      durationUnit: "minutes",
+      durationPeriod: "day",
+      linkedTargetId: "",
     });
   };
 
   const handleEditCancel = () => {
     setEditingMilestoneId(null);
-    setEditFormData({ name: "", targetDate: "", type: "target" });
+    setEditFormData({
+      name: "",
+      targetDate: "",
+      type: "target",
+      frequencyCount: "",
+      frequencyPeriod: "week",
+      durationAmount: "",
+      durationUnit: "minutes",
+      durationPeriod: "day",
+      linkedTargetId: "",
+    });
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -175,7 +228,17 @@ export default function MilestoneView({
         }).unwrap();
 
         setEditingMilestoneId(null);
-        setEditFormData({ name: "", targetDate: "", type: "target" });
+        setEditFormData({
+          name: "",
+          targetDate: "",
+          type: "target",
+          frequencyCount: "",
+          frequencyPeriod: "week",
+          durationAmount: "",
+          durationUnit: "minutes",
+          durationPeriod: "day",
+          linkedTargetId: "",
+        });
       } catch (error) {
         console.error("Failed to update milestone:", error);
       }
@@ -360,6 +423,139 @@ export default function MilestoneView({
                                     required
                                   />
                                 </div>
+
+                                {/* Conditional fields for routine type */}
+                                {editFormData.type === "routine" && (
+                                  <>
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                                        Frequency (Optional)
+                                      </label>
+                                      <div className="flex gap-2">
+                                        <input
+                                          type="number"
+                                          min="1"
+                                          value={editFormData.frequencyCount}
+                                          onChange={(e) =>
+                                            setEditFormData({
+                                              ...editFormData,
+                                              frequencyCount: e.target.value,
+                                            })
+                                          }
+                                          className="w-20 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                          placeholder="3"
+                                        />
+                                        <span className="flex items-center text-sm text-gray-600">
+                                          times per
+                                        </span>
+                                        <select
+                                          value={editFormData.frequencyPeriod}
+                                          onChange={(e) =>
+                                            setEditFormData({
+                                              ...editFormData,
+                                              frequencyPeriod: e.target
+                                                .value as
+                                                | "day"
+                                                | "week"
+                                                | "month",
+                                            })
+                                          }
+                                          className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                          <option value="day">Day</option>
+                                          <option value="week">Week</option>
+                                          <option value="month">Month</option>
+                                        </select>
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                                        Duration (Optional)
+                                      </label>
+                                      <div className="flex gap-2">
+                                        <input
+                                          type="number"
+                                          min="1"
+                                          value={editFormData.durationAmount}
+                                          onChange={(e) =>
+                                            setEditFormData({
+                                              ...editFormData,
+                                              durationAmount: e.target.value,
+                                            })
+                                          }
+                                          className="w-20 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                          placeholder="30"
+                                        />
+                                        <select
+                                          value={editFormData.durationUnit}
+                                          onChange={(e) =>
+                                            setEditFormData({
+                                              ...editFormData,
+                                              durationUnit: e.target.value as
+                                                | "minutes"
+                                                | "hours",
+                                            })
+                                          }
+                                          className="w-24 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                          <option value="minutes">
+                                            Minutes
+                                          </option>
+                                          <option value="hours">Hours</option>
+                                        </select>
+                                        <span className="flex items-center text-sm text-gray-600">
+                                          per
+                                        </span>
+                                        <select
+                                          value={editFormData.durationPeriod}
+                                          onChange={(e) =>
+                                            setEditFormData({
+                                              ...editFormData,
+                                              durationPeriod: e.target.value as
+                                                | "day"
+                                                | "week"
+                                                | "month",
+                                            })
+                                          }
+                                          className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                          <option value="day">Day</option>
+                                          <option value="week">Week</option>
+                                          <option value="month">Month</option>
+                                        </select>
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                                        Linked Target Milestone
+                                      </label>
+                                      <select
+                                        value={editFormData.linkedTargetId}
+                                        onChange={(e) =>
+                                          setEditFormData({
+                                            ...editFormData,
+                                            linkedTargetId: e.target.value,
+                                          })
+                                        }
+                                        className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      >
+                                        <option value="">None</option>
+                                        {targetMilestones.map((milestone) => (
+                                          <option
+                                            key={milestone.id}
+                                            value={milestone.id}
+                                          >
+                                            {milestone.name} (Level{" "}
+                                            {milestone.level})
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  </>
+                                )}
+
                                 <div className="flex gap-2 justify-end">
                                   <button
                                     type="button"
@@ -498,6 +694,132 @@ export default function MilestoneView({
                           required
                         />
                       </div>
+
+                      {/* Conditional fields for routine type */}
+                      {formData.type === "routine" && (
+                        <>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              Frequency (Optional)
+                            </label>
+                            <div className="flex gap-2">
+                              <input
+                                type="number"
+                                min="1"
+                                value={formData.frequencyCount}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    frequencyCount: e.target.value,
+                                  })
+                                }
+                                className="w-20 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="3"
+                              />
+                              <span className="flex items-center text-sm text-gray-600">
+                                times per
+                              </span>
+                              <select
+                                value={formData.frequencyPeriod}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    frequencyPeriod: e.target.value as
+                                      | "day"
+                                      | "week"
+                                      | "month",
+                                  })
+                                }
+                                className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              >
+                                <option value="day">Day</option>
+                                <option value="week">Week</option>
+                                <option value="month">Month</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              Duration (Optional)
+                            </label>
+                            <div className="flex gap-2">
+                              <input
+                                type="number"
+                                min="1"
+                                value={formData.durationAmount}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    durationAmount: e.target.value,
+                                  })
+                                }
+                                className="w-20 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="30"
+                              />
+                              <select
+                                value={formData.durationUnit}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    durationUnit: e.target.value as
+                                      | "minutes"
+                                      | "hours",
+                                  })
+                                }
+                                className="w-24 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              >
+                                <option value="minutes">Minutes</option>
+                                <option value="hours">Hours</option>
+                              </select>
+                              <span className="flex items-center text-sm text-gray-600">
+                                per
+                              </span>
+                              <select
+                                value={formData.durationPeriod}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    durationPeriod: e.target.value as
+                                      | "day"
+                                      | "week"
+                                      | "month",
+                                  })
+                                }
+                                className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              >
+                                <option value="day">Day</option>
+                                <option value="week">Week</option>
+                                <option value="month">Month</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              Linked Target Milestone
+                            </label>
+                            <select
+                              value={formData.linkedTargetId}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  linkedTargetId: e.target.value,
+                                })
+                              }
+                              className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="">None</option>
+                              {targetMilestones.map((milestone) => (
+                                <option key={milestone.id} value={milestone.id}>
+                                  {milestone.name} (Level {milestone.level})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </>
+                      )}
+
                       <div className="flex gap-2 justify-end mt-auto">
                         <button
                           type="button"
@@ -667,6 +989,132 @@ export default function MilestoneView({
                     required
                   />
                 </div>
+
+                {/* Conditional fields for routine type */}
+                {formData.type === "routine" && (
+                  <>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Frequency (Optional)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          min="1"
+                          value={formData.frequencyCount}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              frequencyCount: e.target.value,
+                            })
+                          }
+                          className="w-20 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="3"
+                        />
+                        <span className="flex items-center text-sm text-gray-600">
+                          times per
+                        </span>
+                        <select
+                          value={formData.frequencyPeriod}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              frequencyPeriod: e.target.value as
+                                | "day"
+                                | "week"
+                                | "month",
+                            })
+                          }
+                          className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="day">Day</option>
+                          <option value="week">Week</option>
+                          <option value="month">Month</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Duration (Optional)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          min="1"
+                          value={formData.durationAmount}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              durationAmount: e.target.value,
+                            })
+                          }
+                          className="w-20 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="30"
+                        />
+                        <select
+                          value={formData.durationUnit}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              durationUnit: e.target.value as
+                                | "minutes"
+                                | "hours",
+                            })
+                          }
+                          className="w-24 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="minutes">Minutes</option>
+                          <option value="hours">Hours</option>
+                        </select>
+                        <span className="flex items-center text-sm text-gray-600">
+                          per
+                        </span>
+                        <select
+                          value={formData.durationPeriod}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              durationPeriod: e.target.value as
+                                | "day"
+                                | "week"
+                                | "month",
+                            })
+                          }
+                          className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="day">Day</option>
+                          <option value="week">Week</option>
+                          <option value="month">Month</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Linked Target Milestone
+                      </label>
+                      <select
+                        value={formData.linkedTargetId}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            linkedTargetId: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">None</option>
+                        {targetMilestones.map((milestone) => (
+                          <option key={milestone.id} value={milestone.id}>
+                            {milestone.name} (Level {milestone.level})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
+
                 <div className="flex gap-2 justify-end mt-auto">
                   <button
                     type="button"
