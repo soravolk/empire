@@ -103,3 +103,62 @@ output "local_tasks_table_arn" {
   description = "Local DynamoDB tasks table ARN"
   value       = aws_dynamodb_table.tasks_local.arn
 }
+
+# Routine tracking tables for local testing
+resource "aws_dynamodb_table" "routine_completions_local" {
+  name         = "routine_completions"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "milestone_id"
+  range_key    = "recorded_at"
+
+  attribute {
+    name = "milestone_id"
+    type = "S"
+  }
+
+  attribute {
+    name = "recorded_at"
+    type = "N"
+  }
+
+  # recorded_at will be epoch ms (number) used as the sort key for events
+}
+
+resource "aws_dynamodb_table" "routine_time_entries_local" {
+  name         = "routine_time_entries"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "milestone_id"
+  range_key    = "recorded_at"
+
+  attribute {
+    name = "milestone_id"
+    type = "S"
+  }
+
+  attribute {
+    name = "recorded_at"
+    type = "N"
+  }
+
+  # recorded_at will be epoch ms (number) used as the sort key for events
+}
+
+output "local_routine_completions_table_name" {
+  description = "Local DynamoDB routine_completions table name"
+  value       = aws_dynamodb_table.routine_completions_local.name
+}
+
+output "local_routine_completions_table_arn" {
+  description = "Local DynamoDB routine_completions table ARN"
+  value       = aws_dynamodb_table.routine_completions_local.arn
+}
+
+output "local_routine_time_entries_table_name" {
+  description = "Local DynamoDB routine_time_entries table name"
+  value       = aws_dynamodb_table.routine_time_entries_local.name
+}
+
+output "local_routine_time_entries_table_arn" {
+  description = "Local DynamoDB routine_time_entries table ARN"
+  value       = aws_dynamodb_table.routine_time_entries_local.arn
+}
