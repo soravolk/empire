@@ -1,4 +1,12 @@
 import { pg } from "../db/postgre";
+import type { Pool } from "pg";
+
+const getPool = (): Pool => {
+  if (!pg) {
+    throw new Error("Database pool not initialized. Call init() first.");
+  }
+  return pg;
+};
 
 const mustHasRelations: Record<
   string,
@@ -44,7 +52,7 @@ const insert = async (table: string, data: { [key: string]: any }) => {
   const columns = Object.keys(data);
   const values = Object.values(data);
   const placeholders = columns.map((_, idx) => `$${idx + 1}`);
-  const res = await pg.query(
+  const res = await getPool().query(
     `INSERT INTO ${table}(${columns.join(",")}) VALUES (${placeholders.join(
       ","
     )}) RETURNING *`,
@@ -66,7 +74,7 @@ const getById = async (table: string, id: string, uid: string) => {
      WHERE ${wheres.join(" AND ")}
   `;
 
-  return await pg.query(sql, params);
+  return await getPool().query(sql, params);
 };
 
 const getWithCondition = async (
@@ -98,7 +106,7 @@ const getWithCondition = async (
       ? `SELECT * FROM ${table} WHERE ${where.join(" AND ")}`
       : `SELECT * FROM ${table}`;
 
-  return await pg.query(sql, params);
+  return await getPool().query(sql, params);
 };
 
 const getAll = async (table: string, uid: string) => {
@@ -111,11 +119,11 @@ const getAll = async (table: string, uid: string) => {
      WHERE ${wheres.join(" AND ")}
   `;
 
-  return await pg.query(sql, params);
+  return await getPool().query(sql, params);
 };
 
 const getColumnNamesWithoutId = async (table: string) => {
-  const res = await pg.query(
+  const res = await getPool().query(
     `
     SELECT column_name
     FROM information_schema.columns
@@ -151,11 +159,11 @@ const getFromInnerJoin = async (
     ON (${joinCondition.join(" AND ")})
     WHERE (${whereCondition.join(" AND ")})`;
 
-  return await pg.query(query, whereValues);
+  return await getPool().query(query, whereValues);
 };
 
 const deleteById = async (table: string, id: string) => {
-  await pg.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
+  await getPool().query(`DELETE FROM ${table} WHERE id = $1`, [id]);
 };
 
 const deleteWithCondition = async (
@@ -183,7 +191,7 @@ const deleteWithCondition = async (
   }
 
   const sql = `DELETE FROM ${table} WHERE ${where.join(" AND ")}`;
-  const res = await pg.query(sql, params);
+  const res = await getPool().query(sql, params);
   return res.rowCount ?? 0;
 };
 
@@ -203,7 +211,7 @@ const updateById = async (
   const query = `UPDATE ${table} SET ${setClause} WHERE id = $${
     lastIndexCount + 1
   } RETURNING *`;
-  const { rows } = await pg.query(query, values);
+  const { rows } = await getPool().query(query, values);
   return rows[0];
 };
 

@@ -66,6 +66,7 @@ export {
 export { useFetchCurrentUserQuery } from "./apis/userApi";
 export {
   useAddCategoryMutation,
+  useUpdateCategoryMutation,
   useFetchCatetoryByIdQuery,
 } from "./apis/categoriesApi";
 export {
